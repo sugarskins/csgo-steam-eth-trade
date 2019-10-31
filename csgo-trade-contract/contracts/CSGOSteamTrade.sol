@@ -5,7 +5,7 @@ contract CSGOSteamTrade {
     
     struct PurchaseOffer {
         address owner;
-        uint creationBlock;
+        uint creationTimestamp;
         bool exists;
     }
 
@@ -68,23 +68,29 @@ contract CSGOSteamTrade {
         require(listing.exists == true, "Listing does not exist.");
         require(listing.purchaseOffer.exists == false, "Listing already has a purchase offer.");
         require(listing.price == msg.value, "Value sent does not match listing price.");
-        uint currentBlock = block.number;
-        PurchaseOffer memory purchaseOffer = PurchaseOffer(msg.sender, currentBlock, true);
+
+        uint currentTimestamp = block.timestamp;
+        PurchaseOffer memory purchaseOffer = PurchaseOffer(msg.sender, currentTimestamp, true);
         listing.purchaseOffer = purchaseOffer;
         listings[listingId] = listing;
     }
 
-    uint constant minimumPurchaseOfferBlockAge = 1000;
+    // 6 hours
+    uint constant MINIMUM_PURCHASE_OFFER_AGE = 60 * 60 * 6;
 
     function deletePurchaseOffer(uint listingId) public {
         Listing memory listing = listings[listingId];
         require(listing.exists == true, "There is no listing to delete the purchase offer for.");
         require(listing.purchaseOffer.exists == true, "There is no purchase offer to delete for the listing.");
         require(listing.purchaseOffer.owner == msg.sender, "Only the owner can delete the purchase offer");
-        uint blocksSince = listing.purchaseOffer.creationBlock;
-        require(blocksSince > minimumPurchaseOfferBlockAge, "The minimum block age requirement not met for deletion.");
+        uint secondsSinceOfferCreation = block.timestamp - listing.purchaseOffer.creationTimestamp;
+        require(secondsSinceOfferCreation > MINIMUM_PURCHASE_OFFER_AGE, "The minimum block age requirement not met for deletion.");
         listing.purchaseOffer = PurchaseOffer(0, 0, false);
         listings[listingId] = listing;
     }
+
+    // function confirmPurchaseFulfilment() public {
+
+    // }
 
 }
