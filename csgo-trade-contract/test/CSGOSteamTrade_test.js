@@ -1,3 +1,7 @@
+'use strict'
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const h = require('chainlink-test-helpers')
 
 contract('CSGOSteamTrade', accounts => {
   const LinkToken = artifacts.require('LinkToken.sol')
@@ -43,7 +47,7 @@ contract('CSGOSteamTrade', accounts => {
     beforeEach(async () => {
     })
 
-    context('when there are 0 listings currently', () => {
+    context('on a contract with no previous history', () => {
       it('can create a new listing and emits creation event', async () => {
         
         let marketId = '1915645022323022857'
@@ -69,14 +73,14 @@ contract('CSGOSteamTrade', accounts => {
 
       it('fetches created listing by id', async () => {
 
-        let marketId = '1915645022323022857'
-        let wear = '0.0356150865554809600000000'
-        let skinName = 'StatTrak™ M4A4 | Desert-Strike (Factory New)'
-        let price = '100000000000000000'
-        let ownerSteamAccountName = 'steamedbuns'
-        let paintSeed = 210
-        let sellerEthereumAdress = seller
-        let createListingTx = await csGOContract.createListing(ownerSteamAccountName, marketId, wear,
+        const marketId = '1915645022323022857'
+        const wear = '0.0356150865554809600000000'
+        const skinName = 'StatTrak™ M4A4 | Desert-Strike (Factory New)'
+        const price = '100000000000000000'
+        const ownerSteamAccountName = 'steamedbuns'
+        const paintSeed = 210
+        const sellerEthereumAdress = seller
+        const createListingTx = await csGOContract.createListing(ownerSteamAccountName, marketId, wear,
           skinName, paintSeed, price, sellerEthereumAdress, { from: seller })
 
         const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
@@ -93,4 +97,43 @@ contract('CSGOSteamTrade', accounts => {
     })
   })
 
+  describe('#createPurchaseOffer', () => {
+    context('on a contract with an existing listing', () => {
+      const marketId = '1915645022323022857'
+      const wear = '0.0356150865554809600000000'
+      const skinName = 'StatTrak™ M4A4 | Desert-Strike (Factory New)'
+      const price = '100000000000000000'
+      const ownerSteamAccountName = 'steamedbuns'
+      const paintSeed = 210
+      const sellerEthereumAdress = seller
+
+      const buyerSteamAccountName = 'iwantyourwep'
+  
+      beforeEach(async () => {
+        await csGOContract.createListing(ownerSteamAccountName, marketId, wear,
+          skinName, paintSeed, price, sellerEthereumAdress, { from: seller })
+      })
+      it('creates a purchase offer for the listing', async () => {
+        const listingId = 0
+        await csGOContract.createPurchaseOffer(listingId, buyerSteamAccountName, {
+          from: buyer,
+          value: price
+        })
+
+        const stored = await csGOContract.getListing.call(listingId)
+        const updatedOffer = stored.purchaseOffer
+        assert.equal(stored.marketId, marketId)
+        assert.equal(stored.wear, wear)
+        assert.equal(stored.skinName, skinName)
+        assert.equal(stored.price, price)
+        assert.equal(stored.sellerEthereumAdress, sellerEthereumAdress)
+        assert.equal(stored.owner, seller)
+        assert.equal(stored.exists, true)
+        
+        assert.equal(updatedOffer.owner, buyer)
+        assert.equal(updatedOffer.buyerSteamAccountName, buyerSteamAccountName)
+        assert.equal(updatedOffer.exists, true)
+      })
+    })
+  })
 })
