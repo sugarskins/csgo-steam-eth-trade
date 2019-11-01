@@ -1,5 +1,7 @@
 
 contract('CSGOSteamTrade', accounts => {
+  const LinkToken = artifacts.require('LinkToken.sol')
+  const Oracle = artifacts.require('Oracle.sol')
   const CSGOSteamTrade = artifacts.require('CSGOSteamTrade.sol')
 
   const defaultAccount = accounts[0]
@@ -10,10 +12,32 @@ contract('CSGOSteamTrade', accounts => {
   const seller = accounts[4]
   const buyer = accounts[5]
 
+  // These parameters are used to validate the data was received
+  // on the deployed oracle contract. The Job ID only represents
+  // the type of data, but will not work on a public testnet.
+  // For the latest JobIDs, visit our docs here:
+  // https://docs.chain.link/docs/testnet-oracles
+  const jobId = web3.utils.toHex('4c7b7ffb66b344fbaa64995af81e355a')
+  const url =
+    'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD,EUR,JPY'
+  const path = 'USD'
+  const times = 100
+
+    // Represents 1 LINK for testnet requests
+    const payment = web3.utils.toWei('1')
+
+
   let csGOContract = null
+  let linkToken = null
+  let oracleContract = null
 
   beforeEach(async () => {
+    linkToken = await LinkToken.new()
+    oracleContract = await Oracle.new(linkToken.address, { from: defaultAccount })
     csGOContract = await CSGOSteamTrade.new({ from: consumer })
+    await oracleContract.setFulfillmentPermission(oracleNode, true, {
+      from: defaultAccount,
+    })
   })
   describe('#createListing', () => {
     beforeEach(async () => {

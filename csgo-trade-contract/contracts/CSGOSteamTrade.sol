@@ -1,9 +1,11 @@
 pragma solidity ^0.4.24;
 pragma experimental ABIEncoderV2;
 
-contract CSGOSteamTrade {
+import "chainlink/contracts/ChainlinkClient.sol";
+
+contract CSGOSteamTrade is ChainlinkClient {
     // 6 hours
-    uint constant MINIMUM_PURCHASE_OFFER_AGE = 60 * 60 * 6;
+    uint public constant MINIMUM_PURCHASE_OFFER_AGE = 60 * 60 * 6;
     
     struct PurchaseOffer {
         address owner;
