@@ -162,6 +162,8 @@ contract CSGOSteamTrade is ChainlinkClient {
         require(listing.exists == true, "There is no listing with that id.");
         require(listing.stage == ListingStage.PENDING_TRANSFER_CONFIRMATON, "Listing is not pending transfer confirmation.");
 
+        listing.stage = ListingStage.DONE;
+        listings[listingId] = listing;
     }
 
     function uintToString(uint v) constant returns (string str) {

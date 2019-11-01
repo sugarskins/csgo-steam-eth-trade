@@ -184,6 +184,9 @@ contract('CSGOSteamTrade', accounts => {
         const expected = 50000
         const response = web3.utils.toHex(expected)
         await h.fulfillOracleRequest(oracleContract, request, response, { from: oracleNode })
+
+        const postConfirmationListing = await csGOContract.getListing.call(listingId)
+        console.log(postConfirmationListing)
       })
     })
   })
