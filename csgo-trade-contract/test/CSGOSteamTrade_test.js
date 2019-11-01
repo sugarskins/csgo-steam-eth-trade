@@ -26,9 +26,12 @@ contract('CSGOSteamTrade', accounts => {
         let wear = '0.0356150865554809600000000'
         let skinName = 'StatTrak™ M4A4 | Desert-Strike (Factory New)'
         let price = '150000000000000000'
+        let ownerSteamAccountName = 'steamedbuns'
+        let paintSeed = 210
         let sellerEthereumAdress = seller
-        const r = await csGOContract.createListing(marketId, wear,
-          skinName, price, sellerEthereumAdress, {from: seller })
+      
+        const r = await csGOContract.createListing(ownerSteamAccountName, marketId, wear,
+          skinName, paintSeed, price, sellerEthereumAdress, {from: seller })
         const creationEventLog = r.logs[0].args.listing
         assert.equal(r.receipt.status, true)
 
@@ -46,9 +49,11 @@ contract('CSGOSteamTrade', accounts => {
         let wear = '0.0356150865554809600000000'
         let skinName = 'StatTrak™ M4A4 | Desert-Strike (Factory New)'
         let price = '100000000000000000'
+        let ownerSteamAccountName = 'steamedbuns'
+        let paintSeed = 210
         let sellerEthereumAdress = seller
-        let createListingTx = await csGOContract.createListing(marketId, wear,
-          skinName, price, sellerEthereumAdress, { from: seller })
+        let createListingTx = await csGOContract.createListing(ownerSteamAccountName, marketId, wear,
+          skinName, paintSeed, price, sellerEthereumAdress, { from: seller })
 
         const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
         const stored = await csGOContract.getListing.call(createdListingId)
