@@ -35,7 +35,18 @@ contract CSGOSteamTrade is ChainlinkClient {
     uint numListings = 0;
     mapping(uint => Listing) listings;
     
-    constructor() public {
+    /**
+    * @notice Deploy the contract with a specified address for the LINK
+    * and Oracle contract addresses
+    * @dev Sets the storage for the specified addresses
+    * @param _link The address of the LINK token contract
+    */
+    constructor(address _link) public {
+        if (_link == address(0)) {
+        setPublicChainlinkToken();
+        } else {
+        setChainlinkToken(_link);
+        }
     }
     
     function createListing(string ownerSteamAccountName, uint marketId, string memory wear,
@@ -90,18 +101,48 @@ contract CSGOSteamTrade is ChainlinkClient {
 
         uint secondsSinceOfferCreation = block.timestamp - listing.purchaseOffer.creationTimestamp;
         require(secondsSinceOfferCreation > MINIMUM_PURCHASE_OFFER_AGE, "The minimum block age requirement not met for deletion.");
+
+        // send the funds back to the owner of the purchase offer.
+        listing.purchaseOffer.owner.transfer(listing.price);
+
         listing.purchaseOffer = PurchaseOffer(0, 0, '', false);
         listings[listingId] = listing;
     }
 
-    function confirmPurchaseFulfilment(uint listingId) public {
+    function createItemTransferConfirmationRequest(
+        uint listingId,
+        address _oracle,
+        bytes32 _jobId,
+        uint256 _payment,
+        string _url,
+        string _path)
+        public
+        returns (bytes32 requestId) {
+
         Listing memory listing = listings[listingId];
-        require(listing.exists == true, "There is no listing to delete the purchase offer for.");
-        require(listing.purchaseOffer.exists == true, "There is no purchase offer to delete for the listing.");
+        require(listing.exists == true, "There is no listing to confirm transfer for.");
+        require(listing.purchaseOffer.exists == true, "There is no purchase to offer to confirm transfer.");
         require(listing.owner == msg.sender, "Only the owner can confirm purchase fulfilment");
-
-        // request data from chainlink about whether purchase happened
-
+        
+        Chainlink.Request memory req = buildChainlinkRequest(_jobId,
+            this,
+            this.fulfillItemTransferConfirmation.selector);
+        req.add("url", _url);
+        req.add("path", _path);
+        requestId = sendChainlinkRequestTo(_oracle, req, _payment);
     }
 
+    /**
+   * @notice The fulfill method from requests created by this contract
+   * @dev The recordChainlinkFulfillment protects this function from being called
+   * by anyone other than the oracle address that the request was sent to
+   * @param _requestId The ID that was generated for the request
+   * @param _data The answer provided by the oracle
+   */
+    function fulfillItemTransferConfirmation(bytes32 _requestId, uint256 _data)
+        public
+        recordChainlinkFulfillment(_requestId)
+    {
+        
+    }
 }

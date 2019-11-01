@@ -38,7 +38,7 @@ contract('CSGOSteamTrade', accounts => {
   beforeEach(async () => {
     linkToken = await LinkToken.new()
     oracleContract = await Oracle.new(linkToken.address, { from: defaultAccount })
-    csGOContract = await CSGOSteamTrade.new({ from: consumer })
+    csGOContract = await CSGOSteamTrade.new(linkToken.address, { from: consumer })
     await oracleContract.setFulfillmentPermission(oracleNode, true, {
       from: defaultAccount,
     })
@@ -133,6 +133,52 @@ contract('CSGOSteamTrade', accounts => {
         assert.equal(updatedOffer.owner, buyer)
         assert.equal(updatedOffer.buyerSteamAccountName, buyerSteamAccountName)
         assert.equal(updatedOffer.exists, true)
+      })
+    })
+  })
+
+  describe('#createItemTransferConfirmationRequest', () => {
+    context('a contract with an existing listing with a matching valid purchase offer', () => {
+      const marketId = '1915645022323022857'
+      const wear = '0.0356150865554809600000000'
+      const skinName = 'StatTrak™ M4A4 | Desert-Strike (Factory New)'
+      const price = '100000000000000000'
+      const ownerSteamAccountName = 'steamedbuns'
+      const paintSeed = 210
+      const sellerEthereumAdress = seller
+  
+      const buyerSteamAccountName = 'iwantyourwep'
+
+      let listingId = 0
+  
+      beforeEach(async () => {
+        await linkToken.transfer(csGOContract.address, web3.utils.toWei('1', 'ether'))
+        await csGOContract.createListing(ownerSteamAccountName, marketId, wear,
+          skinName, paintSeed, price, sellerEthereumAdress, { from: seller })
+        listingId = 0
+        await csGOContract.createPurchaseOffer(listingId, buyerSteamAccountName, {
+            from: buyer,
+            value: price
+          })
+      })
+      it('triggers transfer confirmation request for the existing listing', async () => {
+        const tx = await csGOContract.createItemTransferConfirmationRequest(
+          listingId,
+          oracleContract.address,
+          jobId,
+          payment,
+          url,
+          path,
+          { from: seller },
+        )
+        const request = h.decodeRunRequest(tx.receipt.rawLogs[3])
+        assert.equal(oracleContract.address, tx.receipt.rawLogs[3].address)
+        assert.equal(
+          request.topic,
+          web3.utils.keccak256(
+            'OracleRequest(bytes32,address,bytes32,uint256,address,bytes4,uint256,uint256,bytes)',
+          ),
+        )
       })
     })
   })
