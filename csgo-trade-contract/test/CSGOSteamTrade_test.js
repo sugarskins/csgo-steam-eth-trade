@@ -180,6 +180,10 @@ contract('CSGOSteamTrade', accounts => {
             'OracleRequest(bytes32,address,bytes32,uint256,address,bytes4,uint256,uint256,bytes)',
           ),
         )
+
+        const expected = 50000
+        const response = web3.utils.toHex(expected)
+        await h.fulfillOracleRequest(oracleContract, request, response, { from: oracleNode })
       })
     })
   })

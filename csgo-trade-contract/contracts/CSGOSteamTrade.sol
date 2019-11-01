@@ -3,9 +3,12 @@ pragma experimental ABIEncoderV2;
 
 import "chainlink/contracts/ChainlinkClient.sol";
 
+
 contract CSGOSteamTrade is ChainlinkClient {
     // 6 hours
     uint public constant MINIMUM_PURCHASE_OFFER_AGE = 60 * 60 * 6;
+
+    enum ListingStage {OPEN, RECEIVED_OFFER, PENDING_TRANSFER_CONFIRMATON, DONE }
     
     struct PurchaseOffer {
         address owner;
@@ -26,6 +29,7 @@ contract CSGOSteamTrade is ChainlinkClient {
         address owner;
         PurchaseOffer purchaseOffer;
         bool exists;
+        ListingStage stage;
     }
 
     event ListingCreation(
@@ -34,6 +38,8 @@ contract CSGOSteamTrade is ChainlinkClient {
 
     uint numListings = 0;
     mapping(uint => Listing) listings;
+
+    mapping(bytes32 => uint) requestIdToListingId;
     
     /**
     * @notice Deploy the contract with a specified address for the LINK
@@ -54,7 +60,7 @@ contract CSGOSteamTrade is ChainlinkClient {
 
         PurchaseOffer memory placeholder = PurchaseOffer(0, 0, '', false);
         Listing memory listing = Listing(listingId, ownerSteamAccountName, marketId, wear, skinName, paintSeed,
-            price, sellerEthereumAdress, msg.sender, placeholder, true);
+            price, sellerEthereumAdress, msg.sender, placeholder, true, ListingStage.OPEN);
         listingId = numListings++;
         emit ListingCreation(listing);
         listings[listingId] = listing;
@@ -84,12 +90,14 @@ contract CSGOSteamTrade is ChainlinkClient {
     function createPurchaseOffer(uint listingId, string buyerSteamAccountName) public payable {
         Listing memory listing = listings[listingId];
         require(listing.exists == true, "Listing does not exist.");
+        require(listing.stage == ListingStage.OPEN, "Listing is not open for offers.");
         require(listing.purchaseOffer.exists == false, "Listing already has a purchase offer.");
         require(listing.price == msg.value, "Value sent does not match listing price.");
 
         uint currentTimestamp = block.timestamp;
         PurchaseOffer memory purchaseOffer = PurchaseOffer(msg.sender, currentTimestamp, buyerSteamAccountName, true);
         listing.purchaseOffer = purchaseOffer;
+        listing.stage = ListingStage.RECEIVED_OFFER;
         listings[listingId] = listing;
     }
 
@@ -106,6 +114,7 @@ contract CSGOSteamTrade is ChainlinkClient {
         listing.purchaseOffer.owner.transfer(listing.price);
 
         listing.purchaseOffer = PurchaseOffer(0, 0, '', false);
+        listing.stage = ListingStage.OPEN;
         listings[listingId] = listing;
     }
 
@@ -121,7 +130,8 @@ contract CSGOSteamTrade is ChainlinkClient {
 
         Listing memory listing = listings[listingId];
         require(listing.exists == true, "There is no listing to confirm transfer for.");
-        require(listing.purchaseOffer.exists == true, "There is no purchase to offer to confirm transfer.");
+        require(listing.stage == ListingStage.RECEIVED_OFFER, "The listing has not yet received an offer.");
+        require(listing.purchaseOffer.exists == true, "There is no purchase offer present.");
         require(listing.owner == msg.sender, "Only the owner can confirm purchase fulfilment");
         
         Chainlink.Request memory req = buildChainlinkRequest(_jobId,
@@ -129,7 +139,12 @@ contract CSGOSteamTrade is ChainlinkClient {
             this.fulfillItemTransferConfirmation.selector);
         req.add("url", _url);
         req.add("path", _path);
+        req.add("listingId", uintToString(listingId));
         requestId = sendChainlinkRequestTo(_oracle, req, _payment);
+        requestIdToListingId[requestId] = listingId;
+
+        listing.stage = ListingStage.PENDING_TRANSFER_CONFIRMATON;
+        listings[listingId] = listing;
     }
 
     /**
@@ -141,8 +156,27 @@ contract CSGOSteamTrade is ChainlinkClient {
    */
     function fulfillItemTransferConfirmation(bytes32 _requestId, uint256 _data)
         public
-        recordChainlinkFulfillment(_requestId)
-    {
-        
+        recordChainlinkFulfillment(_requestId) {
+        uint listingId = requestIdToListingId[_requestId];
+        Listing memory listing = listings[listingId];
+        require(listing.exists == true, "There is no listing with that id.");
+        require(listing.stage == ListingStage.PENDING_TRANSFER_CONFIRMATON, "Listing is not pending transfer confirmation.");
+
+    }
+
+    function uintToString(uint v) constant returns (string str) {
+        uint maxlength = 100;
+        bytes memory reversed = new bytes(maxlength);
+        uint i = 0;
+        while (v != 0) {
+            uint remainder = v % 10;
+            v = v / 10;
+            reversed[i++] = byte(48 + remainder);
+        }
+        bytes memory s = new bytes(i + 1);
+        for (uint j = 0; j <= i; j++) {
+            s[j] = reversed[i - j];
+        }
+        str = string(s);
     }
 }
