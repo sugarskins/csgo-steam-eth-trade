@@ -172,6 +172,7 @@ contract('CSGOSteamTrade', accounts => {
           { from: seller },
         )
         const request = h.decodeRunRequest(tx.receipt.rawLogs[3])
+        console.log(request)
         assert.equal(oracleContract.address, tx.receipt.rawLogs[3].address)
         assert.equal(
           request.topic,
