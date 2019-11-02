@@ -166,7 +166,9 @@ contract CSGOSteamTrade is ChainlinkClient {
         listings[listingId] = listing;
     }
 
-
+    /**
+     * @notice Converts a uint to a string. Extracted from https://github.com/provable-things/ethereum-api/blob/master/oraclizeAPI_0.5.sol
+     */
     function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
         if (_i == 0) {
             return "0";
