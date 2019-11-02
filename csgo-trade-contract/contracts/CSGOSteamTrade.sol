@@ -139,7 +139,7 @@ contract CSGOSteamTrade is ChainlinkClient {
             this.fulfillItemTransferConfirmation.selector);
         req.add("url", _url);
         req.add("path", _path);
-        req.add("listingId", uintToString(listingId));
+        req.add("listingId", uint2str(listingId));
         requestId = sendChainlinkRequestTo(_oracle, req, _payment);
         requestIdToListingId[requestId] = listingId;
 
@@ -166,19 +166,23 @@ contract CSGOSteamTrade is ChainlinkClient {
         listings[listingId] = listing;
     }
 
-    function uintToString(uint v) constant returns (string str) {
-        uint maxlength = 100;
-        bytes memory reversed = new bytes(maxlength);
-        uint i = 0;
-        while (v != 0) {
-            uint remainder = v % 10;
-            v = v / 10;
-            reversed[i++] = byte(48 + remainder);
+
+    function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
+        if (_i == 0) {
+            return "0";
         }
-        bytes memory s = new bytes(i + 1);
-        for (uint j = 0; j <= i; j++) {
-            s[j] = reversed[i - j];
+        uint j = _i;
+        uint len;
+        while (j != 0) {
+            len++;
+            j /= 10;
         }
-        str = string(s);
+        bytes memory bstr = new bytes(len);
+        uint k = len - 1;
+        while (_i != 0) {
+            bstr[k--] = byte(uint8(48 + _i % 10));
+            _i /= 10;
+        }
+        return string(bstr);
     }
 }
