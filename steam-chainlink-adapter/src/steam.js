@@ -1,17 +1,48 @@
 const CEconItem = require('steamcommunity/classes/CEconItem')
+const fetch = require('node-fetch')
+const log = require('./log')
 
-  const getSteamUserTuple = require('./steamUser').getSteamUserTuple
+const getSteamScanner = require('./steamUser').getSteamScanner
 
-const CSGO_APP_ID = 730
+
 const CSGO_CONTEXT_ID = 2
 const INVENTORY_MAX_SIZE = 1000 // for inventory only, this works
 
+async function inventoryContainsItem(accountName, steamId, wear, skinName, paintSeed) {
 
-async function inventoryContainsItem(accountName, wear, skinName, paintSeed) {
-  /*
-  TODO: call getInventory filter for items matching the avaialable props and scan the items that have matching wear
-  */
+  const inventoryItems = await getInventory(accountName, steamId)
+
+  const scanner = getSteamScanner()
+
+  const item = await findItemByWear(scanner, inventoryItems, skinName, paintSeed, wear)
+
+  return item !== null
 }
+
+
+async function findItemByWear(scanner, inventoryItems, skinName, paintSeed, wear) {
+  const candidates = inventoryItems.filter(item => item.market_hash_name === skinName)
+
+  log.info(`There are ${candidates.length} potential matches in the inventory \
+    for the skin ${skinName} with wear ${wear}`)
+
+  for (let i = 0; i < candidates.length; i++) {
+    const candidate = candidates[i]
+    const inspectLink = candidate.inspectLink
+    log.info(`Scanning possible match ${candidate.market_hash_name} with inspect link ${candidate.inspectLink}`)
+    const scannedCandidate = await scanner.scanInspectLink(inspectLink)
+
+    console.log(scannedCandidate)
+
+    if (scannedCandidate.paintseed.toString() === paintSeed, isSameWear(scannedCandidate.paintwear.toString(), wear)) {
+      return scannedCandidate
+    }
+  }
+
+  // could not find any matches, return null.
+  return null
+}
+
 
 async function getInventory(accountName, steamId) {
   const referer = getInventoryUrl(steamId)
@@ -50,13 +81,15 @@ async function getInventory(accountName, steamId) {
       CSGO_CONTEXT_ID
     );
 
-    inventory.push({
-      ...item,
-      owner: accountName,
-      inspectLink: item.actions[0].link
-        .replace('%owner_steamid%', steamId)
-        .replace('%assetid%', a)
-    })
+    if (item.actions) {
+      inventory.push({
+        ...item,
+        owner: accountName,
+        inspectLink: item.actions[0].link
+          .replace('%owner_steamid%', steamId)
+          .replace('%assetid%', a)
+      })
+    }
   })
 
   return inventory
@@ -70,6 +103,17 @@ function getCsgoInventoryUrl(steamId, pageSize = 100) {
   return `${getInventoryUrl(steamId)}/json/730/2?count=${pageSize}`
 }
 
+
+function isSameWear(wear1, wear2) {
+  const DIGITS = 14
+  return wear1.slice(0, DIGITS) === wear2.slice(0, DIGITS)
+}
+
+function isReady() {
+  return Boolean(getSteamScanner())
+}
+
 module.exports = {
-  inventoryContainsItem
+  inventoryContainsItem,
+  isReady
 }
