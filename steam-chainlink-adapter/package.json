@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "cls-hooked": "^4.2.2",
+    "globaloffensive": "^2.0.2",
     "node-fetch": "^2.6.0",
     "steam-totp": "^2.1.1",
     "steam-user": "^4.12.4",
