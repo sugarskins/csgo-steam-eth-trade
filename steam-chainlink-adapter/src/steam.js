@@ -34,7 +34,7 @@ async function findItemByWear(scanner, inventoryItems, skinName, paintSeed, wear
 
     console.log(scannedCandidate)
 
-    if (scannedCandidate.paintseed.toString() === paintSeed, isSameWear(scannedCandidate.paintwear.toString(), wear)) {
+    if (scannedCandidate.paintseed.toString() === paintSeed && isSameWear(scannedCandidate.paintwear.toString(), wear)) {
       return scannedCandidate
     }
   }
