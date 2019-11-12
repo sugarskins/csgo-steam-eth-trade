@@ -7,6 +7,10 @@ const steam = require('./src/steam')
 
 app.use(bodyParser.json())
 
+const CONTAINS_ITEM_FALSE = 0
+const CONTAINS_ITEM_TRUE = 1
+const CONTAINS_ITEM_INVENTORY_PRIVATE = 2
+
 
 async function createRequest(input) {
   log.info(`Request recieved with data ${JSON.stringify(input.data)}`)
@@ -18,7 +22,7 @@ async function createRequest(input) {
         data: {
           jobRunID: input.id,
           data: {
-            containsItem
+            containsItem: containsItem ? CONTAINS_ITEM_TRUE : CONTAINS_ITEM_FALSE
           },
           error: null
         },
