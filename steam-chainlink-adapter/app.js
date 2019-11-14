@@ -13,7 +13,7 @@ const CONTAINS_ITEM_INVENTORY_PRIVATE = 2
 
 
 async function createRequest(input) {
-  log.info(`Request recieved with data ${JSON.stringify(input.data)}`)
+  log.info(`Request received with data ${JSON.stringify(input)}`)
   switch (input.data.method.toLowerCase()) {
     case "checkinventorycontainsitem":
       const data = input.data
@@ -44,6 +44,7 @@ async function createRequest(input) {
 app.post("/",  async (req, res) => {
   try {
     const result = await createRequest(req.body)
+    log.info(`Returning response ${JSON.stringify(result)}`)
     return res.json(result.data).status(result.statusCode)
   } catch (e) {
     log.error(`Request failure: ${e.stack}`)
