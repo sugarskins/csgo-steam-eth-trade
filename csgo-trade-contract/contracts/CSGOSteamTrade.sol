@@ -7,6 +7,8 @@ import "chainlink/contracts/ChainlinkClient.sol";
 contract CSGOSteamTrade is ChainlinkClient {
     // 6 hours
     uint public constant MINIMUM_PURCHASE_OFFER_AGE = 60 * 60 * 6;
+    string public constant CHECK_INVENTORY_CONTAINS_ITEM_METHOD = "checkinventorycontainsitem";
+    uint256 constant private ORACLE_PAYMENT = 1 * LINK;
 
     enum ListingStage {OPEN, RECEIVED_OFFER, PENDING_TRANSFER_CONFIRMATON, DONE }
     
@@ -20,7 +22,7 @@ contract CSGOSteamTrade is ChainlinkClient {
     struct Listing {
         uint listingId;
         string ownerSteamAccountName;
-        uint marketId;
+        uint accountSteamId;
         string wear;
         string skinName;
         uint paintSeed;
@@ -55,11 +57,11 @@ contract CSGOSteamTrade is ChainlinkClient {
         }
     }
     
-    function createListing(string ownerSteamAccountName, uint marketId, string memory wear,
+    function createListing(string ownerSteamAccountName, uint accountSteamId, string memory wear,
         string memory skinName, uint paintSeed, uint price, address sellerEthereumAdress) public returns (uint listingId) {
 
         PurchaseOffer memory placeholder = PurchaseOffer(0, 0, '', false);
-        Listing memory listing = Listing(listingId, ownerSteamAccountName, marketId, wear, skinName, paintSeed,
+        Listing memory listing = Listing(listingId, ownerSteamAccountName, accountSteamId, wear, skinName, paintSeed,
             price, sellerEthereumAdress, msg.sender, placeholder, true, ListingStage.OPEN);
         listingId = numListings++;
         emit ListingCreation(listing);
@@ -137,9 +139,18 @@ contract CSGOSteamTrade is ChainlinkClient {
         Chainlink.Request memory req = buildChainlinkRequest(_jobId,
             this,
             this.fulfillItemTransferConfirmation.selector);
-        req.add("url", _url);
-        req.add("path", _path);
-        req.add("listingId", uint2str(listingId));
+            
+        req.add("method", CHECK_INVENTORY_CONTAINS_ITEM_METHOD);
+        req.add("accountName", listing.ownerSteamAccountName);
+        req.add("steamId", uint2str(listing.accountSteamId));
+        req.add("wear", listing.wear);
+        req.add("skinName", listing.skinName);
+        req.add("paintSeed", uint2str(listing.paintSeed));
+        
+        string[] memory path = new string[](1);
+        path[0] = "containsItem";
+        req.addStringArray("copyPath", path);
+
         requestId = sendChainlinkRequestTo(_oracle, req, _payment);
         requestIdToListingId[requestId] = listingId;
 
