@@ -83,16 +83,16 @@ contract CSGOSteamTrade is ChainlinkClient {
         listings[listingId] = listing;
     }
     
-    function getListing(uint listingId) public view returns (Listing memory listing) {
-        listing = listings[listingId];
+    function getListing(uint _listingId) public view returns (Listing memory listing) {
+        listing = listings[_listingId];
     }
 
     function getListingsCount() public view returns (uint) {
         return numListings;
     }
     
-    function deleteListing(uint listingId) public {
-        Listing memory listing = listings[listingId];
+    function deleteListing(uint _listingId) public {
+        Listing memory listing = listings[_listingId];
         require(listing.exists == true,  "Listing does not exist.");
         require(listing.owner == msg.sender, "Only the owner can delete his listing.");
 
@@ -101,11 +101,11 @@ contract CSGOSteamTrade is ChainlinkClient {
             listing.purchaseOffer.owner.transfer(listing.price);
         }
         
-        listings[listingId].exists = false;
+        listings[_listingId].exists = false;
     }
 
-    function createPurchaseOffer(uint listingId, string buyerSteamAccountName) public payable {
-        Listing memory listing = listings[listingId];
+    function createPurchaseOffer(uint _listingId, string buyerSteamAccountName) public payable {
+        Listing memory listing = listings[_listingId];
         require(listing.exists == true, "Listing does not exist.");
         require(listing.stage == ListingStage.OPEN, "Listing is not open for offers.");
         require(listing.purchaseOffer.exists == false, "Listing already has a purchase offer.");
@@ -115,11 +115,11 @@ contract CSGOSteamTrade is ChainlinkClient {
         PurchaseOffer memory purchaseOffer = PurchaseOffer(msg.sender, currentTimestamp, buyerSteamAccountName, true);
         listing.purchaseOffer = purchaseOffer;
         listing.stage = ListingStage.RECEIVED_OFFER;
-        listings[listingId] = listing;
+        listings[_listingId] = listing;
     }
 
-    function deletePurchaseOffer(uint listingId) public {
-        Listing memory listing = listings[listingId];
+    function deletePurchaseOffer(uint _listingId) public {
+        Listing memory listing = listings[_listingId];
         require(listing.exists == true, "There is no listing to delete the purchase offer for.");
         require(listing.purchaseOffer.exists == true, "There is no purchase offer to delete for the listing.");
         require(listing.purchaseOffer.owner == msg.sender, "Only the owner can delete the purchase offer");
@@ -132,11 +132,11 @@ contract CSGOSteamTrade is ChainlinkClient {
 
         listing.purchaseOffer = PurchaseOffer(0, 0, '', false);
         listing.stage = ListingStage.OPEN;
-        listings[listingId] = listing;
+        listings[_listingId] = listing;
     }
 
     function createItemTransferConfirmationRequest(
-        uint listingId,
+        uint _listingId,
         address _oracle,
         bytes32 _jobId,
         uint256 _payment,
@@ -145,7 +145,7 @@ contract CSGOSteamTrade is ChainlinkClient {
         public
         returns (bytes32 requestId) {
 
-        Listing memory listing = listings[listingId];
+        Listing memory listing = listings[_listingId];
         require(listing.exists == true, "There is no listing to confirm transfer for.");
         require(listing.stage == ListingStage.RECEIVED_OFFER, "The listing has not yet received an offer.");
         require(listing.purchaseOffer.exists == true, "There is no purchase offer present.");
@@ -167,10 +167,10 @@ contract CSGOSteamTrade is ChainlinkClient {
         req.addStringArray("copyPath", path);
 
         requestId = sendChainlinkRequestTo(_oracle, req, _payment);
-        requestIdToListingId[requestId] = listingId;
+        requestIdToListingId[requestId] = _listingId;
 
         listing.stage = ListingStage.PENDING_TRANSFER_CONFIRMATON;
-        listings[listingId] = listing;
+        listings[_listingId] = listing;
     }
 
     /**
