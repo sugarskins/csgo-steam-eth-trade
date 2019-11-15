@@ -181,7 +181,7 @@ contract('CSGOSteamTrade', accounts => {
           ),
         )
 
-        const expected = 50000
+        const expected = 1
         const response = web3.utils.toHex(expected)
         await h.fulfillOracleRequest(oracleContract, request, response, { from: oracleNode })
 

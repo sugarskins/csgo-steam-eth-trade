@@ -10,6 +10,10 @@ contract CSGOSteamTrade is ChainlinkClient {
     string public constant CHECK_INVENTORY_CONTAINS_ITEM_METHOD = "checkinventorycontainsitem";
     uint256 constant private ORACLE_PAYMENT = 1 * LINK;
 
+    uint256 constant public OWNERSHIP_STATUS_FALSE = 0;
+    uint256 constant public OWNERSHIP_STATUS_TRUE = 1;
+    uint256 constant public OWNERSHIP_STATUS_INVENTORY_PRIVATE = 2;
+
     enum ListingStage {OPEN, RECEIVED_OFFER, PENDING_TRANSFER_CONFIRMATON, DONE }
     
     struct PurchaseOffer {
@@ -35,6 +39,17 @@ contract CSGOSteamTrade is ChainlinkClient {
     }
 
     event ListingCreation(
+        Listing listing
+    );
+
+    enum TradeOutcome { SUCCESSFULLY_CONFIRMED, UNABLE_TO_CONFIRM_PRIVATE_PROFILE }
+
+    event TradeDone (
+        Listing listing,
+        TradeOutcome tradeOutcome
+    );
+
+    event TradeFulfilmentFail (
         Listing listing
     );
 
@@ -163,17 +178,29 @@ contract CSGOSteamTrade is ChainlinkClient {
    * @dev The recordChainlinkFulfillment protects this function from being called
    * by anyone other than the oracle address that the request was sent to
    * @param _requestId The ID that was generated for the request
-   * @param _data The answer provided by the oracle
+   * @param _ownershipStatus The answer provided by the oracle
    */
-    function fulfillItemTransferConfirmation(bytes32 _requestId, uint256 _data)
+    function fulfillItemTransferConfirmation(bytes32 _requestId, uint256 _ownershipStatus)
         public
         recordChainlinkFulfillment(_requestId) {
         uint listingId = requestIdToListingId[_requestId];
         Listing memory listing = listings[listingId];
         require(listing.exists == true, "There is no listing with that id.");
         require(listing.stage == ListingStage.PENDING_TRANSFER_CONFIRMATON, "Listing is not pending transfer confirmation.");
+        require(_ownershipStatus >= 0 && _ownershipStatus <= 2, "_ownershipStatus is not within the known range of values");
 
-        listing.stage = ListingStage.DONE;
+        if (_ownershipStatus == OWNERSHIP_STATUS_TRUE) {
+            listing.stage = ListingStage.DONE;
+            listing.sellerEthereumAdress.transfer(listing.price);
+            emit TradeDone(listing, TradeOutcome.SUCCESSFULLY_CONFIRMED);
+        } else if (_ownershipStatus == OWNERSHIP_STATUS_INVENTORY_PRIVATE) {
+            listing.stage = ListingStage.DONE;
+            listing.sellerEthereumAdress.transfer(listing.price);
+            emit TradeDone(listing, TradeOutcome.UNABLE_TO_CONFIRM_PRIVATE_PROFILE);
+        } else if (_ownershipStatus == OWNERSHIP_STATUS_FALSE) {
+            emit TradeFulfilmentFail(listing);
+        }
+        
         listings[listingId] = listing;
     }
 
