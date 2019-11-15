@@ -15,7 +15,7 @@ const CONTAINS_ITEM_INVENTORY_PRIVATE = 2
 async function createRequest(input) {
   log.info(`Request received with data ${JSON.stringify(input)}`)
   switch (input.data.method.toLowerCase()) {
-    case "checkinventorycontainsitem":
+    case 'checkinventorycontainscsgoweapon':
       const data = input.data
       const containsItem = await steam.inventoryContainsItem(data.accountName, data.steamId, data.wear, data.skinName, data.paintSeed)
       return {

@@ -7,7 +7,7 @@ import "chainlink/contracts/ChainlinkClient.sol";
 contract CSGOSteamTrade is ChainlinkClient {
     // 6 hours
     uint public constant MINIMUM_PURCHASE_OFFER_AGE = 60 * 60 * 6;
-    string public constant CHECK_INVENTORY_CONTAINS_ITEM_METHOD = "checkinventorycontainsitem";
+    string public constant CHECK_INVENTORY_CONTAINS_ITEM_METHOD = "checkinventorycontainscsgoweapon";
     uint256 constant private ORACLE_PAYMENT = 1 * LINK;
 
     uint256 constant public OWNERSHIP_STATUS_FALSE = 0;
@@ -72,12 +72,12 @@ contract CSGOSteamTrade is ChainlinkClient {
         }
     }
     
-    function createListing(string ownerSteamAccountName, uint accountSteamId, string memory wear,
-        string memory skinName, uint paintSeed, uint price, address sellerEthereumAdress) public returns (uint listingId) {
+    function createListing(string _ownerSteamAccountName, uint _accountSteamId, string memory _wear,
+        string memory _skinName, uint _paintSeed, uint _price, address _sellerEthereumAdress) public returns (uint listingId) {
 
         PurchaseOffer memory placeholder = PurchaseOffer(0, 0, '', false);
-        Listing memory listing = Listing(listingId, ownerSteamAccountName, accountSteamId, wear, skinName, paintSeed,
-            price, sellerEthereumAdress, msg.sender, placeholder, true, ListingStage.OPEN);
+        Listing memory listing = Listing(listingId, _ownerSteamAccountName, _accountSteamId, _wear, _skinName, _paintSeed,
+            _price, _sellerEthereumAdress, msg.sender, placeholder, true, ListingStage.OPEN);
         listingId = numListings++;
         emit ListingCreation(listing);
         listings[listingId] = listing;
