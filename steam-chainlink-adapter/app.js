@@ -49,7 +49,9 @@ app.post("/",  async (req, res) => {
   } catch (e) {
     log.error(`Request failure: ${e.stack}`)
     return res.json({
-      message: 'Server error.'
+      jobRunID: req.body.id,
+      error: 'Server error.',
+      status: 'errored'
     }).status(500)
   }
 })
