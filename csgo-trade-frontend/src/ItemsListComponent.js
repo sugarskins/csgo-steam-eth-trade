@@ -57,26 +57,54 @@ class ItemComponent extends Component {
     constructor(props) {
         super(props);
         this.state = {
-
+            showPurchaseModal: false
         }
+
+
+        this.handleShowCompetitionModal = this.handleShowCompetitionModal.bind(this)
+        this.handleCloseCompetitionModal = this.handleCloseCompetitionModal.bind(this)
     }
+
+    async handleShowCompetitionModal() {
+        await this.setState({ showCompetitionModal: true })
+    }
+
+    async handleCloseCompetitionModal() {
+        await this.setState({ showCompetitionModal: false })
+    }
+
 
     render() {
         return (
-           <Card style={{ width: '18rem' }}>
-            <Card.Img variant="top" src={this.props.item.imageSrc} />
-            <Card.Body>
-              <Card.Title>{this.props.item.skinName}</Card.Title>
-              <Card.Text>
-                  <p>Price: {this.props.item.price}</p>
-                  <p>Wear: {this.props.item.wear}</p>
-                  
-              </Card.Text>
-              <Card.Link href={this.props.item.inspectLink}>👀</Card.Link>
-              <Card.Link href={this.props.item.inventoryLink} text="View on Steam">🚂</Card.Link>
-              <Button variant="primary"> Purchase </Button>
-            </Card.Body>
-          </Card>
+            <div>
+            <Card style={{ width: '18rem' }}>
+                <Card.Img variant="top" src={this.props.item.imageSrc} />
+                <Card.Body>
+                <Card.Title>{this.props.item.skinName}</Card.Title>
+                <Card.Text>
+                    <p>Price: {this.props.item.price}</p>
+                    <p>Wear: {this.props.item.wear}</p>
+                    
+                </Card.Text>
+                <Card.Link href={this.props.item.inspectLink}>👀</Card.Link>
+                <Card.Link href={this.props.item.inventoryLink} text="View on Steam">🚂</Card.Link>
+                <Button variant="primary" onClick={this.handleShowCompetitionModal} > Purchase </Button>
+                </Card.Body>
+            </Card>
+            <Modal size="lg" show={this.state.showCompetitionModal} onHide={this.handleCloseCompetitionModal}>
+                    <Modal.Header closeButton>
+                    <Modal.Title>Purchase</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <p> Details </p>
+                    </Modal.Body>
+                    <Modal.Footer>
+                    <Button variant="secondary" onClick={this.handleCloseCompetitionModal}>
+                        Close
+                    </Button>
+                    </Modal.Footer>
+            </Modal>
+          </div>
         )
     }
 }
@@ -86,11 +114,12 @@ class ItemsListComponent extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            items: []
+            items: []            
         }
         this.state.items = new Array(12)
         this.state.items.fill(testItem1)
     }
+
     async componentDidMount() {
         console.info('ItemsListComponent componentDidMount')
 
@@ -117,7 +146,6 @@ class ItemsListComponent extends Component {
         return (
             <div class="form-group App-login">
                 <Container>
-
                     {rowGroupedItems.map(rowOfItems => (
                         <Row>
                             {rowOfItems.map(item => (
@@ -127,7 +155,6 @@ class ItemsListComponent extends Component {
                             ))}
                         </Row>
                     ))}
-
                 </Container>
             </div>
           );
