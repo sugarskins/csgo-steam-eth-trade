@@ -74,11 +74,10 @@ contract CSGOSteamTrade is ChainlinkClient {
     
     function createListing(string _ownerSteamAccountName, uint _accountSteamId, string memory _wear,
         string memory _skinName, uint _paintSeed, uint _price, address _sellerEthereumAdress) public returns (uint listingId) {
-
+        listingId = numListings++;
         PurchaseOffer memory placeholder = PurchaseOffer(0, 0, '', false);
         Listing memory listing = Listing(listingId, _ownerSteamAccountName, _accountSteamId, _wear, _skinName, _paintSeed,
             _price, _sellerEthereumAdress, msg.sender, placeholder, true, ListingStage.OPEN);
-        listingId = numListings++;
         emit ListingCreation(listing);
         listings[listingId] = listing;
     }
