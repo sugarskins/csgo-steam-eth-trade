@@ -61,11 +61,11 @@ class ItemComponent extends Component {
         }
 
 
-        this.handleShowCompetitionModal = this.handleShowCompetitionModal.bind(this)
+        this.handleShowCompetitionModal = this.handleShowPurchaseModal.bind(this)
         this.handleCloseCompetitionModal = this.handleCloseCompetitionModal.bind(this)
     }
 
-    async handleShowCompetitionModal() {
+    async handleShowPurchaseModal() {
         await this.setState({ showCompetitionModal: true })
     }
 
@@ -88,10 +88,10 @@ class ItemComponent extends Component {
                 </Card.Text>
                 <Card.Link href={this.props.item.inspectLink}>👀</Card.Link>
                 <Card.Link href={this.props.item.inventoryLink} text="View on Steam">🚂</Card.Link>
-                <Button variant="primary" onClick={this.handleShowCompetitionModal} > Purchase </Button>
+                <Button variant="primary" onClick={this.handleShowPurchaseModal} > Purchase </Button>
                 </Card.Body>
             </Card>
-            <Modal size="lg" show={this.state.showCompetitionModal} onHide={this.handleCloseCompetitionModal}>
+            <Modal size="lg" show={this.state.showCompetitionModal} onHide={this.handleClosePurchaseModal}>
                     <Modal.Header closeButton>
                     <Modal.Title>Purchase</Modal.Title>
                     </Modal.Header>
