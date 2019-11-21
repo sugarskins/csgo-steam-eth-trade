@@ -7,7 +7,8 @@ import Card from  'react-bootstrap/Card'
 import Container from  'react-bootstrap/Container'
 import Row from  'react-bootstrap/Row'
 import Col from  'react-bootstrap/Col'
-
+import Web3 from 'web3'
+import CSGOSteamTradeoContract from './CSGOSteamTrade'
 
 function makeGroups(array, groupSize) {
     if (groupSize < 1) {
@@ -61,16 +62,16 @@ class ItemComponent extends Component {
         }
 
 
-        this.handleShowCompetitionModal = this.handleShowPurchaseModal.bind(this)
-        this.handleCloseCompetitionModal = this.handleCloseCompetitionModal.bind(this)
+        this.handleShowPurchaseModal = this.handleShowPurchaseModal.bind(this)
+        this.handleClosePurchaseModal = this.handleClosePurchaseModal.bind(this)
     }
 
     async handleShowPurchaseModal() {
-        await this.setState({ showCompetitionModal: true })
+        await this.setState({ showPurchaseModal: true })
     }
 
-    async handleCloseCompetitionModal() {
-        await this.setState({ showCompetitionModal: false })
+    async handleClosePurchaseModal() {
+        await this.setState({ showPurchaseModal: false })
     }
 
 
@@ -91,7 +92,7 @@ class ItemComponent extends Component {
                 <Button variant="primary" onClick={this.handleShowPurchaseModal} > Purchase </Button>
                 </Card.Body>
             </Card>
-            <Modal size="lg" show={this.state.showCompetitionModal} onHide={this.handleClosePurchaseModal}>
+            <Modal size="lg" show={this.state.showPurchaseModal} onHide={this.handleClosePurchaseModal}>
                     <Modal.Header closeButton>
                     <Modal.Title>Purchase</Modal.Title>
                     </Modal.Header>
@@ -99,7 +100,7 @@ class ItemComponent extends Component {
                         <p> Details </p>
                     </Modal.Body>
                     <Modal.Footer>
-                    <Button variant="secondary" onClick={this.handleCloseCompetitionModal}>
+                    <Button variant="secondary" onClick={this.handleClosePurchaseModal}>
                         Close
                     </Button>
                     </Modal.Footer>
@@ -114,10 +115,21 @@ class ItemsListComponent extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            items: []            
+            items: []       
         }
         this.state.items = new Array(12)
         this.state.items.fill(testItem1)
+
+        this.state.web3js = new Web3('http://localhost:8545')
+
+        const csgoSteamTradeContractAddress = '0x48c7bc970466C668c48556088BAC86520e505676'
+
+        this.state.contractInstance = new this.state.web3js.eth.Contract(
+            CSGOSteamTradeoContract.abi,
+            csgoSteamTradeContractAddress,
+            {}
+          )
+        
     }
 
     async componentDidMount() {
@@ -133,6 +145,9 @@ class ItemsListComponent extends Component {
 
         // }]
         // await this.setState({ items: items })
+
+        const listingsCount = await this.state.contractInstance.methods.getListingsCount().call()
+        console.info(`Listings available: ${listingsCount}`)
     }
 
     componentDidUpdate() {
