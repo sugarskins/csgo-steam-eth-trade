@@ -54,45 +54,59 @@ const testItem1 = new ItemData(
     "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot6-iFBRv7ODcfi9P6s65mpS0n_L1JaLummpD78A_0u2X9o332A22-UI5amuncYGdcwJtZ1nT_1S8w-i-g5Xt6p_LySdivT5iuyiWgPKs_g/330x192",
 )
 
+function getMetamask() {
+    if (typeof window.ethereum !== 'undefined') {
+        console.log('Metamask web3 is enabled')       
+        // eslint-disable-next-line     
+        return window.ethereum
+      } else {
+        console.info('web3 is not found')
+        return false
+      }
+}
+
 
 class ItemComponent extends Component {
     constructor(props) {
         super(props);
         this.state = {
             showPurchaseModal: false,
-            metamaskAvailable: false
+            metamaskAvailable: false,
+            metamaskPermissionGranted: false,
+            metamaskEthers: null
         }
 
 
         this.handleShowPurchaseModal = this.handleShowPurchaseModal.bind(this)
         this.handleClosePurchaseModal = this.handleClosePurchaseModal.bind(this) 
         this.handlePurchaseRequest = this.handlePurchaseRequest.bind(this) 
-    }
-
-    async isMetamaskAvailable() {
-        if (typeof web3 !== 'undefined') {
-            console.log('web3 is enabled')       
-            // eslint-disable-next-line     
-            if (web3.currentProvider.isMetaMask === true) {
-              console.info('MetaMask is active')
-              return true
-            } else {
-              console.info('MetaMask is not available')
-              return false
-            }
-          } else {
-            console.info('web3 is not found')
-            return false
-          }
+        this.requestMetamaskAccess = this.requestMetamaskAccess.bind(this)
     }
 
     async componentDidMount() {
-        const metamaskAvailable = await this.isMetamaskAvailable()
-        await this.setState({ metamaskAvailable })
+        const metamaskEthereum = getMetamask()
+        await this.setState({ metamaskAvailable: metamaskEthereum })
     }
 
     async handleShowPurchaseModal() {
         await this.setState({ showPurchaseModal: true })
+    }
+
+    async requestMetamaskAccess() {
+        const metamaskEthereum = getMetamask()
+        if (metamaskEthereum) {
+            this.metamaskEthers = new ethers.providers.Web3Provider(metamaskEthereum)
+            try {
+                // Request account access if needed
+                await metamaskEthereum.enable()
+                console.info('Succesfully gained access to metamask.')
+                await this.setState({ metamaskPermissionGranted: true})
+            } catch (error) {
+                // User denied account access...
+                console.error('Failed to gain access to metamask.')
+                await this.setState({ metamaskPermissionGranted: false })
+            }
+        }
     }
 
     async handleClosePurchaseModal() {
@@ -128,13 +142,16 @@ class ItemComponent extends Component {
                     </Modal.Header>
                     <Modal.Body>
                     { !this.state.metamaskAvailable ? (<div> ❗🦊 Please install the <a href='https://metamask.io/'>Metamask</a> browser
-                    extension in order to make payments and refresh this page. </div>) : null }
+                    extension in order to make payments, and after refresh this page. </div>) : null }
+                    { this.state.metamaskAvailable && !this.state.metamaskPermissionGranted ? (<div> ❗🦊 In order to purchase items, access to
+                         your <a href='https://metamask.io/'>Metamask</a> address is required.
+                         <Button type="button" className="btn btn-primary" onClick={this.requestMetamaskAccess} > Grant access </Button> </div>) : null }
                         <p> Details </p>
 
                     </Modal.Body>
                     <Modal.Footer>
 
-                    <button type="button" className="btn btn-primary" onClick={this.handlePurchaseRequest} > Purchase </button>
+                    <button type="button" className="btn btn-primary" disabled={!this.state.metamaskAvailable || !this.state.metamaskPermissionGranted }  onClick={this.handlePurchaseRequest} > Purchase </button>
                     <a href={this.props.item.inspectLink}><button type="button" className="btn btn-primary"> View on Steam </button></a>
                     <Button variant="secondary" onClick={this.handleClosePurchaseModal}>
                         Close
@@ -151,7 +168,8 @@ class ItemsListComponent extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            items: []       
+            items: [],
+            csgoSteamTradeContractAddress: '0x297ab0fbECE2ada3082516F9bC2D61d537EB46DC'       
         }
         this.state.items = new Array(12)
         this.state.items.fill(testItem1)
@@ -160,13 +178,8 @@ class ItemsListComponent extends Component {
 
         // eslint-disable-next-line             
         this.state.ethersProvider = new ethers.providers.JsonRpcProvider('http://localhost:8545') // new ethers.providers.Web3Provider(web3.currentProvider)
-
-        const csgoSteamTradeContractAddress = '0x297ab0fbECE2ada3082516F9bC2D61d537EB46DC'
-
-        // this.state.contractInstance = this.state.web3js.eth.contract(
-        //     CSGOSteamTradeoContract.abi).at(csgoSteamTradeContractAddress)
         
-        this.state.contractInstance = new ethers.Contract(csgoSteamTradeContractAddress, CSGOSteamTradeoContract.abi, this.state.ethersProvider)
+        this.state.contractInstance = new ethers.Contract(this.state.csgoSteamTradeContractAddress, CSGOSteamTradeoContract.abi, this.state.ethersProvider)
         
     }
 
@@ -183,6 +196,11 @@ class ItemsListComponent extends Component {
 
         // }]
         // await this.setState({ items: items })
+
+        
+        // this.state.web3js = web3
+        // this.state.web3ContractInstance = this.state.web3js.eth.contract(
+        //     CSGOSteamTradeoContract.abi).at(this.state.csgoSteamTradeContractAddress)
 
         const listingsCount = await this.state.contractInstance.getListingsCount()
         console.info(`Listings available: ${listingsCount}`)
