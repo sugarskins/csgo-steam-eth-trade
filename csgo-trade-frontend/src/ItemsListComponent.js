@@ -7,7 +7,7 @@ import Card from  'react-bootstrap/Card'
 import Container from  'react-bootstrap/Container'
 import Row from  'react-bootstrap/Row'
 import Col from  'react-bootstrap/Col'
-// import Web3 from 'web3'
+
 import * as ethers from 'ethers'
 import CSGOSteamTradeoContract from './CSGOSteamTrade'
 
@@ -51,7 +51,7 @@ const testItem1 = new ItemData(
     'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198862566094A16975411865D10106128984445219556',
     'https://steamcommunity.com/profiles/76561198862566094/inventory#730',
     '100000000000000000',
-    "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo7e1f1Jf2-r3dTlS7ciJgZKJqPrxN7LEm1Rd6dd2j6eUoNyn2wXir0Q4YGD3J4aVcw8_N1rZ-gK-lO-5gMe8uZqam3dhuHIj-z-DyAPtZave/330x192"
+    "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot6-iFBRv7ODcfi9P6s65mpS0n_L1JaLummpD78A_0u2X9o332A22-UI5amuncYGdcwJtZ1nT_1S8w-i-g5Xt6p_LySdivT5iuyiWgPKs_g/330x192",
 )
 
 
@@ -59,26 +59,36 @@ class ItemComponent extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            showPurchaseModal: false
+            showPurchaseModal: false,
+            metamaskAvailable: false
         }
 
 
         this.handleShowPurchaseModal = this.handleShowPurchaseModal.bind(this)
         this.handleClosePurchaseModal = this.handleClosePurchaseModal.bind(this) 
+        this.handlePurchaseRequest = this.handlePurchaseRequest.bind(this) 
     }
 
-    async checkForMetamask() {
+    async isMetamaskAvailable() {
         if (typeof web3 !== 'undefined') {
             console.log('web3 is enabled')       
             // eslint-disable-next-line     
             if (web3.currentProvider.isMetaMask === true) {
               console.info('MetaMask is active')
+              return true
             } else {
               console.info('MetaMask is not available')
+              return false
             }
           } else {
             console.info('web3 is not found')
+            return false
           }
+    }
+
+    async componentDidMount() {
+        const metamaskAvailable = await this.isMetamaskAvailable()
+        await this.setState({ metamaskAvailable })
     }
 
     async handleShowPurchaseModal() {
@@ -89,11 +99,16 @@ class ItemComponent extends Component {
         await this.setState({ showPurchaseModal: false })
     }
 
+    async handlePurchaseRequest() {
+        console.info('Attempting purchase..')
+        
+    }
+
 
     render() {
         return (
             <div>
-            <Card style={{ width: '18rem' }}>
+            <Card style={{ width: '18rem' }}  bg="dark"  text="white" >
                 <Card.Img variant="top" src={this.props.item.imageSrc} />
                 <Card.Body>
                 <Card.Title>{this.props.item.skinName}</Card.Title>
@@ -107,14 +122,20 @@ class ItemComponent extends Component {
                 <Button variant="primary" onClick={this.handleShowPurchaseModal} > Purchase </Button>
                 </Card.Body>
             </Card>
-            <Modal size="lg" show={this.state.showPurchaseModal} onHide={this.handleClosePurchaseModal}>
+            <Modal size="lg" className="modal" show={this.state.showPurchaseModal} onHide={this.handleClosePurchaseModal}>
                     <Modal.Header closeButton>
                     <Modal.Title>Purchase</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
+                    { !this.state.metamaskAvailable ? (<div> ❗🦊 Please install the <a href='https://metamask.io/'>Metamask</a> browser
+                    extension in order to make payments and refresh this page. </div>) : null }
                         <p> Details </p>
+
                     </Modal.Body>
                     <Modal.Footer>
+
+                    <button type="button" className="btn btn-primary" onClick={this.handlePurchaseRequest} > Purchase </button>
+                    <a href={this.props.item.inspectLink}><button type="button" className="btn btn-primary"> View on Steam </button></a>
                     <Button variant="secondary" onClick={this.handleClosePurchaseModal}>
                         Close
                     </Button>
