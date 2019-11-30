@@ -1,13 +1,14 @@
 import React, { Component } from 'react'
 import Button from 'react-bootstrap/Button'
-import ListGroup from 'react-bootstrap/ListGroup'
+// import ListGroup from 'react-bootstrap/ListGroup'
 import Modal from 'react-bootstrap/Modal'
-import Axios from 'axios'
+// import Axios from 'axios'
 import Card from  'react-bootstrap/Card'
 import Container from  'react-bootstrap/Container'
 import Row from  'react-bootstrap/Row'
 import Col from  'react-bootstrap/Col'
-import Web3 from 'web3'
+// import Web3 from 'web3'
+import * as ethers from 'ethers'
 import CSGOSteamTradeoContract from './CSGOSteamTrade'
 
 function makeGroups(array, groupSize) {
@@ -63,7 +64,21 @@ class ItemComponent extends Component {
 
 
         this.handleShowPurchaseModal = this.handleShowPurchaseModal.bind(this)
-        this.handleClosePurchaseModal = this.handleClosePurchaseModal.bind(this)
+        this.handleClosePurchaseModal = this.handleClosePurchaseModal.bind(this) 
+    }
+
+    async checkForMetamask() {
+        if (typeof web3 !== 'undefined') {
+            console.log('web3 is enabled')       
+            // eslint-disable-next-line     
+            if (web3.currentProvider.isMetaMask === true) {
+              console.info('MetaMask is active')
+            } else {
+              console.info('MetaMask is not available')
+            }
+          } else {
+            console.info('web3 is not found')
+          }
     }
 
     async handleShowPurchaseModal() {
@@ -83,8 +98,8 @@ class ItemComponent extends Component {
                 <Card.Body>
                 <Card.Title>{this.props.item.skinName}</Card.Title>
                 <Card.Text>
-                    <p>Price: {this.props.item.price}</p>
-                    <p>Wear: {this.props.item.wear}</p>
+                    Price: {this.props.item.price}
+                    Wear: {this.props.item.wear}
                     
                 </Card.Text>
                 <Card.Link href={this.props.item.inspectLink}>👀</Card.Link>
@@ -119,16 +134,18 @@ class ItemsListComponent extends Component {
         }
         this.state.items = new Array(12)
         this.state.items.fill(testItem1)
+        
+        // eslint-disable-next-line             
 
-        this.state.web3js = new Web3('http://localhost:8545')
+        // eslint-disable-next-line             
+        this.state.ethersProvider = new ethers.providers.JsonRpcProvider('http://localhost:8545') // new ethers.providers.Web3Provider(web3.currentProvider)
 
-        const csgoSteamTradeContractAddress = '0x48c7bc970466C668c48556088BAC86520e505676'
+        const csgoSteamTradeContractAddress = '0x297ab0fbECE2ada3082516F9bC2D61d537EB46DC'
 
-        this.state.contractInstance = new this.state.web3js.eth.Contract(
-            CSGOSteamTradeoContract.abi,
-            csgoSteamTradeContractAddress,
-            {}
-          )
+        // this.state.contractInstance = this.state.web3js.eth.contract(
+        //     CSGOSteamTradeoContract.abi).at(csgoSteamTradeContractAddress)
+        
+        this.state.contractInstance = new ethers.Contract(csgoSteamTradeContractAddress, CSGOSteamTradeoContract.abi, this.state.ethersProvider)
         
     }
 
@@ -146,8 +163,16 @@ class ItemsListComponent extends Component {
         // }]
         // await this.setState({ items: items })
 
-        const listingsCount = await this.state.contractInstance.methods.getListingsCount().call()
+        const listingsCount = await this.state.contractInstance.getListingsCount()
         console.info(`Listings available: ${listingsCount}`)
+
+        const listingIds = []
+        for (let i = 0; i < listingsCount; i++) {
+            listingIds.push(i)
+        }
+
+        const listings = await Promise.all(listingIds.map(id => this.state.contractInstance.getListing(id)))
+        console.info(`Fetched ${listings.length} listings`)
     }
 
     componentDidUpdate() {
@@ -159,7 +184,7 @@ class ItemsListComponent extends Component {
         const rowSize = 3
         const rowGroupedItems = makeGroups(this.state.items, rowSize)
         return (
-            <div class="form-group App-login">
+            <div className="form-group App-login">
                 <Container>
                     {rowGroupedItems.map(rowOfItems => (
                         <Row>
