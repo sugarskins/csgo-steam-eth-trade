@@ -30,7 +30,8 @@ function makeGroups(array, groupSize) {
 }
 
 class ItemData {
-    constructor(wear, skinName, paintSeed, statTrak, inspectLink, inventoryLink, price, imageSrc) {
+    constructor(listingId, wear, skinName, paintSeed, statTrak, inspectLink, inventoryLink, price, imageSrc) {
+        this.listingId = listingId
         this.wear = wear
         this.skinName = skinName
         this.paintSeed = paintSeed
@@ -43,6 +44,7 @@ class ItemData {
 }
 
 const testItem1 = new ItemData(
+    12,
     '0.6945993900299072',
     'AUG | Storm (Battle-Scarred)',
     '334',
@@ -52,6 +54,14 @@ const testItem1 = new ItemData(
     '100000000000000000',
     "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot6-iFBRv7ODcfi9P6s65mpS0n_L1JaLummpD78A_0u2X9o332A22-UI5amuncYGdcwJtZ1nT_1S8w-i-g5Xt6p_LySdivT5iuyiWgPKs_g/330x192",
 )
+
+const testItems = []
+const TEST_ITEM_COUNT = 12
+for (let i = 0; i < TEST_ITEM_COUNT; i++) {
+    const item = JSON.parse(JSON.stringify(testItem1))
+    item.listingId = i
+    testItems.push(item)
+}
 
 function getMetamask() {
     if (typeof window.ethereum !== 'undefined') {
@@ -123,7 +133,7 @@ class ItemComponent extends Component {
 
     async handlePurchaseRequest() {
         console.info('Attempting purchase..')
-        
+        // await this.state.contractInstance.
     }
 
 
@@ -179,8 +189,8 @@ class ItemsListComponent extends Component {
             items: [],
             csgoSteamTradeContractAddress: '0x297ab0fbECE2ada3082516F9bC2D61d537EB46DC'       
         }
-        this.state.items = new Array(12)
-        this.state.items.fill(testItem1)
+
+        this.state.items = testItems
         
         // eslint-disable-next-line             
 
@@ -224,10 +234,10 @@ class ItemsListComponent extends Component {
         return (
             <div className="form-group App-login">
                 <Container>
-                    {rowGroupedItems.map(rowOfItems => (
-                        <Row>
+                    {rowGroupedItems.map((rowOfItems, rowIndex) => (
+                        <Row key={rowIndex}>
                             {rowOfItems.map(item => (
-                                <Col>
+                                <Col key={item.listingId} >
                                 <ItemComponent item={item} csgoSteamTradeContractAddress={this.state.csgoSteamTradeContractAddress}> </ItemComponent>
                                 </Col>
                             ))}
