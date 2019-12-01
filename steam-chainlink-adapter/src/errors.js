@@ -6,9 +6,12 @@ class InventoryQueryRateLimitError extends Error {}
 
 class InvalidWearValueError extends Error {}
 
+class SystemInitNotFinishedError extends Error {}
+
 module.exports = {
   InvalidTradeLinkError,
   ProfileIsPrivateError,
   InventoryQueryRateLimitError,
-  InvalidWearValueError
+  InvalidWearValueError,
+  SystemInitNotFinishedError
 }

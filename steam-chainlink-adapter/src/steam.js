@@ -1,7 +1,13 @@
 const CEconItem = require('steamcommunity/classes/CEconItem')
 const fetch = require('node-fetch')
 const log = require('./log')
-const { InvalidTradeLinkError, ProfileIsPrivateError, InventoryQueryRateLimitError } = require('./errors')
+const {
+  InvalidTradeLinkError,
+  ProfileIsPrivateError,
+  InventoryQueryRateLimitError,
+  SystemInitNotFinishedError
+} = require('./errors')
+
 const {
   extractSteamIdFromTradeLinkPage,
   getWebEligibilityCookie,
@@ -62,6 +68,9 @@ async function inventoryContainsItem(tradeLink, wear, skinName, paintSeed) {
   }
 
   const scanner = getSteamScanner()
+  if (!scanner){
+    throw new SystemInitNotFinishedError('SteamScanner not initialized yet.')
+  }
 
   const item = await findItemByWear(scanner, inventoryItems, skinName, paintSeed, wear)
 
@@ -96,7 +105,11 @@ async function findItemByWear(scanner, inventoryItems, skinName, paintSeed, wear
 
 
 async function getTradeLinkOwnerSteamId(tradeLink) {
-  const { cookies } = getSteamWebSession()
+  const webSession = getSteamWebSession()
+  if (!webSession) {
+    throw new SystemInitNotFinishedError('Steam webSession not initialized yet.')
+  }
+  const { cookies } = webSession
 
   const webTradeEligibilityCookie = getWebEligibilityCookie()
   cookies.push(webTradeEligibilityCookie)
