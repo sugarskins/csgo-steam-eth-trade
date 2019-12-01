@@ -43,6 +43,12 @@ contract CSGOSteamTrade is ChainlinkClient {
         Listing listing
     );
 
+    event PurchaseOfferMade(
+        uint indexed buyerAccountSteamId,
+        address indexed buyerEthereumAddress,
+        Listing listing
+    );
+
     enum TradeOutcome { SUCCESSFULLY_CONFIRMED, UNABLE_TO_CONFIRM_PRIVATE_PROFILE }
 
     event TradeDone (
@@ -115,6 +121,8 @@ contract CSGOSteamTrade is ChainlinkClient {
         PurchaseOffer memory purchaseOffer = PurchaseOffer(msg.sender, currentTimestamp, _buyerSteamAccountName, _buyerAccountSteamId, true);
         listing.purchaseOffer = purchaseOffer;
         listing.stage = ListingStage.RECEIVED_OFFER;
+
+        emit PurchaseOfferMade(_buyerAccountSteamId, msg.sender, listing);
         listings[_listingId] = listing;
     }
 
