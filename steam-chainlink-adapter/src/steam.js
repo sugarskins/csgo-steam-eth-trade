@@ -1,8 +1,13 @@
 const CEconItem = require('steamcommunity/classes/CEconItem')
 const fetch = require('node-fetch')
 const log = require('./log')
-const { extractSteamIdFromTradeLinkPage, getWebEligibilityCookie } = require('./utils')
 const { InvalidTradeLinkError, ProfileIsPrivateError } = require('./errors')
+const {
+  extractSteamIdFromTradeLinkPage,
+  getWebEligibilityCookie,
+  isSameWear,
+  getInventoryUrl,
+  getCsgoInventoryUrl } = require('./utils')
 
 const steamUser = require('./steamUser')
 const getSteamScanner = steamUser.getSteamScanner
@@ -179,20 +184,6 @@ async function getInventory(steamId) {
   })
 
   return inventory
-}
-
-function getInventoryUrl(steamId) {
-  return `https://steamcommunity.com/profiles/${steamId}/inventory`
-}
-
-function getCsgoInventoryUrl(steamId, pageSize = 100) {
-  return `${getInventoryUrl(steamId)}/json/730/2?count=${pageSize}`
-}
-
-
-function isSameWear(wear1, wear2) {
-  const DIGITS = 14
-  return wear1.slice(0, DIGITS) === wear2.slice(0, DIGITS)
 }
 
 function isReady() {

@@ -27,8 +27,24 @@ function getWebEligibilityCookie() {
   return "webTradeEligibility=" + encodeURIComponent('{"allowed":1,"allowed_at_time":0,"steamguard_required_days":15,"sales_this_year":0,"max_sales_per_year":-1,"forms_requested":0,"new_device_cooldown_days":7}');
 }
 
+function getInventoryUrl(steamId) {
+  return `https://steamcommunity.com/profiles/${steamId}/inventory`
+}
+
+function getCsgoInventoryUrl(steamId, pageSize = 100) {
+  return `${getInventoryUrl(steamId)}/json/730/2?count=${pageSize}`
+}
+
+
+function isSameWear(wear1, wear2) {
+  const DIGITS = 14
+  return wear1.slice(0, DIGITS) === wear2.slice(0, DIGITS)
+}
+
 module.exports = {
   extractSteamIdFromTradeLinkPage,
   getWebEligibilityCookie,
-  InvalidTradeLinkError
+  getCsgoInventoryUrl,
+  getInventoryUrl,
+  isSameWear
 }
