@@ -7,8 +7,7 @@ import Card from  'react-bootstrap/Card'
 import Container from  'react-bootstrap/Container'
 import Row from  'react-bootstrap/Row'
 import Col from  'react-bootstrap/Col'
-
-import * as ethers from 'ethers'
+import Web3 from 'web3'
 import CSGOSteamTradeoContract from './CSGOSteamTrade'
 
 function makeGroups(array, groupSize) {
@@ -73,9 +72,9 @@ class ItemComponent extends Component {
             showPurchaseModal: false,
             metamaskAvailable: false,
             metamaskPermissionGranted: false,
-            metamaskEthers: null
+            metamaskWeb3: null,
+            contractInstance: null
         }
-
 
         this.handleShowPurchaseModal = this.handleShowPurchaseModal.bind(this)
         this.handleClosePurchaseModal = this.handleClosePurchaseModal.bind(this) 
@@ -89,18 +88,27 @@ class ItemComponent extends Component {
     }
 
     async handleShowPurchaseModal() {
+        await this.requestMetamaskAccess()
         await this.setState({ showPurchaseModal: true })
     }
 
     async requestMetamaskAccess() {
         const metamaskEthereum = getMetamask()
         if (metamaskEthereum) {
-            this.metamaskEthers = new ethers.providers.Web3Provider(metamaskEthereum)
+            const metamaskWeb3 = new Web3(window.web3.currentProvider)
+            const contractInstance = new metamaskWeb3.eth.Contract(
+                CSGOSteamTradeoContract.abi,
+                this.props.csgoSteamTradeContractAddress,
+                {}
+              )
+            await this.setState({ contractInstance, metamaskWeb3 })
             try {
                 // Request account access if needed
                 await metamaskEthereum.enable()
                 console.info('Succesfully gained access to metamask.')
-                await this.setState({ metamaskPermissionGranted: true})
+
+
+                await this.setState({ metamaskPermissionGranted: true })
             } catch (error) {
                 // User denied account access...
                 console.error('Failed to gain access to metamask.')
@@ -177,10 +185,13 @@ class ItemsListComponent extends Component {
         // eslint-disable-next-line             
 
         // eslint-disable-next-line             
-        this.state.ethersProvider = new ethers.providers.JsonRpcProvider('http://localhost:8545') // new ethers.providers.Web3Provider(web3.currentProvider)
+        this.state.web3 = new Web3('http://localhost:8545')
         
-        this.state.contractInstance = new ethers.Contract(this.state.csgoSteamTradeContractAddress, CSGOSteamTradeoContract.abi, this.state.ethersProvider)
-        
+        this.state.contractInstance = new this.state.web3.eth.Contract(
+            CSGOSteamTradeoContract.abi,
+            this.state.csgoSteamTradeContractAddress,
+            {}
+          )
     }
 
     async componentDidMount() {
@@ -202,7 +213,7 @@ class ItemsListComponent extends Component {
         // this.state.web3ContractInstance = this.state.web3js.eth.contract(
         //     CSGOSteamTradeoContract.abi).at(this.state.csgoSteamTradeContractAddress)
 
-        const listingsCount = await this.state.contractInstance.getListingsCount()
+        const listingsCount = await this.state.contractInstance.methods.getListingsCount().call()
         console.info(`Listings available: ${listingsCount}`)
 
         const listingIds = []
@@ -210,8 +221,9 @@ class ItemsListComponent extends Component {
             listingIds.push(i)
         }
 
-        const listings = await Promise.all(listingIds.map(id => this.state.contractInstance.getListing(id)))
+        const listings = await Promise.all(listingIds.map(id => this.state.contractInstance.methods.getListing(id).call()))
         console.info(`Fetched ${listings.length} listings`)
+        console.info(listings[0])
     }
 
     componentDidUpdate() {
@@ -229,7 +241,7 @@ class ItemsListComponent extends Component {
                         <Row>
                             {rowOfItems.map(item => (
                                 <Col>
-                                <ItemComponent item={item}> </ItemComponent>
+                                <ItemComponent item={item} csgoSteamTradeContractAddress={this.state.csgoSteamTradeContractAddress}> </ItemComponent>
                                 </Col>
                             ))}
                         </Row>
