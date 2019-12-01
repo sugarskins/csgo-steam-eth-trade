@@ -6,6 +6,7 @@ Contains:
 
 * csgo-steam-eth-contract - the Solidity contract supports the ability to purchase CS:GO items with the wear and paintseed properties using ETH.
 * steamcommunity-chainlink-adapter - Chainlink adapter for access to data o the Steam Community market.
+* csgo-trade-frontend - Frontend for interacting with the previously defined Solidity contract for viewing sale listings and for submitting purchase offers.
 
 
 ## Local development setup
