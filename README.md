@@ -31,9 +31,11 @@ To clean them all up with 1 command execute:
 ```
 docker ps -a | awk '{ print $1,$2 }' | grep chainlink | awk '{print $1 }' | xargs -I {} docker rm {}
 ```
+
+### Troubleshooting
 #### Connecting to a local postgresql running on the host machine
 
-If you attempt to connect to a localhost database such as `DATABASE_URL=postgresql://dan:@localhost:5432/chainlink`  you will get the following error:
+If you attempt to connect to a localhost database from your chainlink node such as `DATABASE_URL=postgresql://dan:@localhost:5432/chainlink`  you will get the following error:
 
 ```
 [FATAL] Unable to initialize ORM: unable to lock ORM: the following errors occurred:
