@@ -9,8 +9,18 @@ const LOG_ON_TIMEOUT = 20000
 const CSGO_APP_ID = 730
 
 let steamScanner = null
+let steamWebSession = null
 
-async function initUser(logOnDetails) {
+
+class SteamUserClients {
+  constructor(steamUser, webSession, csgo) {
+    this.steamUser = steamUser
+    this.webSession = webSession
+    this.csgo = csgo
+  }
+}
+
+async function getSteamUserClients(logOnDetails) {
   let credentials = {
     accountName: logOnDetails.accountName,
     password: logOnDetails.password,
@@ -70,12 +80,6 @@ async function initUser(logOnDetails) {
   })
   log.info('CSGO launched successfully')
 
-  userTuple = {
-    steamUser: steamUser,
-    webSession: { sessionID, cookies },
-    csgo
-  }
-
   steamUser.gracefullyDisconnectAsync = () =>
     new Promise(resolve => {
       steamUser
@@ -87,7 +91,8 @@ async function initUser(logOnDetails) {
         .logOff()
     })
 
-  return userTuple
+  const steamUserClients = new SteamUserClients(steamUser, { sessionID, cookies }, csgo)
+  return steamUserClients
 }
 
 function getRandomLogonId() {
@@ -101,7 +106,8 @@ function getRandomLogonId() {
       password: process.env.STEAM_ACCOUNT_PASSWORD,
       secretToken: process.env.STEAM_ACCOUNT_SECRET_TOKEN,
     }
-    steamClients = await initUser(logOnDetails)
+    steamClients = await getSteamUserClients(logOnDetails)
+    steamWebSession = steamClients.webSession
     steamScanner = new Scanner(steamClients.csgo)
     log.info(`User ${logOnDetails.accountName} logged on successfully.`)
   } catch(e) {
@@ -112,5 +118,6 @@ function getRandomLogonId() {
 
 
 module.exports = {
-  getSteamScanner: () => steamScanner
+  getSteamScanner: () => steamScanner,
+  getSteamWebSession: () => steamWebSession
 }

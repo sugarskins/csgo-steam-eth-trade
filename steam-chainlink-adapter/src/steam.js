@@ -1,8 +1,11 @@
 const CEconItem = require('steamcommunity/classes/CEconItem')
 const fetch = require('node-fetch')
 const log = require('./log')
+const { extractSteamIdFromTradeLinkPage, getWebEligibilityCookie } = require('./utils')
 
-const getSteamScanner = require('./steamUser').getSteamScanner
+const steamUser = require('./steamUser')
+const getSteamScanner = steamUser.getSteamScanner
+const getSteamWebSession = steamUser.getSteamWebSession
 
 
 const CSGO_CONTEXT_ID = 2
@@ -18,7 +21,6 @@ async function inventoryContainsItem(accountName, steamId, wear, skinName, paint
 
   return item !== null
 }
-
 
 async function findItemByWear(scanner, inventoryItems, skinName, paintSeed, wear) {
   const candidates = inventoryItems.filter(item => item.market_hash_name === skinName)
@@ -44,6 +46,37 @@ async function findItemByWear(scanner, inventoryItems, skinName, paintSeed, wear
 }
 
 
+async function getTradeLinkOwnerSteamId(tradeLink) {
+  const { cookies } = getSteamWebSession()
+
+  const webTradeEligibilityCookie = getWebEligibilityCookie()
+  cookies.push(webTradeEligibilityCookie)
+  let cookie = cookies.join('; ')
+  const options = {
+    headers: {
+      'accept': '*/*',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'accept-language': 'en-US,en;q=0.9,en-GB;q=0.8',
+      'cache-control': 'no-cache',
+      'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      'pragma': 'no-cache',
+      'Cookie': cookie,
+      'Host': 'steamcommunity.com',
+      'Origin': 'https://steamcommunity.com',
+      'Content-Length': '11147',
+      'Connection': 'keep-alive',
+      'User-Agent':
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36'
+    },
+    method: 'GET'
+  }
+
+  const fetchResponse = await fetch(tradeLink, options)
+  const tradeLinkPageText = await fetchResponse.text()
+  const steamId = extractSteamIdFromTradeLinkPage(tradeLinkPageText)
+  return steamId
+}
+
 async function getInventory(accountName, steamId) {
   const referer = getInventoryUrl(steamId)
   const url = getCsgoInventoryUrl(steamId, INVENTORY_MAX_SIZE)
@@ -56,7 +89,7 @@ async function getInventory(accountName, steamId) {
       'cache-control': 'no-cache',
       'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
       'pragma': 'no-cache',
-      'Cookie': '', //cookies.join('; '),
+      'Cookie': '',
       'Host': 'steamcommunity.com',
       'Origin': 'https://steamcommunity.com',
       'Content-Length': '81',
@@ -115,5 +148,6 @@ function isReady() {
 
 module.exports = {
   inventoryContainsItem,
+  getTradeLinkOwnerSteamId,
   isReady
 }
