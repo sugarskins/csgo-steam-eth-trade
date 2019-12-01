@@ -1,4 +1,4 @@
-const { InvalidTradeLinkError } = require('./errors')
+const { InvalidTradeLinkError, InvalidWearValueError } = require('./errors')
 
 
 function extractSteamIdFromTradeLinkPage(pageText) {
@@ -35,8 +35,18 @@ function getCsgoInventoryUrl(steamId, pageSize = 100) {
   return `${getInventoryUrl(steamId)}/json/730/2?count=${pageSize}`
 }
 
+function isValidWearValue(wear) {
+  return /^0\.\d+$/.test(wear)
+}
 
 function isSameWear(wear1, wear2) {
+  if (!isValidWearValue(wear1)) {
+    throw new InvalidWearValueError(`Wear ${wear1} is invalid.`)
+  }
+  if (!isValidWearValue(wear2)) {
+    throw new InvalidWearValueError(`Wear ${wear2} is invalid.`)
+  }
+
   const DIGITS = 14
   return wear1.slice(0, DIGITS) === wear2.slice(0, DIGITS)
 }
