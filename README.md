@@ -6,6 +6,7 @@ Contains:
 
 * csgo-steam-eth-contract - the Solidity contract supports the ability to purchase CS:GO items with the wear and paintseed properties using ETH.
 * steamcommunity-chainlink-adapter - Chainlink adapter for access to data o the Steam Community market.
+* csgo-trade-frontend - Frontend for interacting with the previously defined Solidity contract for viewing sale listings and for submitting purchase offers.
 
 
 ## Local development setup
@@ -31,9 +32,11 @@ To clean them all up with 1 command execute:
 ```
 docker ps -a | awk '{ print $1,$2 }' | grep chainlink | awk '{print $1 }' | xargs -I {} docker rm {}
 ```
+
+### Troubleshooting
 #### Connecting to a local postgresql running on the host machine
 
-If you attempt to connect to a localhost database such as `DATABASE_URL=postgresql://dan:@localhost:5432/chainlink`  you will get the following error:
+If you attempt to connect to a localhost database from your chainlink node such as `DATABASE_URL=postgresql://dan:@localhost:5432/chainlink`  you will get the following error:
 
 ```
 [FATAL] Unable to initialize ORM: unable to lock ORM: the following errors occurred:
