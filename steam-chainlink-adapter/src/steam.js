@@ -153,19 +153,25 @@ async function getInventory(steamId) {
     referrerPolicy: 'no-referrer-when-downgrade',
     method: 'GET'
   };
-  const inventory = []
 
   const fetchResponse = await fetch(url, options)
-  const items = await fetchResponse.json()
+  const rawItemsResponse = await fetchResponse.json()
 
-  if (items === null) {
+  if (rawItemsResponse === null) {
     throw new Error(`Rate limit error reached.`)
-  } else if (items.success === false && items.Error === STEAM_PROFILE_IS_PRIVATE_MESSAGE) {
+  } else if (rawItemsResponse.success === false && rawItemsResponse.Error === STEAM_PROFILE_IS_PRIVATE_MESSAGE) {
     throw new ProfileIsPrivateError(STEAM_PROFILE_IS_PRIVATE_MESSAGE)
-  } else if (items.success === false) {
-    throw new Error(`Unknown error: ${items.Error}`)
+  } else if (rawItemsResponse.success === false) {
+    throw new Error(`Unknown error: ${rawItemsResponse.Error}`)
   }
 
+  const inventory = parseInventoryItems(rawItemsResponse, steamId)
+
+  return inventory
+}
+
+function parseInventoryItems(items, steamId) {
+  const inventory = []
   Object.keys(items.rgInventory).forEach(a => {
     const item = new CEconItem(
       items.rgInventory[a],
