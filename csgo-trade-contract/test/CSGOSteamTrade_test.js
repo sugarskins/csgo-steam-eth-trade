@@ -108,6 +108,7 @@ contract('CSGOSteamTrade', accounts => {
       const sellerEthereumAdress = seller
 
       const buyerSteamAccountName = 'iwantyourwep'
+      const buyerAccountSteamId = '1915645022323022856'
   
       beforeEach(async () => {
         await csGOContract.createListing(ownerSteamAccountName, accountSteamId, wear,
@@ -115,7 +116,7 @@ contract('CSGOSteamTrade', accounts => {
       })
       it('creates a purchase offer for the listing', async () => {
         const listingId = 0
-        await csGOContract.createPurchaseOffer(listingId, buyerSteamAccountName, {
+        await csGOContract.createPurchaseOffer(listingId, buyerSteamAccountName, buyerAccountSteamId, {
           from: buyer,
           value: price
         })
@@ -148,6 +149,7 @@ contract('CSGOSteamTrade', accounts => {
       const sellerEthereumAdress = seller
   
       const buyerSteamAccountName = 'iwantyourwep'
+      const buyerAccountSteamId = '1915645022323022856'
 
       let listingId = 0
   
@@ -156,7 +158,7 @@ contract('CSGOSteamTrade', accounts => {
         await csGOContract.createListing(ownerSteamAccountName, accountSteamId, wear,
           skinName, paintSeed, price, sellerEthereumAdress, { from: seller })
         listingId = 0
-        await csGOContract.createPurchaseOffer(listingId, buyerSteamAccountName, {
+        await csGOContract.createPurchaseOffer(listingId, buyerSteamAccountName, buyerAccountSteamId, {
             from: buyer,
             value: price
           })
