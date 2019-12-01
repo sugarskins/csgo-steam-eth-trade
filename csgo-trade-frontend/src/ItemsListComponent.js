@@ -200,19 +200,6 @@ class ItemsListComponent extends Component {
         // TODO: pull all price suggestions here with competition data
         this.setState({ componentMounted: true })
 
-        // const suggestionsResponse = await Axios.get(`${this.props.url}/listings/suggestions`)
-        // const suggestions = suggestionsResponse.data
-        // console.info(`Loaded ${suggestions.length} suggestions`)
-        // const items = [{
-
-        // }]
-        // await this.setState({ items: items })
-
-        
-        // this.state.web3js = web3
-        // this.state.web3ContractInstance = this.state.web3js.eth.contract(
-        //     CSGOSteamTradeoContract.abi).at(this.state.csgoSteamTradeContractAddress)
-
         const listingsCount = await this.state.contractInstance.methods.getListingsCount().call()
         console.info(`Listings available: ${listingsCount}`)
 
