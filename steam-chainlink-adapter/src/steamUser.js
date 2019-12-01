@@ -99,7 +99,7 @@ function getRandomLogonId() {
   return Math.round(Math.random() * Math.pow(2, 30));
 }
 
-;(async () => {
+log.runWithContinuationId('steam-clients-init', async () => {
   try {
     const logOnDetails = {
       accountName: process.env.STEAM_ACCOUNT_NAME,
@@ -114,7 +114,7 @@ function getRandomLogonId() {
     log.error(`FATAL: failed to initialize steam user: ${e.stack}`)
     process.exit(1)
   }
-})()
+})
 
 
 module.exports = {

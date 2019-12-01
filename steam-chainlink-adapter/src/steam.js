@@ -1,7 +1,7 @@
 const CEconItem = require('steamcommunity/classes/CEconItem')
 const fetch = require('node-fetch')
 const log = require('./log')
-const { InvalidTradeLinkError, ProfileIsPrivateError } = require('./errors')
+const { InvalidTradeLinkError, ProfileIsPrivateError, InventoryQueryRateLimitError } = require('./errors')
 const {
   extractSteamIdFromTradeLinkPage,
   getWebEligibilityCookie,
@@ -77,15 +77,13 @@ async function findItemByWear(scanner, inventoryItems, skinName, paintSeed, wear
   const candidates = inventoryItems.filter(item => item.market_hash_name === skinName)
 
   log.info(`There are ${candidates.length} potential matches in the inventory \
-    for the skin ${skinName} with wear ${wear}`)
+    for the skin ${skinName} with wear ${wear}. Scanning each one to find a match..`)
 
   for (let i = 0; i < candidates.length; i++) {
     const candidate = candidates[i]
     const inspectLink = candidate.inspectLink
     log.info(`Scanning possible match ${candidate.market_hash_name} with inspect link ${candidate.inspectLink}`)
     const scannedCandidate = await scanner.scanInspectLink(inspectLink)
-
-    console.log(scannedCandidate)
 
     if (scannedCandidate.paintseed.toString() === paintSeed && isSameWear(scannedCandidate.paintwear.toString(), wear)) {
       return scannedCandidate
@@ -158,7 +156,7 @@ async function getInventory(steamId) {
   const rawItemsResponse = await fetchResponse.json()
 
   if (rawItemsResponse === null) {
-    throw new Error(`Rate limit error reached.`)
+    throw new InventoryQueryRateLimitError(`Rate limit error reached.`)
   } else if (rawItemsResponse.success === false && rawItemsResponse.Error === STEAM_PROFILE_IS_PRIVATE_MESSAGE) {
     throw new ProfileIsPrivateError(STEAM_PROFILE_IS_PRIVATE_MESSAGE)
   } else if (rawItemsResponse.success === false) {
