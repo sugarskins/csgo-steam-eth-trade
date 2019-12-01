@@ -23,7 +23,7 @@ async function createRequest(input) {
         data: {
           jobRunID: input.id,
           data: {
-            containsItem: containsItem ? CONTAINS_ITEM_TRUE : CONTAINS_ITEM_FALSE,
+            containsItem: containsItem,
             steamId
           },
           error: null

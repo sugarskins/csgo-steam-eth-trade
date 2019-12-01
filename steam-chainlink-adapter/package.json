@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/.bin/jest"
   },
   "author": "",
   "license": "ISC",
@@ -19,5 +19,8 @@
     "steamcommunity": "^3.41.1",
     "uuid": "^3.3.3",
     "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "jest": "^24.9.0"
   }
 }
