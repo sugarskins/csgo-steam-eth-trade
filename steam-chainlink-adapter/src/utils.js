@@ -1,15 +1,26 @@
+const { InvalidTradeLinkError } = require('./errors')
+
 
 function extractSteamIdFromTradeLinkPage(pageText) {
   const regex = /https:\/\/steamcommunity.com\/profiles\/(\d+)/g
   const matches = []
   let result = regex.exec(pageText)
-  let i = 0
   while (result) {
     matches.push(result[1])
     result = regex.exec(pageText)
   }
 
-  return matches[0]
+  const firstMatch = matches[0]
+
+  if (!firstMatch) {
+    const invalidTradeURLRegex = /This Trade URL is no longer valid for sending a trade offer/
+    const firstResult = invalidTradeURLRegex.exec(pageText)
+    if (firstResult) {
+      throw new InvalidTradeLinkError('This Trade URL is no longer valid for sending a trade offer.')
+    }
+  } else {
+    return firstMatch
+  }
 }
 
 function getWebEligibilityCookie() {
@@ -18,5 +29,6 @@ function getWebEligibilityCookie() {
 
 module.exports = {
   extractSteamIdFromTradeLinkPage,
-  getWebEligibilityCookie
+  getWebEligibilityCookie,
+  InvalidTradeLinkError
 }

@@ -2,6 +2,7 @@ const CEconItem = require('steamcommunity/classes/CEconItem')
 const fetch = require('node-fetch')
 const log = require('./log')
 const { extractSteamIdFromTradeLinkPage, getWebEligibilityCookie } = require('./utils')
+const { InvalidTradeLinkError, ProfileIsPrivateError } = require('./errors')
 
 const steamUser = require('./steamUser')
 const getSteamScanner = steamUser.getSteamScanner
@@ -11,15 +12,60 @@ const getSteamWebSession = steamUser.getSteamWebSession
 const CSGO_CONTEXT_ID = 2
 const INVENTORY_MAX_SIZE = 1000 // for inventory only, this works
 
-async function inventoryContainsItem(accountName, steamId, wear, skinName, paintSeed) {
+const STEAM_PROFILE_IS_PRIVATE_MESSAGE = 'This profile is private.'
 
-  const inventoryItems = await getInventory(accountName, steamId)
+const CONTAINS_ITEM_FALSE = 0
+const CONTAINS_ITEM_TRUE = 1
+const CONTAINS_ITEM_INVENTORY_PRIVATE = 2
+const CONTAINS_ITEM_TRADE_URL_INVALID = 3
+
+async function inventoryContainsItem(tradeLink, wear, skinName, paintSeed) {
+
+  log.info(`Looking up steamId for trade link ${tradeLink}..`)
+
+  let steamId = null
+  try {
+    steamId = await getTradeLinkOwnerSteamId(tradeLink)
+  } catch (e) {
+    if (e instanceof InvalidTradeLinkError) {
+      log.error(`Trade link ${tradeLink}  is no longer valid. Cannot identify steam id and therefore cannot process request.`)
+      return {
+        containsItem: CONTAINS_ITEM_TRADE_URL_INVALID,
+        steamId: null
+      }
+    } else {
+      throw e
+    }
+  }
+
+
+  log.info(`steamId detected to be ${steamId}.`)
+
+  let inventoryItems = null
+  try {
+    inventoryItems = await getInventory(steamId)
+  } catch (e) {
+    if (e instanceof ProfileIsPrivateError) {
+      log.error(`Received message ${ProfileIsPrivateError} from Steam. Classifying profile as private.`)
+      return {
+        containsItem: CONTAINS_ITEM_INVENTORY_PRIVATE,
+        steamId: null
+      }
+    } else {
+      throw e
+    }
+  }
 
   const scanner = getSteamScanner()
 
   const item = await findItemByWear(scanner, inventoryItems, skinName, paintSeed, wear)
 
-  return item !== null
+  const itemFound = item !== null
+  const containsItem = itemFound ? CONTAINS_ITEM_TRUE : CONTAINS_ITEM_FALSE
+  return {
+    containsItem: containsItem,
+    steamId
+  }
 }
 
 async function findItemByWear(scanner, inventoryItems, skinName, paintSeed, wear) {
@@ -77,7 +123,7 @@ async function getTradeLinkOwnerSteamId(tradeLink) {
   return steamId
 }
 
-async function getInventory(accountName, steamId) {
+async function getInventory(steamId) {
   const referer = getInventoryUrl(steamId)
   const url = getCsgoInventoryUrl(steamId, INVENTORY_MAX_SIZE)
   const options = {
@@ -107,6 +153,14 @@ async function getInventory(accountName, steamId) {
   const fetchResponse = await fetch(url, options)
   const items = await fetchResponse.json()
 
+  if (items === null) {
+    throw new Error(`Rate limit error reached.`)
+  } else if (items.success === false && items.Error === STEAM_PROFILE_IS_PRIVATE_MESSAGE) {
+    throw new ProfileIsPrivateError(STEAM_PROFILE_IS_PRIVATE_MESSAGE)
+  } else if (items.success === false) {
+    throw new Error(`Unknown error: ${items.Error}`)
+  }
+
   Object.keys(items.rgInventory).forEach(a => {
     const item = new CEconItem(
       items.rgInventory[a],
@@ -117,7 +171,6 @@ async function getInventory(accountName, steamId) {
     if (item.actions) {
       inventory.push({
         ...item,
-        owner: accountName,
         inspectLink: item.actions[0].link
           .replace('%owner_steamid%', steamId)
           .replace('%assetid%', a)

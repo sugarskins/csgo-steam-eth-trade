@@ -17,12 +17,14 @@ async function createRequest(input) {
   switch (input.data.method.toLowerCase()) {
     case 'checkinventorycontainscsgoweapon':
       const data = input.data
-      const containsItem = await steam.inventoryContainsItem(data.accountName, data.steamId, data.wear, data.skinName, data.paintSeed)
+      const { containsItem, steamId } = await steam.inventoryContainsItem(data.tradeLink,
+        data.wear, data.skinName, data.paintSeed)
       return {
         data: {
           jobRunID: input.id,
           data: {
-            containsItem: containsItem ? CONTAINS_ITEM_TRUE : CONTAINS_ITEM_FALSE
+            containsItem: containsItem ? CONTAINS_ITEM_TRUE : CONTAINS_ITEM_FALSE,
+            steamId
           },
           error: null
         },
