@@ -1,0 +1,30 @@
+{
+  "initiators": [
+    {
+      "type": "RunLog",
+      "params": {
+        "address": "0xb197503361e4618078c467edb618e38548cdb256"
+      }
+    }
+  ],
+  "tasks": [
+    { "type": "steaminventoryquery" },
+    { "type": "copy",
+      "copyPath": ["containsItem"]
+    },
+    {
+      "type": "EthInt256",
+      "confirmations": null,
+      "params": {
+      }
+    },
+    {
+      "type": "EthTx",
+      "confirmations": null,
+      "params": {
+      }
+    }
+  ],
+  "startAt": null,
+  "endAt": null
+}
