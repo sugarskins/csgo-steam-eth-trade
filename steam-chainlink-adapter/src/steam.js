@@ -38,6 +38,7 @@ async function inventoryContainsItem(tradeLink, wear, skinName, paintSeed) {
         steamId: null
       }
     } else {
+      log.error(`Failed to fetch trade link page for ${tradeLink}`)
       throw e
     }
   }
@@ -56,6 +57,7 @@ async function inventoryContainsItem(tradeLink, wear, skinName, paintSeed) {
         steamId: null
       }
     } else {
+      log.error(`Failed to fetch inventory page for ${tradeLink} with steamId ${steamId}`)
       throw e
     }
   }
@@ -105,8 +107,10 @@ async function getTradeLinkOwnerSteamId(tradeLink) {
   const { cookies } = webSession
 
   const webTradeEligibilityCookie = getWebEligibilityCookie()
-  cookies.push(webTradeEligibilityCookie)
-  let cookie = cookies.join('; ')
+
+  const cookiesCloned = JSON.parse(JSON.stringify(cookies))
+  cookiesCloned.push(webTradeEligibilityCookie)
+  let cookie = cookiesCloned.join('; ')
   const options = {
     headers: {
       'accept': '*/*',

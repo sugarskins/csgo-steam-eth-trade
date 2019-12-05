@@ -51,10 +51,17 @@ function isSameWear(wear1, wear2) {
   return wear1.slice(0, DIGITS) === wear2.slice(0, DIGITS)
 }
 
+async function sleep(millis) {
+  await new Promise((resolve, reject) => {
+    setTimeout(resolve, millis)
+  })
+}
+
 module.exports = {
   extractSteamIdFromTradeLinkPage,
   getWebEligibilityCookie,
   getCsgoInventoryUrl,
   getInventoryUrl,
-  isSameWear
+  isSameWear,
+  sleep
 }

@@ -57,7 +57,7 @@ const logger = winston.createLogger({
         continuationIdFormat(),
         myFormat
       ),
-      level: 'info',
+      level: 'debug',
       handleExceptions: true
     })
   ],
