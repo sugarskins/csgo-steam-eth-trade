@@ -2,14 +2,14 @@ const fetch = require('node-fetch')
 const log = require('./log')
 const { getInventory } = require('./steamInventory')
 const {
-  InvalidTradeLinkError,
+  InvalidTradeURLError,
   ProfileIsPrivateError,
   SystemInitNotFinishedError,
   InternalError
 } = require('./errors')
 
 const {
-  extractSteamIdFromTradeLinkPage,
+  extractSteamIdFromTradeURLPage,
   getWebEligibilityCookie,
   isSameWear
 } = require('./utils')
@@ -30,7 +30,7 @@ async function inventoryContainsItem(tradeLink, wear, skinName, paintSeed) {
 
   let steamId = null
   try {
-    steamId = await getTradeLinkOwnerSteamId(tradeLink)
+    steamId = await getTradeURLOwnerSteamId(tradeLink)
   } catch (e) {
     if (e instanceof InvalidTradeLinkError) {
       log.error(`Trade link ${tradeLink}  is no longer valid. Cannot identify steam id and therefore cannot process request.`)
@@ -87,33 +87,33 @@ async function inventoryContainsItem(tradeLink, wear, skinName, paintSeed) {
   }
 }
 
-async function inventoryContainsItemWithInspectLink(tradeLink, inspectLink, wear, skinName, paintSeed) {
-  log.info(`Looking up steamId for trade link ${tradeLink}..`)
+async function inventoryContainsItemWithInspectLink(tradeURL, inspectLink, wear, skinName, paintSeed) {
+  log.info(`Looking up steamId for trade URL ${tradeURL}..`)
 
   let steamId = null
   try {
-    steamId = await getTradeLinkOwnerSteamId(tradeLink)
+    steamId = await getTradeURLOwnerSteamId(tradeURL)
   } catch (e) {
-    if (e instanceof InvalidTradeLinkError) {
-      log.error(`Trade link ${tradeLink}  is no longer valid. Cannot identify steam id and therefore cannot process request.`)
+    if (e instanceof InvalidTradeURLError) {
+      log.error(`Trade link ${tradeURL}  is no longer valid. Cannot identify steam id and therefore cannot process request.`)
       return {
         containsItem: CONTAINS_ITEM_TRADE_URL_INVALID,
         steamId: null
       }
     } else if (e instanceof ProfileIsPrivateError) {
-      log.error(`Trade link ${tradeLink}  owner's inventory is set to private. Cannot identify steam id and therefore cannot process request.`)
+      log.error(`Trade link ${tradeURL}  owner's inventory is set to private. Cannot identify steam id and therefore cannot process request.`)
       return {
         containsItem: CONTAINS_ITEM_INVENTORY_PRIVATE,
         steamId: null
       }
     } else {
-      log.error(`Failed to fetch trade link page for ${tradeLink}`)
+      log.error(`Failed to fetch trade link page for ${tradeURL}`)
       throw e
     }
   }
 
   if (!steamId) {
-    throw InternalError(`Failed to fetch steam id from Trade URL ${tradeLink} for unknown reasons.`)
+    throw InternalError(`Failed to fetch steam id from Trade URL ${tradeURL} for unknown reasons.`)
   }
 
   const scanner = getSteamScanner()
@@ -156,7 +156,7 @@ async function findItemByWear(scanner, inventoryItems, skinName, paintSeed, wear
 }
 
 
-async function getTradeLinkOwnerSteamId(tradeLink) {
+async function getTradeURLOwnerSteamId(tradeURL) {
   const webSession = getSteamWebSession()
   if (!webSession) {
     throw new SystemInitNotFinishedError('Steam webSession not initialized yet.')
@@ -187,9 +187,9 @@ async function getTradeLinkOwnerSteamId(tradeLink) {
     method: 'GET'
   }
 
-  const fetchResponse = await fetch(tradeLink, options)
-  const tradeLinkPageText = await fetchResponse.text()
-  const steamId = extractSteamIdFromTradeLinkPage(tradeLinkPageText)
+  const fetchResponse = await fetch(tradeURL, options)
+  const tradeURLPageText = await fetchResponse.text()
+  const steamId = extractSteamIdFromTradeURLPage(tradeURLPageText)
   return steamId
 }
 
@@ -200,6 +200,5 @@ function isReady() {
 module.exports = {
   inventoryContainsItem,
   inventoryContainsItemWithInspectLink,
-  getTradeLinkOwnerSteamId,
   isReady
 }

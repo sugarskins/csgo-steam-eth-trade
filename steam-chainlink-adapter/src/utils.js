@@ -1,6 +1,6 @@
-const { InvalidTradeLinkError, InvalidWearValueError, ProfileIsPrivateError } = require('./errors')
+const { InvalidTradeURLError, InvalidWearValueError, ProfileIsPrivateError } = require('./errors')
 
-function extractSteamIdFromTradeLinkPage(pageText) {
+function extractSteamIdFromTradeURLPage(pageText) {
   const regex = /https:\/\/steamcommunity.com\/profiles\/(\d+)/g
   const matches = []
   let result = regex.exec(pageText)
@@ -15,7 +15,7 @@ function extractSteamIdFromTradeLinkPage(pageText) {
     const invalidTradeURLRegex = /This Trade URL is no longer valid for sending a trade offer/
     let firstResult = invalidTradeURLRegex.exec(pageText)
     if (firstResult) {
-      throw new InvalidTradeLinkError('This Trade URL is no longer valid for sending a trade offer.')
+      throw new InvalidTradeURLError('This Trade URL is no longer valid for sending a trade offer.')
     }
 
     const profilePrivateRegex = /inventory privacy is set to "Private"/
@@ -76,7 +76,7 @@ function inspectLinkToSMAD(inspectLink) {
 
 
 module.exports = {
-  extractSteamIdFromTradeLinkPage,
+  extractSteamIdFromTradeURLPage,
   getWebEligibilityCookie,
   getCsgoInventoryUrl,
   getInventoryUrl,

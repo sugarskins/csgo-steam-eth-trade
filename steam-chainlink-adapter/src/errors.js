@@ -1,4 +1,4 @@
-class InvalidTradeLinkError extends Error {}
+class InvalidTradeURLError extends Error {}
 
 class ProfileIsPrivateError extends Error {}
 
@@ -11,7 +11,7 @@ class SystemInitNotFinishedError extends Error {}
 class InternalError extends Error {}
 
 module.exports = {
-  InvalidTradeLinkError,
+  InvalidTradeURLError,
   ProfileIsPrivateError,
   InventoryQueryRateLimitError,
   InvalidWearValueError,
