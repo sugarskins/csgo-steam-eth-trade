@@ -1,32 +1,19 @@
 const { InvalidTradeURLError, InvalidWearValueError, ProfileIsPrivateError } = require('./errors')
 
-function extractSteamIdFromTradeURLPage(pageText) {
-  const regex = /https:\/\/steamcommunity.com\/profiles\/(\d+)/g
-  const matches = []
-  let result = regex.exec(pageText)
-  while (result) {
-    matches.push(result[1])
-    result = regex.exec(pageText)
+function validateTradeURLPageContent(pageText) {
+  const invalidTradeURLRegex = /This Trade URL is no longer valid for sending a trade offer/
+  let firstResult = invalidTradeURLRegex.exec(pageText)
+  if (firstResult) {
+    throw new InvalidTradeURLError('This Trade URL is no longer valid for sending a trade offer.')
   }
 
-  const firstMatch = matches[0]
+  const profilePrivateRegex = /inventory privacy is set to "Private"/
 
-  if (!firstMatch) {
-    const invalidTradeURLRegex = /This Trade URL is no longer valid for sending a trade offer/
-    let firstResult = invalidTradeURLRegex.exec(pageText)
-    if (firstResult) {
-      throw new InvalidTradeURLError('This Trade URL is no longer valid for sending a trade offer.')
-    }
-
-    const profilePrivateRegex = /inventory privacy is set to "Private"/
-
-    firstResult = profilePrivateRegex.exec(pageText)
-    if (firstResult) {
-      throw new ProfileIsPrivateError('Trade URL\'s owner inventory privacy is set to "Private"')
-    }
-  } else {
-    return firstMatch
+  firstResult = profilePrivateRegex.exec(pageText)
+  if (firstResult) {
+    throw new ProfileIsPrivateError('Trade URL\'s owner inventory privacy is set to "Private"')
   }
+
 }
 
 function getWebEligibilityCookie() {
@@ -76,7 +63,7 @@ function inspectLinkToSMAD(inspectLink) {
 
 
 module.exports = {
-  extractSteamIdFromTradeURLPage,
+  validateTradeURLPageContent,
   getWebEligibilityCookie,
   getCsgoInventoryUrl,
   getInventoryUrl,

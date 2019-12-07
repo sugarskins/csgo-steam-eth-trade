@@ -1,4 +1,7 @@
 const fetch = require('node-fetch')
+const SteamID = require('steamid')
+const url = require('url')
+const querystring = require('querystring')
 const log = require('./log')
 const {
   InvalidTradeURLError,
@@ -8,9 +11,10 @@ const {
 } = require('./errors')
 
 const {
-  extractSteamIdFromTradeURLPage,
+  validateTradeURLPageContent,
   getWebEligibilityCookie,
-  isSameWear
+  isSameWear,
+  inspectLinkToSMAD
 } = require('./utils')
 
 const steamUser = require('./steamUser')
@@ -22,25 +26,25 @@ const CONTAINS_ITEM_FALSE = 0
 const CONTAINS_ITEM_TRUE = 1
 const CONTAINS_ITEM_INVENTORY_PRIVATE = 2
 const CONTAINS_ITEM_TRADE_URL_INVALID = 3
+const CONTAINS_ITEM_INSPECT_LINK_INVALID = 4
 
 async function inventoryContainsItemWithInspectLink(tradeURL, inspectLink, wear, skinName, paintSeed) {
   log.info(`Looking up steamId for trade URL ${tradeURL}..`)
-
-  let steamId = null
   try {
-    steamId = await getTradeURLOwnerSteamId(tradeURL)
+    validateTradeURL(tradeURL)
+    await validateTradeURLPage(tradeURL)
   } catch (e) {
     if (e instanceof InvalidTradeURLError) {
-      log.error(`Trade link ${tradeURL}  is no longer valid. Cannot identify steam id and therefore cannot process request.`)
+      log.error(`Trade URL ${tradeURL}  is no longer valid. Cannot identify steam id and therefore cannot process request.`)
       return {
         containsItem: CONTAINS_ITEM_TRADE_URL_INVALID,
-        steamId: null
+        steamID64: null
       }
     } else if (e instanceof ProfileIsPrivateError) {
-      log.error(`Trade link ${tradeURL}  owner's inventory is set to private. Cannot identify steam id and therefore cannot process request.`)
+      log.error(`Trade URL ${tradeURL}  owner's inventory is set to private. Cannot identify steam id and therefore cannot process request.`)
       return {
         containsItem: CONTAINS_ITEM_INVENTORY_PRIVATE,
-        steamId: null
+        steamID64: null
       }
     } else {
       log.error(`Failed to fetch trade link page for ${tradeURL}`)
@@ -48,8 +52,23 @@ async function inventoryContainsItemWithInspectLink(tradeURL, inspectLink, wear,
     }
   }
 
-  if (!steamId) {
+  const parsedTradeURL = url.parse(tradeURL)
+  const query = querystring.parse(parsedTradeURL.query)
+  const individualAccountID = query['partner']
+  const steamId = SteamID.fromIndividualAccountID(individualAccountID)
+  let steamID64 = steamId.getSteamID64()
+
+  if (!steamID64) {
     throw InternalError(`Failed to fetch steam id from Trade URL ${tradeURL} for unknown reasons.`)
+  }
+
+  const smad = inspectLinkToSMAD(inspectLink)
+
+  if (steamID64 !== smad.s) {
+    return {
+      containsItem: CONTAINS_ITEM_FALSE,
+      steamID64
+    }
   }
 
   const scanner = getSteamScanner()
@@ -65,11 +84,20 @@ async function inventoryContainsItemWithInspectLink(tradeURL, inspectLink, wear,
   const containsItem = itemFound ? CONTAINS_ITEM_TRUE : CONTAINS_ITEM_FALSE
   return {
     containsItem: containsItem,
-    steamId
+    steamID64
   }
 }
 
-async function getTradeURLOwnerSteamId(tradeURL) {
+function validateTradeURL(tradeURL) {
+  const { host, hostname, protocol, pathname, query } = url.parse(tradeURL)
+  const parsedQuerystring = querystring.parse(query)
+  if (protocol !== 'https:' || host !== 'steamcommunity.com' || hostname !== 'steamcommunity.com' ||
+      pathname !== '/tradeoffer/new/' || !parsedQuerystring['partner'] || !parsedQuerystring['token']) {
+    throw InvalidTradeURLError(`The trade url ${tradeURL} is not a valid steamcommunity.com trade URL.`)
+  }
+}
+
+async function validateTradeURLPage(tradeURL) {
   const webSession = getSteamWebSession()
   if (!webSession) {
     throw new SystemInitNotFinishedError('Steam webSession not initialized yet.')
@@ -102,8 +130,7 @@ async function getTradeURLOwnerSteamId(tradeURL) {
 
   const fetchResponse = await fetch(tradeURL, options)
   const tradeURLPageText = await fetchResponse.text()
-  const steamId = extractSteamIdFromTradeURLPage(tradeURLPageText)
-  return steamId
+  validateTradeURLPageContent(tradeURLPageText)
 }
 
 function isReady() {
