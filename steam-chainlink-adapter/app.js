@@ -9,12 +9,9 @@ app.use(bodyParser.json())
 
 async function createRequest(input) {
   log.info(`Request received with data ${JSON.stringify(input)}`)
-  const data = input.data
   switch (input.data.method.toLowerCase()) {
     case 'tradelinkownerhasinspectlinktarget':
       return await handleTradeLinkOwnerHasInspectLinkTarget(input)
-    case 'tradelinkownerhasitem':
-      return await handleTradeLinkOwnerHasItem(input)
     default:
       return {
         data: {
@@ -43,25 +40,6 @@ async function handleTradeLinkOwnerHasInspectLinkTarget(input) {
     statusCode: 200
   }
 }
-
-async function handleTradeLinkOwnerHasItem(input) {
-  const data = input.data
-  const { containsItem, steamId } = await steam.inventoryContainsItem(data.tradeLink,
-    data.wear, data.skinName, data.paintSeed)
-  return {
-    data: {
-      jobRunID: input.id,
-      data: {
-        containsItem: containsItem,
-        steamId
-      },
-      error: null
-    },
-    statusCode: 200
-  }
-}
-
-
 
 
 app.post("/",  async (req, res) => {

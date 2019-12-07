@@ -1,6 +1,5 @@
 const fetch = require('node-fetch')
 const log = require('./log')
-const { getInventory } = require('./steamInventory')
 const {
   InvalidTradeURLError,
   ProfileIsPrivateError,
@@ -23,69 +22,6 @@ const CONTAINS_ITEM_FALSE = 0
 const CONTAINS_ITEM_TRUE = 1
 const CONTAINS_ITEM_INVENTORY_PRIVATE = 2
 const CONTAINS_ITEM_TRADE_URL_INVALID = 3
-
-async function inventoryContainsItem(tradeLink, wear, skinName, paintSeed) {
-
-  log.info(`Looking up steamId for trade link ${tradeLink}..`)
-
-  let steamId = null
-  try {
-    steamId = await getTradeURLOwnerSteamId(tradeLink)
-  } catch (e) {
-    if (e instanceof InvalidTradeLinkError) {
-      log.error(`Trade link ${tradeLink}  is no longer valid. Cannot identify steam id and therefore cannot process request.`)
-      return {
-        containsItem: CONTAINS_ITEM_TRADE_URL_INVALID,
-        steamId: null
-      }
-    } else if (e instanceof ProfileIsPrivateError) {
-      log.error(`Trade link ${tradeLink}  owner's inventory is set to private. Cannot identify steam id and therefore cannot process request.`)
-      return {
-        containsItem: CONTAINS_ITEM_INVENTORY_PRIVATE,
-        steamId: null
-      }
-    } else {
-      log.error(`Failed to fetch trade link page for ${tradeLink}`)
-      throw e
-    }
-  }
-
-  if (!steamId) {
-    throw InternalError(`Failed to fetch steam id from Trade URL ${tradeLink} for unknown reasons.`)
-  }
-
-  log.info(`steamId detected to be ${steamId}.`)
-
-  let inventoryItems = null
-  try {
-    inventoryItems = await getInventory(steamId)
-  } catch (e) {
-    if (e instanceof ProfileIsPrivateError) {
-      log.error(`Received message ${ProfileIsPrivateError} from Steam. Classifying profile as private.`)
-      return {
-        containsItem: CONTAINS_ITEM_INVENTORY_PRIVATE,
-        steamId: null
-      }
-    } else {
-      log.error(`Failed to fetch inventory page for ${tradeLink} with steamId ${steamId}`)
-      throw e
-    }
-  }
-
-  const scanner = getSteamScanner()
-  if (!scanner){
-    throw new SystemInitNotFinishedError('SteamScanner not initialized yet.')
-  }
-
-  const item = await findItemByWear(scanner, inventoryItems, skinName, paintSeed, wear)
-
-  const itemFound = item !== null
-  const containsItem = itemFound ? CONTAINS_ITEM_TRUE : CONTAINS_ITEM_FALSE
-  return {
-    containsItem: containsItem,
-    steamId
-  }
-}
 
 async function inventoryContainsItemWithInspectLink(tradeURL, inspectLink, wear, skinName, paintSeed) {
   log.info(`Looking up steamId for trade URL ${tradeURL}..`)
@@ -133,29 +69,6 @@ async function inventoryContainsItemWithInspectLink(tradeURL, inspectLink, wear,
   }
 }
 
-
-async function findItemByWear(scanner, inventoryItems, skinName, paintSeed, wear) {
-  const candidates = inventoryItems.filter(item => item.market_hash_name === skinName)
-
-  log.info(`There are ${candidates.length} potential matches in the inventory \
-    for the skin ${skinName} with wear ${wear}. Scanning each one to find a match..`)
-
-  for (let i = 0; i < candidates.length; i++) {
-    const candidate = candidates[i]
-    const inspectLink = candidate.inspectLink
-    log.info(`Scanning possible match ${candidate.market_hash_name} with inspect link ${candidate.inspectLink}`)
-    const scannedCandidate = await scanner.scanInspectLink(inspectLink)
-
-    if (scannedCandidate.paintseed.toString() === paintSeed && isSameWear(scannedCandidate.paintwear.toString(), wear)) {
-      return scannedCandidate
-    }
-  }
-
-  // could not find any matches, return null.
-  return null
-}
-
-
 async function getTradeURLOwnerSteamId(tradeURL) {
   const webSession = getSteamWebSession()
   if (!webSession) {
@@ -198,7 +111,6 @@ function isReady() {
 }
 
 module.exports = {
-  inventoryContainsItem,
   inventoryContainsItemWithInspectLink,
   isReady
 }
