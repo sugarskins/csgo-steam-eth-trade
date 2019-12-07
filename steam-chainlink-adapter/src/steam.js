@@ -77,6 +77,43 @@ async function inventoryContainsItem(tradeLink, wear, skinName, paintSeed) {
   }
 }
 
+async function inventoryContainsItemWithInspectLink(tradeLink, inspectLink, wear, skinName, paintSeed) {
+  log.info(`Looking up steamId for trade link ${tradeLink}..`)
+
+  let steamId = null
+  try {
+    steamId = await getTradeLinkOwnerSteamId(tradeLink)
+  } catch (e) {
+    if (e instanceof InvalidTradeLinkError) {
+      log.error(`Trade link ${tradeLink}  is no longer valid. Cannot identify steam id and therefore cannot process request.`)
+      return {
+        containsItem: CONTAINS_ITEM_TRADE_URL_INVALID,
+        steamId: null
+      }
+    } else {
+      log.error(`Failed to fetch trade link page for ${tradeLink}`)
+      throw e
+    }
+  }
+
+  const scanner = getSteamScanner()
+  if (!scanner){
+    throw new SystemInitNotFinishedError('SteamScanner not initialized yet.')
+  }
+
+  log.info(`Scanning item at provided inspectLink to see the match..`)
+  const scannedCandidate = await scanner.scanInspectLink(inspectLink)
+
+  const itemFound = scannedCandidate.paintseed.toString() === paintSeed && isSameWear(scannedCandidate.paintwear.toString(), wear)
+
+  const containsItem = itemFound ? CONTAINS_ITEM_TRUE : CONTAINS_ITEM_FALSE
+  return {
+    containsItem: containsItem,
+    steamId
+  }
+}
+
+
 async function findItemByWear(scanner, inventoryItems, skinName, paintSeed, wear) {
   const candidates = inventoryItems.filter(item => item.market_hash_name === skinName)
 
@@ -142,6 +179,7 @@ function isReady() {
 
 module.exports = {
   inventoryContainsItem,
+  inventoryContainsItemWithInspectLink,
   getTradeLinkOwnerSteamId,
   isReady
 }

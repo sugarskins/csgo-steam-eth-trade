@@ -12,7 +12,7 @@ async function createRequest(input) {
   switch (input.data.method.toLowerCase()) {
     case 'tradelinkownerhascsgoweapon':
       const data = input.data
-      const { containsItem, steamId } = await steam.inventoryContainsItem(data.tradeLink,
+      const { containsItem, steamId } = await steam.inventoryContainsItemWithInspectLink(data.tradeLink, data.inspectLink,
         data.wear, data.skinName, data.paintSeed)
       return {
         data: {
