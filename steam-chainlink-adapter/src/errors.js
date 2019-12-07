@@ -8,10 +8,13 @@ class InvalidWearValueError extends Error {}
 
 class SystemInitNotFinishedError extends Error {}
 
+class InternalError extends Error {}
+
 module.exports = {
   InvalidTradeLinkError,
   ProfileIsPrivateError,
   InventoryQueryRateLimitError,
   InvalidWearValueError,
-  SystemInitNotFinishedError
+  SystemInitNotFinishedError,
+  InternalError
 }

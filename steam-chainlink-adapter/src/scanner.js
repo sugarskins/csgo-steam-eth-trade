@@ -1,9 +1,8 @@
 const log = require('./log')
+const { inspectLinkToSMAD } = require('./utils')
 
 const STEAM_REQUEST_TIMEOUT = 500
 const STEAM_RESPONSE_TIMEOUT = 1000
-
-const inspectLinkRegex = /([sm])([0-9]+)a([0-9]+)d([0-9]+)/i
 
 
 class SteamScanner {
@@ -84,16 +83,6 @@ class SteamScanner {
           this.runScanner()
         }
     })
-  }
-}
-
-function inspectLinkToSMAD(inspectLink) {
-  let match = inspectLink.toLowerCase().match(inspectLinkRegex);
-  return {
-    s: match[1] === 's' ? match[2] : null,
-    m: match[1] === 'm' ? match[2] : null,
-    a: match[3],
-    d: match[4]
   }
 }
 

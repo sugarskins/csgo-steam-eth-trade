@@ -2,6 +2,7 @@ global._mckay_statistics_opt_out = true
 const SteamUser = require('steam-user')
 const SteamTotp = require('steam-totp')
 const GlobalOffensive = require('globaloffensive')
+const TradeOfferManager = require('steam-tradeoffer-manager')
 const Scanner = require('./scanner')
 const log = require('./log')
 
@@ -10,8 +11,6 @@ const CSGO_APP_ID = 730
 
 let steamScanner = null
 let steamWebSession = null
-
-
 class SteamUserClients {
   constructor(steamUser, webSession, csgo) {
     this.steamUser = steamUser
@@ -30,6 +29,11 @@ async function getSteamUserClients(logOnDetails) {
 
   const steamUser = new SteamUser()
 
+  const tradeOfferManager = new TradeOfferManager({
+    "steam": steamUser,
+    "domain": "example.com",
+    "language": "en"
+  })
 
   const csgo = new GlobalOffensive(steamUser)
 
@@ -70,6 +74,17 @@ async function getSteamUserClients(logOnDetails) {
     )
   ])
 
+  log.info(`Setting cookies for TradeOfferManager..`)
+  await new Promise((resolve, reject) => {
+    tradeOfferManager.setCookies(cookies, (err) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve()
+      }
+    })
+  })
+
   steamUser.gamesPlayed([CSGO_APP_ID])
 
   log.info('Waiting for CSGO to launch..')
@@ -91,7 +106,7 @@ async function getSteamUserClients(logOnDetails) {
         .logOff()
     })
 
-  const steamUserClients = new SteamUserClients(steamUser, { sessionID, cookies }, csgo)
+  const steamUserClients = new SteamUserClients(steamUser, { sessionID, cookies }, csgo, tradeOfferManager)
   return steamUserClients
 }
 

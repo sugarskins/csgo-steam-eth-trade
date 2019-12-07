@@ -9,23 +9,12 @@ app.use(bodyParser.json())
 
 async function createRequest(input) {
   log.info(`Request received with data ${JSON.stringify(input)}`)
+  const data = input.data
   switch (input.data.method.toLowerCase()) {
-    case 'tradelinkownerhascsgoweapon':
-      const data = input.data
-      const { containsItem, steamId } = await steam.inventoryContainsItemWithInspectLink(data.tradeLink, data.inspectLink,
-        data.wear, data.skinName, data.paintSeed)
-      return {
-        data: {
-          jobRunID: input.id,
-          data: {
-            containsItem: containsItem,
-            steamId
-          },
-          error: null
-        },
-        statusCode: 200
-      }
-      break
+    case 'tradelinkownerhasinspectlinktarget':
+      return await handleTradeLinkOwnerHasInspectLinkTarget(input)
+    case 'tradelinkownerhasitem':
+      return await handleTradeLinkOwnerHasItem(input)
     default:
       return {
         data: {
@@ -35,6 +24,40 @@ async function createRequest(input) {
         },
         status: 400
       }
+  }
+}
+
+async function handleTradeLinkOwnerHasInspectLinkTarget(input) {
+  const data = input.data
+  const { containsItem, steamId } = await steam.inventoryContainsItemWithInspectLink(data.tradeLink, data.inspectLink,
+    data.wear, data.skinName, data.paintSeed)
+  return {
+    data: {
+      jobRunID: input.id,
+      data: {
+        containsItem: containsItem,
+        steamId
+      },
+      error: null
+    },
+    statusCode: 200
+  }
+}
+
+async function handleTradeLinkOwnerHasItem(input) {
+  const data = input.data
+  const { containsItem, steamId } = await steam.inventoryContainsItem(data.tradeLink,
+    data.wear, data.skinName, data.paintSeed)
+  return {
+    data: {
+      jobRunID: input.id,
+      data: {
+        containsItem: containsItem,
+        steamId
+      },
+      error: null
+    },
+    statusCode: 200
   }
 }
 
@@ -51,7 +74,7 @@ app.post("/",  async (req, res) => {
       log.error(`Request failure: ${e.stack}`)
       return res.json({
         jobRunID: req.body.id,
-        error: 'Server error.',
+        error: `Server error: ${e}`,
         status: 'errored'
       }).status(500)
     }

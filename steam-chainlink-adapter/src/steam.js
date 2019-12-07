@@ -4,7 +4,8 @@ const { getInventory } = require('./steamInventory')
 const {
   InvalidTradeLinkError,
   ProfileIsPrivateError,
-  SystemInitNotFinishedError
+  SystemInitNotFinishedError,
+  InternalError
 } = require('./errors')
 
 const {
@@ -37,12 +38,21 @@ async function inventoryContainsItem(tradeLink, wear, skinName, paintSeed) {
         containsItem: CONTAINS_ITEM_TRADE_URL_INVALID,
         steamId: null
       }
+    } else if (e instanceof ProfileIsPrivateError) {
+      log.error(`Trade link ${tradeLink}  owner's inventory is set to private. Cannot identify steam id and therefore cannot process request.`)
+      return {
+        containsItem: CONTAINS_ITEM_INVENTORY_PRIVATE,
+        steamId: null
+      }
     } else {
       log.error(`Failed to fetch trade link page for ${tradeLink}`)
       throw e
     }
   }
 
+  if (!steamId) {
+    throw InternalError(`Failed to fetch steam id from Trade URL ${tradeLink} for unknown reasons.`)
+  }
 
   log.info(`steamId detected to be ${steamId}.`)
 
@@ -90,10 +100,20 @@ async function inventoryContainsItemWithInspectLink(tradeLink, inspectLink, wear
         containsItem: CONTAINS_ITEM_TRADE_URL_INVALID,
         steamId: null
       }
+    } else if (e instanceof ProfileIsPrivateError) {
+      log.error(`Trade link ${tradeLink}  owner's inventory is set to private. Cannot identify steam id and therefore cannot process request.`)
+      return {
+        containsItem: CONTAINS_ITEM_INVENTORY_PRIVATE,
+        steamId: null
+      }
     } else {
       log.error(`Failed to fetch trade link page for ${tradeLink}`)
       throw e
     }
+  }
+
+  if (!steamId) {
+    throw InternalError(`Failed to fetch steam id from Trade URL ${tradeLink} for unknown reasons.`)
   }
 
   const scanner = getSteamScanner()
