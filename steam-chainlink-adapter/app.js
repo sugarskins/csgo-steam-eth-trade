@@ -26,14 +26,14 @@ async function createRequest(input) {
 
 async function handleTradeLinkOwnerHasInspectLinkTarget(input) {
   const data = input.data
-  const { containsItem, steamId64 } = await steam.inventoryContainsItemWithInspectLink(data.tradeURL, data.inspectLink,
+  const { containsItem, steamID64 } = await steam.inventoryContainsItemWithInspectLink(data.tradeURL, data.inspectLink,
     data.wear, data.skinName, data.paintSeed)
   return {
     data: {
       jobRunID: input.id,
       data: {
         containsItem: containsItem,
-        steamId64
+        steamID64
       },
       error: null
     },

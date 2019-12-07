@@ -62,9 +62,28 @@ async function inventoryContainsItemWithInspectLink(tradeURL, inspectLink, wear,
     throw InternalError(`Failed to fetch steam id from Trade URL ${tradeURL} for unknown reasons.`)
   }
 
-  const smad = inspectLinkToSMAD(inspectLink)
+  let smad = null
+  try {
+    const parsedInspectLink = url.parse(inspectLink)
+    if (parsedInspectLink.protocol !== 'steam:' || parsedInspectLink.host !== 'rungame') {
+      log.error(`Inspect link ${inspectLink} is invalid.`)
+      return {
+        containsItem: CONTAINS_ITEM_INSPECT_LINK_INVALID,
+        steamID64
+      }
+    }
+    smad = inspectLinkToSMAD(inspectLink)
+  } catch (e) {
+    log.error(`Failed to parse inspect link to identifiers: ${e.stack}`)
+    return {
+      containsItem: CONTAINS_ITEM_INSPECT_LINK_INVALID,
+      steamID64
+    }
+  }
+
 
   if (steamID64 !== smad.s) {
+    log.error(`The trade URL steamID64 ${steamID64} and inspect link steamID64 ${smad.s} do not match.`)
     return {
       containsItem: CONTAINS_ITEM_FALSE,
       steamID64
