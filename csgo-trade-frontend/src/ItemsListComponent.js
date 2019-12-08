@@ -10,6 +10,7 @@ import Col from  'react-bootstrap/Col'
 import Form from 'react-bootstrap/Form'
 import Web3 from 'web3'
 import BigNumber from 'bignumber.js'
+import {  withCookies, Cookies } from 'react-cookie'
 import CSGOSteamTradeoContract from './CSGOSteamTrade'
 import utils from './utils'
 
@@ -243,17 +244,23 @@ class ItemComponent extends Component {
 
 
 const DISPLAY_CURRENCY = 'USD'
+const COOKIE_TRADE_URL = 'TRADE_URL'
 
 class ItemsListComponent extends Component {
 
     constructor(props) {
         super(props);
+
+        const { cookies } = props
+
         this.state = {
             items: [],
             csgoSteamTradeContractAddress: '0x297ab0fbECE2ada3082516F9bC2D61d537EB46DC',
-            userTradeURL: null,       
+            userTradeURL: cookies.get(COOKIE_TRADE_URL),       
             ethToFiatPrice: null
         }
+
+        console.info(`Loaded trade URL: ${this.state.userTradeURL}`)
 
         // this.state.items = testItems
         
@@ -314,9 +321,9 @@ class ItemsListComponent extends Component {
     async handleTradeURLSubmit(event) {
         event.preventDefault()
         const form = event.currentTarget
-        console.log('Handle trade URL submit')
-        console.log(event.currentTarget.value)
-        //this.setState({ tradeURL:  })        
+        const tradeURL = form.elements.formTradeURL.value
+        console.info(`Saving trade URL saving ${tradeURL}`)
+        this.props.cookies.set(COOKIE_TRADE_URL, tradeURL, { path: '/' })      
     }
 
     componentDidUpdate() {
@@ -332,12 +339,12 @@ class ItemsListComponent extends Component {
                 <Form onSubmit={this.handleTradeURLSubmit}>
                     <Form.Group controlId="formTradeURL">
                         <Form.Label>Your Trade URL </Form.Label>
-                        <Form.Control type="url" placeholder="Enter Steam Community trade URL" />
+                        <Form.Control type="url" placeholder="Enter Steam Community trade URL" defaultValue={this.state.userTradeURL} />
                         <Form.Text className="text-muted">
                             Make sure your trade URL is valid AND your profile is *public*
                         </Form.Text>
                         <Form.Control.Feedback type="invalid">
-                            Please provide a valid city.
+                            Please provide a valid Trade URL.
                         </Form.Control.Feedback>
                     </Form.Group>
                 </Form>
@@ -361,4 +368,4 @@ class ItemsListComponent extends Component {
 }
 
 
-export default ItemsListComponent
+export default withCookies(ItemsListComponent)
