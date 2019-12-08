@@ -93,7 +93,7 @@ async function getSteamUserClients(logOnDetails) {
 }
 
 function getRandomLogonId() {
-  return Math.round(Math.random() * Math.pow(2, 30));
+  return Math.round(Math.random() * Math.pow(2, 30))
 }
 
 log.runWithContinuationId('steam-clients-init', async () => {

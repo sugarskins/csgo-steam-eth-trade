@@ -10,7 +10,7 @@ app.use(bodyParser.json())
 async function createRequest(input) {
   log.info(`Request received with data ${JSON.stringify(input)}`)
   switch (input.data.method.toLowerCase()) {
-    case 'tradelinkownerhasinspectlinktarget':
+    case 'tradeurlownerhasinspectlinktarget':
       return await handleTradeLinkOwnerHasInspectLinkTarget(input)
     default:
       return {

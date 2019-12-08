@@ -7,7 +7,7 @@ import "chainlink/contracts/ChainlinkClient.sol";
 contract CSGOSteamTrade is ChainlinkClient {
     // 6 hours
     uint public constant MINIMUM_PURCHASE_OFFER_AGE = 60 * 60 * 6;
-    string public constant CHECK_INVENTORY_CONTAINS_ITEM_METHOD = "tradelinkownerhascsgoweapon";
+    string public constant CHECK_INVENTORY_CONTAINS_ITEM_METHOD = "tradelinkownerhasinspectlinktarget";
     uint256 constant private ORACLE_PAYMENT = 1 * LINK;
 
     uint256 constant public OWNERSHIP_STATUS_FALSE = 0;
