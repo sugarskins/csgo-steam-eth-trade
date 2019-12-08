@@ -25,8 +25,7 @@ contract CSGOSteamTrade is ChainlinkClient {
 
     struct Listing {
         uint listingId;
-        string ownerSteamAccountName;
-        uint accountSteamId;
+        string ownerInspectLink;
         string wear;
         string skinName;
         uint paintSeed;
@@ -78,11 +77,11 @@ contract CSGOSteamTrade is ChainlinkClient {
         }
     }
     
-    function createListing(string _ownerSteamAccountName, uint _accountSteamId, string memory _wear,
+    function createListing(string _ownerInspectLink, string memory _wear,
         string memory _skinName, uint _paintSeed, uint _price, address _sellerEthereumAdress) public returns (uint listingId) {
         listingId = numListings++;
         PurchaseOffer memory placeholder = PurchaseOffer(0, 0, '', false);
-        Listing memory listing = Listing(listingId, _ownerSteamAccountName, _accountSteamId, _wear, _skinName, _paintSeed,
+        Listing memory listing = Listing(listingId, _ownerInspectLink, _wear, _skinName, _paintSeed,
             _price, _sellerEthereumAdress, msg.sender, placeholder, true, ListingStage.OPEN);
         emit ListingCreation(listing);
         listings[listingId] = listing;
@@ -148,7 +147,8 @@ contract CSGOSteamTrade is ChainlinkClient {
         bytes32 _jobId,
         uint256 _payment,
         string _url,
-        string _path)
+        string _path,
+        string _buyerInspectLink)
         public
         returns (bytes32 requestId) {
 
@@ -163,8 +163,8 @@ contract CSGOSteamTrade is ChainlinkClient {
             this.fulfillItemTransferConfirmation.selector);
             
         req.add("method", CHECK_INVENTORY_CONTAINS_ITEM_METHOD);
-        req.add("accountName", listing.ownerSteamAccountName);
-        req.add("steamId", uint2str(listing.accountSteamId));
+        req.add("inspectLink", _buyerInspectLink);
+        req.add("tradeURL", listing.purchaseOffer.buyerTradeURL);
         req.add("wear", listing.wear);
         req.add("skinName", listing.skinName);
         req.add("paintSeed", uint2str(listing.paintSeed));
