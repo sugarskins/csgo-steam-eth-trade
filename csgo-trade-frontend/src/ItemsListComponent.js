@@ -59,7 +59,7 @@ function getDisplayPrice(price, ethToFiatPrice) {
 
         const value = BigNumber(ethToFiatPrice.value).multipliedBy(etherValue)
         displayPrice = {
-            value: value.toFixed(6),
+            value: value.toFixed(2),
             currency: ethToFiatPrice.currency
         }
     } else {
@@ -200,9 +200,13 @@ class ItemComponent extends Component {
                     Wear: {this.props.item.wear}
                     
                 </Card.Text>
-                <Card.Link href={this.props.item.inspectLink}>👀 </Card.Link>
+                <Card.Link href={this.props.item.inspectLink}>
+                    <span role="img" aria-label="eyes">👀</span>
+                </Card.Link>
 
-                <Card.Link href={this.props.item.inventoryLink} text="View on Steam">🚂</Card.Link>
+                <Card.Link href={this.props.item.inventoryLink} text="View on Steam">
+                    <span role="img" aria-label="steam-train"> 🚂</span>
+                </Card.Link>
                 <Button variant="primary" onClick={this.handleShowPurchaseModal} > Purchase </Button>
                 </Card.Body>
             </Card>
@@ -211,9 +215,11 @@ class ItemComponent extends Component {
                     <Modal.Title>Purchase</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                    { !this.state.metamaskAvailable ? (<div> ❗🦊 Please install the <a href='https://metamask.io/'>Metamask</a> browser
+                    { !this.state.metamaskAvailable ? (<div> <span role="img" aria-label="exclamation-mark">❗</span> <span role="img" aria-label="fox">🦊</span> Please install
+                     the <a href='https://metamask.io/'>Metamask</a> browser
                     extension in order to make payments, and after refresh this page. </div>) : null }
-                    { this.state.metamaskAvailable && !this.state.metamaskPermissionGranted ? (<div> ❗🦊 In order to purchase items, access to
+                    { this.state.metamaskAvailable && !this.state.metamaskPermissionGranted ? (<div> <span role="img" aria-label="exclamation-mark">❗</span> <span role="img" aria-label="fox">🦊</span> 
+                    In order to purchase items, access to
                          your <a href='https://metamask.io/'>Metamask</a> address is required.
                          <Button type="button" className="btn btn-primary" onClick={this.requestMetamaskAccess} > Grant access </Button> </div>) : null }
                         <p>{this.props.item.skinName}</p>
