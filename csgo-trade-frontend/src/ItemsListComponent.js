@@ -33,7 +33,7 @@ function makeGroups(array, groupSize) {
 }
 
 class ItemData {
-    constructor(listingId, wear, skinName, paintSeed, statTrak, inspectLink, inventoryLink, displayPrice, imageSrc) {
+    constructor(listingId, wear, skinName, paintSeed, statTrak, inspectLink, inventoryLink, price, displayPrice, imageSrc) {
         this.listingId = listingId
         this.wear = wear
         this.skinName = skinName
@@ -41,6 +41,7 @@ class ItemData {
         this.statTrak = statTrak
         this.inspectLink = inspectLink
         this.inventoryLink = inventoryLink
+        this.price = price
         this.displayPrice = displayPrice
         this.imageSrc = imageSrc
     }
@@ -77,7 +78,7 @@ function contractListingToDisplayItem(listing, ethToFiatPrice) {
     const displayPrice = getDisplayPrice(listing.price, ethToFiatPrice)
 
     const itemData = new ItemData(listing.listingId, listing.wear, listing.skinName, listing.paintSeed,
-        TEMP_PLACEHOLDER_STATTRAK, listing.ownerInspectLink, inventoryURL, displayPrice, TEMP_PLACEHOLDER_PIC)
+        TEMP_PLACEHOLDER_STATTRAK, listing.ownerInspectLink, inventoryURL, listing.price, displayPrice, TEMP_PLACEHOLDER_PIC)
     return itemData
 }
 
@@ -199,7 +200,8 @@ class ItemComponent extends Component {
                     Wear: {this.props.item.wear}
                     
                 </Card.Text>
-                <Card.Link href={this.props.item.inspectLink}>👀</Card.Link>
+                <Card.Link href={this.props.item.inspectLink}>👀 </Card.Link>
+
                 <Card.Link href={this.props.item.inventoryLink} text="View on Steam">🚂</Card.Link>
                 <Button variant="primary" onClick={this.handleShowPurchaseModal} > Purchase </Button>
                 </Card.Body>
