@@ -19,8 +19,7 @@ contract CSGOSteamTrade is ChainlinkClient {
     struct PurchaseOffer {
         address owner;
         uint creationTimestamp;
-        string buyerSteamAccountName;
-        uint buyerAccountSteamId;
+        string buyerTradeURL;
         bool exists;
     }
 
@@ -44,7 +43,7 @@ contract CSGOSteamTrade is ChainlinkClient {
     );
 
     event PurchaseOfferMade(
-        uint indexed buyerAccountSteamId,
+        string indexed _buyerTradeURL,
         address indexed buyerEthereumAddress,
         Listing listing
     );
@@ -82,7 +81,7 @@ contract CSGOSteamTrade is ChainlinkClient {
     function createListing(string _ownerSteamAccountName, uint _accountSteamId, string memory _wear,
         string memory _skinName, uint _paintSeed, uint _price, address _sellerEthereumAdress) public returns (uint listingId) {
         listingId = numListings++;
-        PurchaseOffer memory placeholder = PurchaseOffer(0, 0, '', 0, false);
+        PurchaseOffer memory placeholder = PurchaseOffer(0, 0, '', false);
         Listing memory listing = Listing(listingId, _ownerSteamAccountName, _accountSteamId, _wear, _skinName, _paintSeed,
             _price, _sellerEthereumAdress, msg.sender, placeholder, true, ListingStage.OPEN);
         emit ListingCreation(listing);
@@ -110,7 +109,7 @@ contract CSGOSteamTrade is ChainlinkClient {
         listings[_listingId].exists = false;
     }
 
-    function createPurchaseOffer(uint _listingId, string _buyerSteamAccountName, uint _buyerAccountSteamId) public payable {
+    function createPurchaseOffer(uint _listingId, string _buyerTradeURL) public payable {
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, "Listing does not exist.");
         require(listing.stage == ListingStage.OPEN, "Listing is not open for offers.");
@@ -118,11 +117,11 @@ contract CSGOSteamTrade is ChainlinkClient {
         require(listing.price == msg.value, "Value sent does not match listing price.");
 
         uint currentTimestamp = block.timestamp;
-        PurchaseOffer memory purchaseOffer = PurchaseOffer(msg.sender, currentTimestamp, _buyerSteamAccountName, _buyerAccountSteamId, true);
+        PurchaseOffer memory purchaseOffer = PurchaseOffer(msg.sender, currentTimestamp, _buyerTradeURL, true);
         listing.purchaseOffer = purchaseOffer;
         listing.stage = ListingStage.RECEIVED_OFFER;
 
-        emit PurchaseOfferMade(_buyerAccountSteamId, msg.sender, listing);
+        emit PurchaseOfferMade(_buyerTradeURL, msg.sender, listing);
         listings[_listingId] = listing;
     }
 
@@ -138,7 +137,7 @@ contract CSGOSteamTrade is ChainlinkClient {
         // send the funds back to the owner of the purchase offer.
         listing.purchaseOffer.owner.transfer(listing.price);
 
-        listing.purchaseOffer = PurchaseOffer(0, 0, '', 0, false);
+        listing.purchaseOffer = PurchaseOffer(0, 0, '', false);
         listing.stage = ListingStage.OPEN;
         listings[_listingId] = listing;
     }

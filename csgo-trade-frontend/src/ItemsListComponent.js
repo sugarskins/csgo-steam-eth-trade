@@ -164,7 +164,9 @@ class ItemComponent extends Component {
                     { this.state.metamaskAvailable && !this.state.metamaskPermissionGranted ? (<div> ❗🦊 In order to purchase items, access to
                          your <a href='https://metamask.io/'>Metamask</a> address is required.
                          <Button type="button" className="btn btn-primary" onClick={this.requestMetamaskAccess} > Grant access </Button> </div>) : null }
-                        <p> Details </p>
+                        <p>{this.props.item.skinName}</p>
+                        <p>Price: {this.props.item.price}</p>
+                        <p>Wear: {this.props.item.wear}</p>
 
                     </Modal.Body>
                     <Modal.Footer>

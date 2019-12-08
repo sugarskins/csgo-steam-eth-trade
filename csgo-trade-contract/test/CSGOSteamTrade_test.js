@@ -6,7 +6,7 @@ const h = require('chainlink-test-helpers')
 contract('CSGOSteamTrade', accounts => {
   const LinkToken = artifacts.require('LinkToken.sol')
   const Oracle = artifacts.require('Oracle.sol')
-  const CSGOSteamTrade = artifacts.require('CSGOSteamTrade.sol')
+  const CSGOSteamTrade  = artifacts.require('CSGOSteamTrade.sol')
 
   const defaultAccount = accounts[0]
   const oracleNode = accounts[1]
@@ -107,8 +107,7 @@ contract('CSGOSteamTrade', accounts => {
       const paintSeed = 210
       const sellerEthereumAdress = seller
 
-      const buyerSteamAccountName = 'iwantyourwep'
-      const buyerAccountSteamId = '1915645022323022856'
+      const buyerTradeURL = 'https://steamcommunity.com/tradeoffer/new/?partner=902300366&token=HYgPwBhA'
   
       beforeEach(async () => {
         await csGOContract.createListing(ownerSteamAccountName, accountSteamId, wear,
@@ -116,7 +115,7 @@ contract('CSGOSteamTrade', accounts => {
       })
       it('creates a purchase offer for the listing', async () => {
         const listingId = 0
-        await csGOContract.createPurchaseOffer(listingId, buyerSteamAccountName, buyerAccountSteamId, {
+        await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
           from: buyer,
           value: price
         })
@@ -132,7 +131,7 @@ contract('CSGOSteamTrade', accounts => {
         assert.equal(stored.exists, true)
         
         assert.equal(updatedOffer.owner, buyer)
-        assert.equal(updatedOffer.buyerSteamAccountName, buyerSteamAccountName)
+        assert.equal(updatedOffer.buyerTradeURL, buyerTradeURL)
         assert.equal(updatedOffer.exists, true)
       })
     })
@@ -148,8 +147,7 @@ contract('CSGOSteamTrade', accounts => {
       const paintSeed = 210
       const sellerEthereumAdress = seller
   
-      const buyerSteamAccountName = 'iwantyourwep'
-      const buyerAccountSteamId = '1915645022323022856'
+      const buyerTradeURL = 'https://steamcommunity.com/tradeoffer/new/?partner=902300366&token=HYgPwBhA'
 
       let listingId = 0
   
@@ -158,7 +156,7 @@ contract('CSGOSteamTrade', accounts => {
         await csGOContract.createListing(ownerSteamAccountName, accountSteamId, wear,
           skinName, paintSeed, price, sellerEthereumAdress, { from: seller })
         listingId = 0
-        await csGOContract.createPurchaseOffer(listingId, buyerSteamAccountName, buyerAccountSteamId, {
+        await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
             from: buyer,
             value: price
           })
