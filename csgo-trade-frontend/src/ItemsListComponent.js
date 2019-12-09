@@ -350,8 +350,8 @@ class ItemsListComponent extends Component {
         const rowSize = 3
         const rowGroupedItems = makeGroups(this.state.items, rowSize)
         return (
-            <div className="form-group App-login">
-                <Navbar bg="light" expand="lg" bg="dark"  text="white"  >
+            <div>
+               <Navbar bg="light" expand="lg" bg="dark"  text="white"  >
                 <Navbar.Brand href="#home">
                     <img
                         src="/logo-sugarskins-1.png"
@@ -365,35 +365,36 @@ class ItemsListComponent extends Component {
                     <Nav.Link href="#home">Purchases <Badge variant="light">9</Badge>  </Nav.Link>
                     <Nav.Link href="#help">Help </Nav.Link>
                 </Navbar>
-
-                <h3>CSGO Weapons with Ethereum payments secured with <a href="https://chain.link/"> Chainlink </a> </h3>
-                <p text="gray" >No sign in, no deposits, just sweet deals.</p>
-                <Form onSubmit={this.handleTradeURLSubmit}>
-                    <Form.Group controlId="formTradeURL">
-                        <Form.Control type="url" placeholder="Enter Steam Community Trade URL" defaultValue={this.state.userTradeURL} />
-                        <Form.Text className="text-muted">
-                            Make sure your Trade URL is valid AND your profile is *public*
-                        </Form.Text>
-                        <Form.Control.Feedback type="invalid">
-                            Please provide a valid Trade URL.
-                        </Form.Control.Feedback>
-                    </Form.Group>
-                </Form>
-                <Container>
-                    {rowGroupedItems.map((rowOfItems, rowIndex) => (
-                        <Row key={rowIndex}>
-                            {rowOfItems.map(item => (
-                                <Col key={item.listingId} >
-                                <ItemComponent item={item}
-                                    userTradeURL={this.state.userTradeURL}
-                                    ethToFiatPrice={this.state.ethToFiatPrice}
-                                    csgoSteamTradeContractAddress={this.state.csgoSteamTradeContractAddress}>
-                                </ItemComponent>
-                                </Col>
-                            ))}
-                        </Row>
-                    ))}
-                </Container>
+                <div>
+                    <h3>CSGO Weapons with Ethereum payments secured with <a href="https://chain.link/"> Chainlink </a> </h3>
+                    <p text="gray" >No sign in, no deposits, just sweet deals.</p>
+                    <Form onSubmit={this.handleTradeURLSubmit}>
+                        <Form.Group controlId="formTradeURL">
+                            <Form.Control type="url" placeholder="Enter Steam Community Trade URL" defaultValue={this.state.userTradeURL} />
+                            <Form.Text className="text-muted">
+                                Make sure your Trade URL is valid AND your profile is *public*
+                            </Form.Text>
+                            <Form.Control.Feedback type="invalid">
+                                Please provide a valid Trade URL.
+                            </Form.Control.Feedback>
+                        </Form.Group>
+                    </Form>
+                    <Container>
+                        {rowGroupedItems.map((rowOfItems, rowIndex) => (
+                            <Row key={rowIndex}>
+                                {rowOfItems.map(item => (
+                                    <Col key={item.listingId} >
+                                    <ItemComponent item={item}
+                                        userTradeURL={this.state.userTradeURL}
+                                        ethToFiatPrice={this.state.ethToFiatPrice}
+                                        csgoSteamTradeContractAddress={this.state.csgoSteamTradeContractAddress}>
+                                    </ItemComponent>
+                                    </Col>
+                                ))}
+                            </Row>
+                        ))}
+                    </Container>
+                </div>
             </div>
           );
     }
