@@ -8,6 +8,9 @@ import Container from  'react-bootstrap/Container'
 import Row from  'react-bootstrap/Row'
 import Col from  'react-bootstrap/Col'
 import Form from 'react-bootstrap/Form'
+import Navbar from 'react-bootstrap/Navbar'
+import Badge from 'react-bootstrap/Badge'
+import Nav from 'react-bootstrap/Nav'
 import Web3 from 'web3'
 import BigNumber from 'bignumber.js'
 import {  withCookies } from 'react-cookie'
@@ -184,13 +187,20 @@ class ItemComponent extends Component {
 
     async handlePurchaseRequest() {
         console.info(`Creating purchase offer for listingId ${this.props.item.listingId} with trade URL ${this.props.userTradeURL} `)
-        const response = this.state.contractInstance.methods
+        
+        try {
+            const response = this.state.contractInstance.methods
             .createPurchaseOffer(this.props.item.listingId, this.props.userTradeURL)
             .send({
                 from: window.web3.eth.defaultAccount,
                 value: this.props.item.price
             })
         console.info(response)
+        } catch (e) {
+            console.error(`Failed to submit purchase offer to the contract. ${e.stack}`)
+            alert('Failed to submit purchase transaction!')
+        }
+
     }
 
 
@@ -341,12 +351,28 @@ class ItemsListComponent extends Component {
         const rowGroupedItems = makeGroups(this.state.items, rowSize)
         return (
             <div className="form-group App-login">
+                <Navbar bg="light" expand="lg" bg="dark"  text="white"  >
+                <Navbar.Brand href="#home">
+                    <img
+                        src="/logo-sugarskins-1.png"
+                        width="70"
+                        height="70"
+                        className="d-inline-block align-top"
+                        alt="React Bootstrap logo"
+                    />
+                    </Navbar.Brand>
+                    <Nav.Link href="#home"> Sugarskins </Nav.Link>
+                    <Nav.Link href="#home">Purchases <Badge variant="light">9</Badge>  </Nav.Link>
+                    <Nav.Link href="#about">Help </Nav.Link>
+                </Navbar>
+
+                <h3>CSGO Weapons with chainlink secured ETH payments </h3>
+                <p text="gray" >No sign in, no deposits, just sweet deals.</p>
                 <Form onSubmit={this.handleTradeURLSubmit}>
                     <Form.Group controlId="formTradeURL">
-                        <Form.Label>Your Trade URL </Form.Label>
-                        <Form.Control type="url" placeholder="Enter Steam Community trade URL" defaultValue={this.state.userTradeURL} />
+                        <Form.Control type="url" placeholder="Enter Steam Community Trade URL" defaultValue={this.state.userTradeURL} />
                         <Form.Text className="text-muted">
-                            Make sure your trade URL is valid AND your profile is *public*
+                            Make sure your Trade URL is valid AND your profile is *public*
                         </Form.Text>
                         <Form.Control.Feedback type="invalid">
                             Please provide a valid Trade URL.
