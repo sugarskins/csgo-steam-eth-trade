@@ -10,7 +10,7 @@ import Col from  'react-bootstrap/Col'
 import Form from 'react-bootstrap/Form'
 import Web3 from 'web3'
 import BigNumber from 'bignumber.js'
-import {  withCookies, Cookies } from 'react-cookie'
+import {  withCookies } from 'react-cookie'
 import CSGOSteamTradeoContract from './CSGOSteamTrade'
 import utils from './utils'
 
@@ -183,9 +183,14 @@ class ItemComponent extends Component {
     }
 
     async handlePurchaseRequest() {
-        console.info('Attempting purchase..')
-        // await this.state.contractInstance.
-        this.state.contractInstance.methods.createPurchaseOffer()
+        console.info(`Creating purchase offer for listingId ${this.props.item.listingId} with trade URL ${this.props.userTradeURL} `)
+        const response = this.state.contractInstance.methods
+            .createPurchaseOffer(this.props.item.listingId, this.props.userTradeURL)
+            .send({
+                from: window.web3.eth.defaultAccount,
+                value: this.props.item.price
+            })
+        console.info(response)
     }
 
 
@@ -195,10 +200,10 @@ class ItemComponent extends Component {
             <Card style={{ width: '18rem' }}  bg="dark"  text="white" >
                 <Card.Img variant="top" src={this.props.item.imageSrc} />
                 <Card.Body>
-                <Card.Title>{this.props.item.skinName}</Card.Title>
-                <Card.Text>
-                    Price: {this.props.item.displayPrice.value} {this.props.item.displayPrice.currency}
-                    Wear: {this.props.item.wear}
+                <Card.Title style={{fontSize: 16}} >{this.props.item.skinName}</Card.Title>
+                <Card.Text >
+                    <p style={{fontSize: 16}} > {this.props.item.displayPrice.value} {this.props.item.displayPrice.currency} </p>
+                    <p style={{fontSize: 12}} > Wear: {this.props.item.wear} </p>
                     
                 </Card.Text>
                 <Card.Link href={this.props.item.inspectLink}>
@@ -354,6 +359,7 @@ class ItemsListComponent extends Component {
                             {rowOfItems.map(item => (
                                 <Col key={item.listingId} >
                                 <ItemComponent item={item}
+                                    userTradeURL={this.state.userTradeURL}
                                     ethToFiatPrice={this.state.ethToFiatPrice}
                                     csgoSteamTradeContractAddress={this.state.csgoSteamTradeContractAddress}>
                                 </ItemComponent>
