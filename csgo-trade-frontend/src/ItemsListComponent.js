@@ -154,6 +154,16 @@ class ItemsListComponent extends Component {
         this.handleTradeURLSubmit = this.handleTradeURLSubmit.bind(this)
     }
 
+    async handleWeb3ConnectionFailure(e) {
+        const message = `Failed to connect to the network to fetch active listings. Refresh the page and check your internet connection.`
+        console.error(`${message}. ${e.stack}`)
+        await this.setState({
+            errorState: {
+                message
+            }
+        })
+    }
+
     async componentDidMount() {
         console.info('ItemsListComponent componentDidMount')
 
@@ -172,6 +182,8 @@ class ItemsListComponent extends Component {
                         message
                     }
                 })
+            } else {
+                await this.handleWeb3ConnectionFailure(e)
             }
         }
         
