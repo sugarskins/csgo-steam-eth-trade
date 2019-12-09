@@ -133,7 +133,8 @@ class ItemsListComponent extends Component {
             csgoSteamTradeContractAddress: '0x297ab0fbECE2ada3082516F9bC2D61d537EB46DC',
             userTradeURL: cookies.get(COOKIE_TRADE_URL),       
             ethToFiatPrice: null,
-            errorState: null
+            errorState: null,
+            ethNetworkURL: 'http://localhost:8545' 
         }
 
         console.info(`Loaded trade URL: ${this.state.userTradeURL}`)
@@ -142,8 +143,8 @@ class ItemsListComponent extends Component {
         
         // eslint-disable-next-line             
 
-        // eslint-disable-next-line             
-        this.state.web3 = new Web3('http://localhost:8545')
+        // eslint-disable-next-line            
+        this.state.web3 = new Web3(this.state.ethNetworkURL)
         
         this.state.contractInstance = new this.state.web3.eth.Contract(
             CSGOSteamTradeContract.abi,
@@ -155,7 +156,7 @@ class ItemsListComponent extends Component {
     }
 
     async handleWeb3ConnectionFailure(e) {
-        const message = `Failed to connect to the network to fetch active listings. Refresh the page and check your internet connection.`
+        const message = `Failed to connect to the network ${this.state.ethNetworkURL} to fetch active listings. Refresh the page and check your internet connection.`
         console.error(`${message}. ${e.stack}`)
         await this.setState({
             errorState: {
