@@ -132,7 +132,8 @@ class ItemsListComponent extends Component {
             items: [],
             csgoSteamTradeContractAddress: '0x297ab0fbECE2ada3082516F9bC2D61d537EB46DC',
             userTradeURL: cookies.get(COOKIE_TRADE_URL),       
-            ethToFiatPrice: null
+            ethToFiatPrice: null,
+            errorState: null
         }
 
         console.info(`Loaded trade URL: ${this.state.userTradeURL}`)
@@ -159,7 +160,21 @@ class ItemsListComponent extends Component {
         // TODO: pull all price suggestions here with competition data
         // this.setState({ componentMounted: true })
 
-        const listingsCount = await this.state.contractInstance.methods.getListingsCount().call()
+        let listingsCount = 0
+        try {
+            listingsCount = await this.state.contractInstance.methods.getListingsCount().call()
+        } catch (e) {
+            if (e.message.includes('is not a contract address')) {
+                const message = `Provided ${this.state.csgoSteamTradeContractAddress} is not a valid contract address. Cannot load sale listings.`
+                console.error(message)
+                await this.setState({
+                    errorState: {
+                        message
+                    }
+                })
+            }
+        }
+        
         console.info(`Listings available: ${listingsCount}`)
 
         const listingIds = []
@@ -180,7 +195,9 @@ class ItemsListComponent extends Component {
             console.error(`Failed to load ETH/${DISPLAY_CURRENCY} pricing. ${e.stack}`)
         }
 
-        const listings = await Promise.all(listingIds.map(id => this.state.contractInstance.methods.getListing(id).call()))
+        let listings = []
+  
+        listings = await Promise.all(listingIds.map(id => this.state.contractInstance.methods.getListing(id).call()))
         
         console.info(`Fetched ${listings.length} listings`)
         console.info(listings[0])
@@ -239,6 +256,7 @@ class ItemsListComponent extends Component {
                             </Form.Control.Feedback>
                         </Form.Group>
                     </Form>
+                    { this.state.errorState ? (<p>Error: {this.state.errorState.message}</p>) : null}
                     <Container>
                         {rowGroupedItems.map((rowOfItems, rowIndex) => (
                             <Row key={rowIndex}>
