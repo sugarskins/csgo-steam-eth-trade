@@ -361,12 +361,12 @@ class ItemsListComponent extends Component {
                         alt="React Bootstrap logo"
                     />
                     </Navbar.Brand>
-                    <Nav.Link href="#home"> Sugarskins </Nav.Link>
+                    <Nav.Link href="/"> Sugarskins </Nav.Link>
                     <Nav.Link href="#home">Purchases <Badge variant="light">9</Badge>  </Nav.Link>
-                    <Nav.Link href="#about">Help </Nav.Link>
+                    <Nav.Link href="#help">Help </Nav.Link>
                 </Navbar>
 
-                <h3>CSGO Weapons with chainlink secured ETH payments </h3>
+                <h3>CSGO Weapons with Ethereum payments secured with <a href="https://chain.link/"> Chainlink </a> </h3>
                 <p text="gray" >No sign in, no deposits, just sweet deals.</p>
                 <Form onSubmit={this.handleTradeURLSubmit}>
                     <Form.Group controlId="formTradeURL">
