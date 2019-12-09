@@ -15,9 +15,13 @@ function parseUrlRoot(rawUrl) {
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <ItemsListComponent url={parseUrlRoot(window.location.href)} ></ItemsListComponent>
+      <header>
+        
       </header>
+      <body className="App-body">
+        <ItemsListComponent url={parseUrlRoot(window.location.href)} ></ItemsListComponent>
+        </body>
+      <a href="https://icons8.com/icon/13650/steam">Steam icon by Icons8</a>
     </div>
   );
 }
