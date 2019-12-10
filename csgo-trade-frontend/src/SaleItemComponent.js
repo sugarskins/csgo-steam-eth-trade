@@ -2,7 +2,6 @@ import React, { Component } from 'react'
 import Button from 'react-bootstrap/Button'
 // import ListGroup from 'react-bootstrap/ListGroup'
 import Modal from 'react-bootstrap/Modal'
-import Axios from 'axios'
 import Card from  'react-bootstrap/Card'
 import Web3 from 'web3'
 
@@ -19,10 +18,9 @@ function getMetamask() {
       }
 }
 
-
 class SaleItemComponent extends Component {
     constructor(props) {
-        super(props);
+        super(props)
         this.state = {
             showPurchaseModal: false,
             metamaskAvailable: false,
