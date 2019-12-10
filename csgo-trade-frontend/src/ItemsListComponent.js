@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import Button from 'react-bootstrap/Button'
 // import ListGroup from 'react-bootstrap/ListGroup'
 import Modal from 'react-bootstrap/Modal'
 import Axios from 'axios'
@@ -241,53 +240,71 @@ class ItemsListComponent extends Component {
         const rowGroupedItems = makeGroups(this.state.items, rowSize)
         return (
             <div>
-               <Navbar bg="light" expand="lg" bg="dark"  text="white"  >
-                <Navbar.Brand href="#home">
-                    <img
-                        src="/logo-sugarskins-1.png"
-                        width="70"
-                        height="70"
-                        className="d-inline-block align-top"
-                        alt="React Bootstrap logo"
-                    />
-                    </Navbar.Brand>
-                    <Nav.Link href="/"> Sugarskins </Nav.Link>
-                    <Nav.Link href="#home">Purchases <Badge variant="light">9</Badge>  </Nav.Link>
-                    <Nav.Link href="#help">Help </Nav.Link>
-                </Navbar>
+                { this.renderNavBar() }
                 <div>
-                    <h3>CSGO Weapons with Ethereum payments secured with <a href="https://chain.link/"> Chainlink </a> </h3>
+                    <h3> Buy CSGO Weapons using Ethereum payments secured with <a href="https://chain.link/"> Chainlink </a> </h3>
                     <p text="gray" >No sign in, no deposits, just sweet deals.</p>
-                    <Form onSubmit={this.handleTradeURLSubmit}>
-                        <Form.Group controlId="formTradeURL">
-                            <Form.Control type="url" placeholder="Enter Steam Community Trade URL" defaultValue={this.state.userTradeURL} />
-                            <Form.Text className="text-muted">
-                                Make sure your Trade URL is valid AND your profile is *public*
-                            </Form.Text>
-                            <Form.Control.Feedback type="invalid">
-                                Please provide a valid Trade URL.
-                            </Form.Control.Feedback>
-                        </Form.Group>
-                    </Form>
+                    { this.renderTradeDataForm() }
                     { this.state.errorState ? (<p>Error: {this.state.errorState.message}</p>) : null}
-                    <Container>
-                        {rowGroupedItems.map((rowOfItems, rowIndex) => (
-                            <Row key={rowIndex}>
-                                {rowOfItems.map(item => (
-                                    <Col key={item.listingId} >
-                                    <SaleItemComponent item={item}
-                                        userTradeURL={this.state.userTradeURL}
-                                        ethToFiatPrice={this.state.ethToFiatPrice}
-                                        csgoSteamTradeContractAddress={this.state.csgoSteamTradeContractAddress}>
-                                    </SaleItemComponent>
-                                    </Col>
-                                ))}
-                            </Row>
-                        ))}
-                    </Container>
                 </div>
+                { this.renderItemListings(rowGroupedItems) }
             </div>
           );
+    }
+
+    renderNavBar() {
+        return (
+            <Navbar bg="light" expand="lg" bg="dark"  text="white"  >
+            <Navbar.Brand href="#home">
+                <img
+                    src="/logo-sugarskins-1.png"
+                    width="70"
+                    height="70"
+                    className="d-inline-block align-top"
+                    alt="React Bootstrap logo"
+                />
+                </Navbar.Brand>
+                <Nav.Link href="/"> Sugarskins </Nav.Link>
+                <Nav.Link onClick={() => alert('wtf')}>Purchases <Badge variant="light">9</Badge>  </Nav.Link>
+                <Nav.Link href="#help">Help </Nav.Link>
+            </Navbar>
+        )
+    }
+
+    renderTradeDataForm() {
+        return (
+            <Form onSubmit={this.handleTradeURLSubmit}>
+            <Form.Group controlId="formTradeURL">
+                <Form.Control type="url" placeholder="Enter Steam Community Trade URL" defaultValue={this.state.userTradeURL} />
+                <Form.Text className="text-muted">
+                    Make sure your Trade URL is valid AND your profile is *public*
+                </Form.Text>
+                <Form.Control.Feedback type="invalid">
+                    Please provide a valid Trade URL.
+                </Form.Control.Feedback>
+            </Form.Group>
+        </Form>
+        )
+    }
+
+    renderItemListings(rowGroupedItems) {
+        return (
+            <Container>
+            {rowGroupedItems.map((rowOfItems, rowIndex) => (
+                <Row key={rowIndex}>
+                    {rowOfItems.map(item => (
+                        <Col key={item.listingId} >
+                        <SaleItemComponent item={item}
+                            userTradeURL={this.state.userTradeURL}
+                            ethToFiatPrice={this.state.ethToFiatPrice}
+                            csgoSteamTradeContractAddress={this.state.csgoSteamTradeContractAddress}>
+                        </SaleItemComponent>
+                        </Col>
+                    ))}
+                </Row>
+            ))}
+        </Container>
+        )
     }
 }
 
