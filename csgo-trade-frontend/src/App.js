@@ -3,14 +3,11 @@ import logo from './logo.svg'
 import './App.css'
 import ItemsListComponent from './ItemsListComponent'
 import url from 'url'
-
-function parseUrlRoot(rawUrl) {
-  const parsed = url.parse(rawUrl)
-  return `${parsed.protocol}//${parsed.host}`
-}
-
-
-
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route
+} from 'react-router-dom'
 
 function App() {
   return (
@@ -19,10 +16,30 @@ function App() {
         
       </header>
       <div className="App-body">
-        <ItemsListComponent url={parseUrlRoot(window.location.href)} ></ItemsListComponent>
+        <Router>
+        <div>
+          {/* A <Switch> looks through its children <Route>s and
+              renders the first one that matches the current URL. */}
+          <Switch>
+            <Route path="/help">
+              <Help />
+            </Route>
+            <Route path="/" component={ItemsListComponent}>     
+            </Route>
+          </Switch>
+        </div>
+      </Router>
       </div>
     </div>
   );
+}
+
+function Help() {
+  return <h2>Help</h2>;
+}
+
+function Users() {
+  return <h2>Users</h2>;
 }
 
 export default App;
