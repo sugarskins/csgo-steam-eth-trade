@@ -1,8 +1,7 @@
 import React, { Component } from 'react'
 // import ListGroup from 'react-bootstrap/ListGroup'
-import Modal from 'react-bootstrap/Modal'
 import Axios from 'axios'
-import Card from  'react-bootstrap/Card'
+import Modal from 'react-bootstrap/Modal'
 import Container from  'react-bootstrap/Container'
 import Row from  'react-bootstrap/Row'
 import Col from  'react-bootstrap/Col'
@@ -123,17 +122,20 @@ const COOKIE_TRADE_URL = 'TRADE_URL'
 class ItemsListComponent extends Component {
 
     constructor(props) {
-        super(props);
+        super(props)
 
         const { cookies } = props
 
+        const searchParams = new URLSearchParams(this.props.location.search)
+
         this.state = {
             items: [],
-            csgoSteamTradeContractAddress: '0x297ab0fbECE2ada3082516F9bC2D61d537EB46DC',
+            csgoSteamTradeContractAddress: searchParams.get('contractAddress'),
             userTradeURL: cookies.get(COOKIE_TRADE_URL),       
             ethToFiatPrice: null,
             errorState: null,
-            ethNetworkURL: 'http://localhost:8545' 
+            ethNetworkURL: 'http://localhost:8545',
+            showHistoryModal: false
         }
 
         console.info(`Loaded trade URL: ${this.state.userTradeURL}`)
@@ -152,6 +154,7 @@ class ItemsListComponent extends Component {
           )
 
         this.handleTradeURLSubmit = this.handleTradeURLSubmit.bind(this)
+        this.handleVendorContractSubmit = this.handleVendorContractSubmit.bind(this)
     }
 
     async handleWeb3ConnectionFailure(e) {
@@ -176,6 +179,14 @@ class ItemsListComponent extends Component {
         } catch (e) {
             if (e.message.includes('is not a contract address')) {
                 const message = `Provided ${this.state.csgoSteamTradeContractAddress} is not a valid contract address. Cannot load sale listings.`
+                console.error(message)
+                await this.setState({
+                    errorState: {
+                        message
+                    }
+                })
+            } else if(e.message.includes(`please set an address first`)) {
+                const message = `No contract address provided. Cannot load sale listings. Please set one.`
                 console.error(message)
                 await this.setState({
                     errorState: {
@@ -230,6 +241,16 @@ class ItemsListComponent extends Component {
         this.props.cookies.set(COOKIE_TRADE_URL, tradeURL, { path: '/' })      
     }
 
+    async handleVendorContractSubmit(event) {
+        event.preventDefault()
+        const form = event.currentTarget
+        const vendorContract = form.elements.formVendorContract.value
+        console.info(`Saving vendor contract  ${vendorContract}`)
+        this.setState({
+            csgoSteamTradeContractAddress: vendorContract
+        })
+    }
+
     componentDidUpdate() {
         console.info('ItemsForSaleComponent updated.')
 
@@ -247,6 +268,7 @@ class ItemsListComponent extends Component {
                     { this.renderTradeDataForm() }
                     { this.state.errorState ? (<p>Error: {this.state.errorState.message}</p>) : null}
                 </div>
+                { this.renderHistoryModal()  }
                 { this.renderItemListings(rowGroupedItems) }
             </div>
           );
@@ -254,7 +276,7 @@ class ItemsListComponent extends Component {
 
     renderNavBar() {
         return (
-            <Navbar bg="light" expand="lg" bg="dark"  text="white"  >
+            <Navbar  expand="lg" bg="dark"  text="white"  >
             <Navbar.Brand href="#home">
                 <img
                     src="/logo-sugarskins-1.png"
@@ -265,25 +287,47 @@ class ItemsListComponent extends Component {
                 />
                 </Navbar.Brand>
                 <Nav.Link href="/"> Sugarskins </Nav.Link>
-                <Nav.Link onClick={() => alert('wtf')}>Purchases <Badge variant="light">9</Badge>  </Nav.Link>
-                <Nav.Link href="#help">Help </Nav.Link>
+                <Nav.Link onClick={() => this.setState({ showHistoryModal: true }) }>Purchases <Badge variant="light">9</Badge>  </Nav.Link>
+                <Nav.Link href="/help">Help </Nav.Link>
             </Navbar>
         )
     }
 
     renderTradeDataForm() {
         return (
-            <Form onSubmit={this.handleTradeURLSubmit}>
-            <Form.Group controlId="formTradeURL">
-                <Form.Control type="url" placeholder="Enter Steam Community Trade URL" defaultValue={this.state.userTradeURL} />
-                <Form.Text className="text-muted">
-                    Make sure your Trade URL is valid AND your profile is *public*
-                </Form.Text>
-                <Form.Control.Feedback type="invalid">
-                    Please provide a valid Trade URL.
-                </Form.Control.Feedback>
-            </Form.Group>
-        </Form>
+            <div>
+                <Form onSubmit={this.handleTradeURLSubmit}>
+                    <Form.Group controlId="formTradeURL">
+                        <Form.Control type="url" placeholder="Enter Steam Community Trade URL" defaultValue={this.state.userTradeURL} />
+                        <Form.Text className="text-muted">
+                            Make sure your Trade URL is valid AND your profile is *public*
+                        </Form.Text>
+                        <Form.Control.Feedback type="invalid">
+                            Please provide a valid Trade URL.
+                        </Form.Control.Feedback>
+                    </Form.Group>
+                </Form>
+                <Form onSubmit={this.handleVendorContractSubmit}>
+                    <Form.Group  controlId="formVendorContract">>
+                        <Form.Control placeholder="Enter vendor Ethereum Contract Address" defaultValue={this.state.csgoSteamTradeContractAddress} />
+                        </Form.Group>
+                </Form>
+            </div>
+        )
+    }
+
+    renderHistoryModal() {
+        return (
+            <div>
+            <Modal size="lg"  bg="dark"  className="modal" show={this.state.showHistoryModal} onHide={() => this.setState( { showHistoryModal: false } )}>
+                <Modal.Header closeButton>
+                <Modal.Title>Purchase history</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+
+                </Modal.Body>
+            </Modal>
+        </div>
         )
     }
 
