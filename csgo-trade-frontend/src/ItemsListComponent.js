@@ -9,6 +9,7 @@ import Form from 'react-bootstrap/Form'
 import Navbar from 'react-bootstrap/Navbar'
 import Badge from 'react-bootstrap/Badge'
 import Nav from 'react-bootstrap/Nav'
+import Alert from 'react-bootstrap/Alert'
 import Web3 from 'web3'
 import BigNumber from 'bignumber.js'
 import {  withCookies } from 'react-cookie'
@@ -162,7 +163,8 @@ class ItemsListComponent extends Component {
         console.error(`${message}. ${e.stack}`)
         await this.setState({
             errorState: {
-                message
+                message,
+                alertVariant: 'danger'
             }
         })
     }
@@ -182,7 +184,8 @@ class ItemsListComponent extends Component {
                 console.error(message)
                 await this.setState({
                     errorState: {
-                        message
+                        message,
+                        alertVariant: 'danger'
                     }
                 })
             } else if(e.message.includes(`please set an address first`)) {
@@ -190,8 +193,9 @@ class ItemsListComponent extends Component {
                 console.error(message)
                 await this.setState({
                     errorState: {
-                        message
-                    }
+                        message,
+                        alertVariant: 'primary'
+                    },
                 })
             } else {
                 await this.handleWeb3ConnectionFailure(e)
@@ -266,7 +270,7 @@ class ItemsListComponent extends Component {
                     <h3> Buy CSGO Weapons using Ethereum payments secured with <a href="https://chain.link/"> Chainlink </a> </h3>
                     <p text="gray" >No sign in, no deposits, just sweet deals.</p>
                     { this.renderTradeDataForm() }
-                    { this.state.errorState ? (<p>Error: {this.state.errorState.message}</p>) : null}
+                    { this.state.errorState ? (<Alert variant={this.state.errorState.alertVariant}> {this.state.errorState.message}</Alert> ) : null}
                 </div>
                 { this.renderHistoryModal()  }
                 { this.renderItemListings(rowGroupedItems) }
@@ -277,7 +281,7 @@ class ItemsListComponent extends Component {
     renderNavBar() {
         return (
             <Navbar  expand="lg" bg="dark"  text="white"  >
-            <Navbar.Brand href="#home">
+            <Navbar.Brand href="/">
                 <img
                     src="/logo-sugarskins-1.png"
                     width="70"
@@ -286,7 +290,7 @@ class ItemsListComponent extends Component {
                     alt="React Bootstrap logo"
                 />
                 </Navbar.Brand>
-                <Nav.Link href="/"> Sugarskins </Nav.Link>
+                <Nav.Link > Sugarskins </Nav.Link>
                 <Nav.Link onClick={() => this.setState({ showHistoryModal: true }) }>Purchases <Badge variant="light">9</Badge>  </Nav.Link>
                 <Nav.Link href="/help">Help </Nav.Link>
             </Navbar>
