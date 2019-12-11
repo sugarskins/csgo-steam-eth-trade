@@ -16,6 +16,7 @@ import {  withCookies } from 'react-cookie'
 import CSGOSteamTradeContract from './CSGOSteamTrade'
 import utils from './utils'
 import SaleItemComponent from './SaleItemComponent'
+import PurchaseHistoryComponent from './PurchaseHistoryComponent'
 
 function makeGroups(array, groupSize) {
     if (groupSize < 1) {
@@ -131,6 +132,7 @@ class ItemsListComponent extends Component {
 
         this.state = {
             items: [],
+            listings: [],
             csgoSteamTradeContractAddress: searchParams.get('contractAddress'),
             userTradeURL: cookies.get(COOKIE_TRADE_URL),       
             ethToFiatPrice: null,
@@ -221,19 +223,15 @@ class ItemsListComponent extends Component {
         } catch (e) {
             console.error(`Failed to load ETH/${DISPLAY_CURRENCY} pricing. ${e.stack}`)
         }
-
-        let listings = []
   
-        listings = await Promise.all(listingIds.map(id => this.state.contractInstance.methods.getListing(id).call()))
+        const listings = await Promise.all(listingIds.map(id => this.state.contractInstance.methods.getListing(id).call()))
         
-        console.info(`Fetched ${listings.length} listings`)
-        console.info(listings[0])
+        console.info(`Fetched ${this.state.listings.length} listings`)
+        //console.info(this.state.listings[0])
 
-        const displayItems = listings.map(listing => contractListingToDisplayItem(listing, ethToFiatPrice))
-
-        console.log(displayItems[0])
         await this.setState({
-            items: displayItems 
+            listings,
+            ethToFiatPrice
         })
     }
 
@@ -261,8 +259,10 @@ class ItemsListComponent extends Component {
     }
 
     render() {
+
+        const displayItems = this.state.listings.map(listing => contractListingToDisplayItem(listing, this.ethToFiatPrice))
         const rowSize = 3
-        const rowGroupedItems = makeGroups(this.state.items, rowSize)
+        const rowGroupedItems = makeGroups(displayItems, rowSize)
         return (
             <div>
                 { this.renderNavBar() }
@@ -275,7 +275,7 @@ class ItemsListComponent extends Component {
                 { this.renderHistoryModal()  }
                 { this.renderItemListings(rowGroupedItems) }
             </div>
-          );
+          )
     }
 
     renderNavBar() {
@@ -328,7 +328,7 @@ class ItemsListComponent extends Component {
                 <Modal.Title>Purchase history</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-
+                    <PurchaseHistoryComponent items={[]}></PurchaseHistoryComponent>
                 </Modal.Body>
             </Modal>
         </div>
