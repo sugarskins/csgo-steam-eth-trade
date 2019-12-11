@@ -6,7 +6,7 @@ import Axios from 'axios'
 import Card from  'react-bootstrap/Card'
 import Web3 from 'web3'
 import listing from './listing'
-import Alert from 'react-bootstrap/Alert'
+import Badge from 'react-bootstrap/Badge'
 
 
 const STAGE_TO_ALERT_VARIANT = {
@@ -48,7 +48,7 @@ class PurchaseHistoryComponent extends Component {
                             <th>{item.skinName}</th>
                             <th>{item.wear}</th>
                             <th>{this.state.web3.utils.fromWei(item.price,'ether')}</th>
-                            <th><Alert variant={STAGE_TO_ALERT_VARIANT[item.stage]} >{listing.LISTING_STAGES[item.stage]} </Alert></th>
+                            <th><Badge variant={STAGE_TO_ALERT_VARIANT[item.stage]} >{listing.LISTING_STAGES[item.stage]} </Badge></th>
                         </tr>
                     ))
                 }

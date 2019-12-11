@@ -296,7 +296,9 @@ class ItemsListComponent extends Component {
                 />
                 </Navbar.Brand>
                 <Nav.Link > Sugarskins </Nav.Link>
-                <Nav.Link onClick={() => this.setState({ showHistoryModal: true }) }>Purchases <Badge variant="light">9</Badge>  </Nav.Link>
+                <Nav.Link onClick={() => this.setState({ showHistoryModal: true }) }>
+                    Purchases <Badge variant="warning">9</Badge> 
+                </Nav.Link>
                 <Nav.Link href="/help">Help </Nav.Link>
             </Navbar>
         )
