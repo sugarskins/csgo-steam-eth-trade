@@ -260,7 +260,12 @@ class ItemsListComponent extends Component {
 
     render() {
 
-        const displayItems = this.state.listings.map(listing => contractListingToDisplayItem(listing, this.ethToFiatPrice))
+        const displayItems = this.state.listings
+            .filter(listing => !listing.purchaseOffer.exists)
+            .map(listing => contractListingToDisplayItem(listing, this.ethToFiatPrice))
+
+        const purchaseHistoryListings = this.state.listings
+            .filter(listing => listing.purchaseOffer.exists && listing.purchaseOffer.buyerTradeURL === this.state.userTradeURL)
         const rowSize = 3
         const rowGroupedItems = makeGroups(displayItems, rowSize)
         return (
@@ -272,7 +277,7 @@ class ItemsListComponent extends Component {
                     { this.renderTradeDataForm() }
                     { this.state.errorState ? (<Alert variant={this.state.errorState.alertVariant}> {this.state.errorState.message}</Alert> ) : null}
                 </div>
-                { this.renderHistoryModal()  }
+                { this.renderHistoryModal(purchaseHistoryListings)  }
                 { this.renderItemListings(rowGroupedItems) }
             </div>
           )
@@ -320,7 +325,7 @@ class ItemsListComponent extends Component {
         )
     }
 
-    renderHistoryModal() {
+    renderHistoryModal(historicalListings) {
         return (
             <div>
             <Modal size="lg"  bg="dark"  className="modal" show={this.state.showHistoryModal} onHide={() => this.setState( { showHistoryModal: false } )}>
@@ -328,7 +333,7 @@ class ItemsListComponent extends Component {
                 <Modal.Title>Purchase history</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <PurchaseHistoryComponent items={[]}></PurchaseHistoryComponent>
+                    <PurchaseHistoryComponent items={historicalListings}></PurchaseHistoryComponent>
                 </Modal.Body>
             </Modal>
         </div>
