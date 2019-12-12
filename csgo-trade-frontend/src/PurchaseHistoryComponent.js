@@ -8,7 +8,6 @@ import Web3 from 'web3'
 import listing from './listing'
 import Badge from 'react-bootstrap/Badge'
 
-
 const STAGE_TO_ALERT_VARIANT = {
     1: 'warning',
     2: 'warning',

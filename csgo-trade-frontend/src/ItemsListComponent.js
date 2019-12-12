@@ -17,7 +17,7 @@ import CSGOSteamTradeContract from './CSGOSteamTrade'
 import utils from './utils'
 import SaleItemComponent from './SaleItemComponent'
 import PurchaseHistoryComponent from './PurchaseHistoryComponent'
-import listing from './listing'
+import Spinner from 'react-bootstrap/Spinner'
 
 function makeGroups(array, groupSize) {
     if (groupSize < 1) {
@@ -139,7 +139,8 @@ class ItemsListComponent extends Component {
             ethToFiatPrice: null,
             errorState: null,
             ethNetworkURL: 'http://localhost:8545',
-            showHistoryModal: false
+            showHistoryModal: false,
+            initialLoadFinished: false
         }
 
         console.info(`Loaded trade URL: ${this.state.userTradeURL}`)
@@ -232,7 +233,8 @@ class ItemsListComponent extends Component {
 
         await this.setState({
             listings,
-            ethToFiatPrice
+            ethToFiatPrice,
+            initialLoadFinished: true
         })
     }
 
@@ -276,6 +278,7 @@ class ItemsListComponent extends Component {
                     <h3> Buy CSGO Weapons using Ethereum payments secured with smart contracts </h3>
                     <p text="dark" >No sign in, no deposits, just sweet deals.</p>
                     { this.renderTradeDataForm() }
+                    {!this.state.initialLoadFinished ? (<Spinner animation="border" variant="primary" />) : null }
                     { this.state.errorState ? (<Alert variant={this.state.errorState.alertVariant}> {this.state.errorState.message}</Alert> ) : null}
                 </div>
                 { this.renderHistoryModal(purchaseHistoryListings)  }
@@ -298,7 +301,7 @@ class ItemsListComponent extends Component {
                 </Navbar.Brand>
                 <Nav.Link > Sugarskins </Nav.Link>
                 <Nav.Link onClick={() => this.setState({ showHistoryModal: true }) }>
-                    Purchases {this.renderPurchaseCountsBadges(purchaseHistoryListings)}
+                    Purchases {!this.state.initialLoadFinished ? (<Spinner animation="border" variant="primary" />) : this.renderPurchaseCountsBadges(purchaseHistoryListings) }  
                 </Nav.Link>
                 <Nav.Link href="/help">Help </Nav.Link>
             </Navbar>
