@@ -3,6 +3,8 @@ import logo from './logo.svg'
 import './App.css'
 import ItemsListComponent from './ItemsListComponent'
 import url from 'url'
+import Navbar from 'react-bootstrap/Navbar'
+import Nav from 'react-bootstrap/Nav'
 import {
   BrowserRouter as Router,
   Switch,
@@ -30,8 +32,20 @@ function App() {
         </div>
       </Router>
       </div>
+      {footer()}
     </div>
   );
+}
+
+function footer() {
+  return (
+    <Navbar expand="lg" bg="dark"  text="white" className='center-navbar' >
+      <Nav.Link > Sugarskins 2019 </Nav.Link>
+      <Nav.Link >  </Nav.Link>
+      <Nav.Link href="/help">Help </Nav.Link>
+    </Navbar>
+  )
+
 }
 
 function Help() {

@@ -121,6 +121,7 @@ for (let i = 0; i < TEST_ITEM_COUNT; i++) {
 
 const DISPLAY_CURRENCY = 'USD'
 const COOKIE_TRADE_URL = 'TRADE_URL'
+const CONTRACT_ADDRESS_QUERY_PARAM = 'contractAddress'
 
 class ItemsListComponent extends Component {
 
@@ -134,7 +135,7 @@ class ItemsListComponent extends Component {
         this.state = {
             items: [],
             listings: [],
-            csgoSteamTradeContractAddress: searchParams.get('contractAddress'),
+            csgoSteamTradeContractAddress: searchParams.get(CONTRACT_ADDRESS_QUERY_PARAM),
             userTradeURL: cookies.get(COOKIE_TRADE_URL),       
             ethToFiatPrice: null,
             errorState: null,
@@ -251,9 +252,9 @@ class ItemsListComponent extends Component {
         const form = event.currentTarget
         const vendorContract = form.elements.formVendorContract.value
         console.info(`Saving vendor contract  ${vendorContract}`)
-        this.setState({
-            csgoSteamTradeContractAddress: vendorContract
-        })
+
+        this.props.history.push(`/?${CONTRACT_ADDRESS_QUERY_PARAM}=${vendorContract}`)
+        window.location.reload()
     }
 
     componentDidUpdate() {
