@@ -324,21 +324,24 @@ class ItemsListComponent extends Component {
     renderTradeDataForm() {
         return (
             <div>
-                <Form onSubmit={this.handleTradeURLSubmit}>
-                    <Form.Group controlId="formTradeURL">
-                        <Form.Control type="url" placeholder="Enter Steam Community Trade URL" defaultValue={this.state.userTradeURL} />
-                        <Form.Text className="text-muted">
-                            Make sure your Trade URL is valid AND your profile is *public*
-                        </Form.Text>
+                <Form className='App-trade-form' onSubmit={this.handleTradeURLSubmit}>
+                    <Form.Group as={Row} controlId="formTradeURL">
+                        <Form.Label column sm="2" >Steam Trade URL </Form.Label>
+                        <Col sm="10">
+                            <Form.Control style={{ width: 660 }} type="url" placeholder="Enter Steam Community Trade URL" defaultValue={this.state.userTradeURL} />
+                        </Col>
                         <Form.Control.Feedback type="invalid">
                             Please provide a valid Trade URL.
                         </Form.Control.Feedback>
                     </Form.Group>
                 </Form>
-                <Form onSubmit={this.handleVendorContractSubmit}>
-                    <Form.Group  controlId="formVendorContract">
-                        <Form.Control placeholder="Enter vendor Ethereum Contract Address" defaultValue={this.state.csgoSteamTradeContractAddress} />
-                        </Form.Group>
+                <Form  className='App-trade-form' onSubmit={this.handleVendorContractSubmit}>
+                    <Form.Group as={Row} type="text"  controlId="formVendorContract">
+                        <Form.Label column sm="2" > Contract Address  </Form.Label>
+                         <Col sm="10">
+                            <Form.Control  style={{ width: 420 }} placeholder="Enter vendor Ethereum Contract Address" defaultValue={this.state.csgoSteamTradeContractAddress} />
+                        </Col>
+                    </Form.Group>
                 </Form>
             </div>
         )

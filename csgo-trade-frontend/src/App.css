@@ -37,6 +37,10 @@
   flex-direction: column;
 }
 
+.App-trade-form {
+  font-size: 14px
+}
+
 .App-link {
   color: #09d3ac;
 }
