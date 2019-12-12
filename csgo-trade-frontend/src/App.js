@@ -40,9 +40,7 @@ function App() {
 function footer() {
   return (
     <Navbar expand="lg" bg="dark"  text="white" className='App-footer d-flex justify-content-center' >
-      <Nav.Link > Sugarskins 2019 </Nav.Link>
-      <Nav.Link href="https://github.com/sugarskins" > <img height="32" width="32" src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/github.svg" />  </Nav.Link>
-      <Nav.Link href="/help">Help </Nav.Link>
+      <Nav.Link > Sugarskins 2019. Powered by Steam. Not affiliated with Valve Corp. </Nav.Link>
     </Navbar>
   )
 
