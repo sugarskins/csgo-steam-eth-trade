@@ -5,7 +5,6 @@ const LISTING_STAGES = {
     3: 'Done'
 }
 
-
 export default {
     LISTING_STAGES
 }

@@ -305,6 +305,7 @@ class ItemsListComponent extends Component {
                     Purchases {!this.state.initialLoadFinished ? (<Spinner animation="border" variant="primary" />) : this.renderPurchaseCountsBadges(purchaseHistoryListings) }  
                 </Nav.Link>
                 <Nav.Link href="/help">Help </Nav.Link>
+                <Nav.Link href="https://github.com/sugarskins" > <img height="32" width="32" src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/github.svg" />  </Nav.Link>
             </Navbar>
         )
     }

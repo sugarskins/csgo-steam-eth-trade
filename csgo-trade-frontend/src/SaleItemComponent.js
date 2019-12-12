@@ -132,7 +132,7 @@ class SaleItemComponent extends Component {
                 </Card.Link>
 
                 <Card.Link href={this.props.item.inventoryLink} text="View on Steam">
-                    
+                <img height="32" width="32" src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/steam.svg" />
                 </Card.Link>
                 <Button variant="primary" onClick={this.handleShowPurchaseModal} > Purchase </Button>
                 </Card.Body>
