@@ -3,6 +3,7 @@ import Button from 'react-bootstrap/Button'
 // import ListGroup from 'react-bootstrap/ListGroup'
 import Modal from 'react-bootstrap/Modal'
 import Card from  'react-bootstrap/Card'
+import Alert from  'react-bootstrap/Alert'
 import Web3 from 'web3'
 
 import CSGOSteamTradeContract from './CSGOSteamTrade'
@@ -18,6 +19,19 @@ function getMetamask() {
       }
 }
 
+const PURCHASE_STATUSES = {
+    REQUESTED_SUCCESFULLY: {
+        message: 'Purchase requested succesfully. You will soon receive a Trade Offer from the seller.',
+        variant: 'info'
+    },
+    REQUEST_FAILED: (failureReason) => {
+        return  {
+            message: `Failed to request purchase. Reason: ${failureReason}`,
+            variant: 'danger'
+        }
+    }
+}
+
 class SaleItemComponent extends Component {
     constructor(props) {
         super(props)
@@ -26,7 +40,8 @@ class SaleItemComponent extends Component {
             metamaskAvailable: false,
             metamaskPermissionGranted: false,
             metamaskWeb3: null,
-            contractInstance: null
+            contractInstance: null,
+            purchaseStatus: null
         }
 
         this.handleShowPurchaseModal = this.handleShowPurchaseModal.bind(this)
@@ -78,16 +93,22 @@ class SaleItemComponent extends Component {
         console.info(`Creating purchase offer for listingId ${this.props.item.listingId} with trade URL ${this.props.userTradeURL} `)
         
         try {
-            const response = this.state.contractInstance.methods
+            const response =  await this.state.contractInstance.methods
             .createPurchaseOffer(this.props.item.listingId, this.props.userTradeURL)
             .send({
                 from: window.web3.eth.defaultAccount,
                 value: this.props.item.price
             })
+
+            await this.setState({
+                purchaseStatus: PURCHASE_STATUSES.REQUESTED_SUCCESFULLY,
+            })
         console.info(response)
         } catch (e) {
             console.error(`Failed to submit purchase offer to the contract. ${e.stack}`)
-            alert('Failed to submit purchase transaction!')
+            await this.setState({
+                purchaseStatus: PURCHASE_STATUSES.REQUEST_FAILED(e.message)
+            })
         }
 
     }
@@ -131,7 +152,7 @@ class SaleItemComponent extends Component {
                         <p>{this.props.item.skinName}</p>
                         <p>Price: {this.props.item.displayPrice.value} {this.props.item.displayPrice.currency}</p>
                         <p>Wear: {this.props.item.wear}</p>
-
+                        {this.state.purchaseStatus ? (<Alert variant={this.state.purchaseStatus.variant}> {this.state.purchaseStatus.message} </Alert>) : null}
                     </Modal.Body>
                     <Modal.Footer>
 

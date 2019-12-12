@@ -42,7 +42,9 @@ class PurchaseHistoryComponent extends Component {
                 </thead>
                 <tbody>
                 {
-                    this.props.items.map((item, idx) => (
+                    this.props.items
+                        .sort((item1, item2) => item2.purchaseOffer.creationTimestamp - item1.purchaseOffer.creationTimestamp)
+                        .map((item, idx) => (
                         <tr key={idx}>
                             <th>{item.listingId}</th>
                             <th>{item.skinName}</th>
