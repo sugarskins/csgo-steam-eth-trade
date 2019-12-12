@@ -17,6 +17,7 @@ import CSGOSteamTradeContract from './CSGOSteamTrade'
 import utils from './utils'
 import SaleItemComponent from './SaleItemComponent'
 import PurchaseHistoryComponent from './PurchaseHistoryComponent'
+import listing from './listing'
 
 function makeGroups(array, groupSize) {
     if (groupSize < 1) {
@@ -270,10 +271,10 @@ class ItemsListComponent extends Component {
         const rowGroupedItems = makeGroups(displayItems, rowSize)
         return (
             <div>
-                { this.renderNavBar() }
+                { this.renderNavBar(purchaseHistoryListings) }
                 <div>
-                    <h3> Buy CSGO Weapons using Ethereum payments secured with <a href="https://chain.link/"> Chainlink </a> </h3>
-                    <p text="gray" >No sign in, no deposits, just sweet deals.</p>
+                    <h3> Buy CSGO Weapons using Ethereum payments secured with smart contracts </h3>
+                    <p text="dark" >No sign in, no deposits, just sweet deals.</p>
                     { this.renderTradeDataForm() }
                     { this.state.errorState ? (<Alert variant={this.state.errorState.alertVariant}> {this.state.errorState.message}</Alert> ) : null}
                 </div>
@@ -283,7 +284,7 @@ class ItemsListComponent extends Component {
           )
     }
 
-    renderNavBar() {
+    renderNavBar(purchaseHistoryListings) {
         return (
             <Navbar  expand="lg" bg="dark"  text="white"  >
             <Navbar.Brand href="/">
@@ -297,10 +298,22 @@ class ItemsListComponent extends Component {
                 </Navbar.Brand>
                 <Nav.Link > Sugarskins </Nav.Link>
                 <Nav.Link onClick={() => this.setState({ showHistoryModal: true }) }>
-                    Purchases <Badge variant="warning">9</Badge> 
+                    Purchases {this.renderPurchaseCountsBadges(purchaseHistoryListings)}
                 </Nav.Link>
                 <Nav.Link href="/help">Help </Nav.Link>
             </Navbar>
+        )
+    }
+
+    renderPurchaseCountsBadges(purchaseHistoryListings) {
+
+        const processing = purchaseHistoryListings.filter(l => l.stage === 1 || l.stage === 2).length
+        const done = purchaseHistoryListings.filter(l => l.stage === 3).length
+        return (
+            <div style={{display:'inline-block'}}>
+                <Badge variant="warning">{processing}</Badge> 
+                <Badge variant="success">{done}</Badge> 
+            </div>
         )
     }
 
@@ -319,7 +332,7 @@ class ItemsListComponent extends Component {
                     </Form.Group>
                 </Form>
                 <Form onSubmit={this.handleVendorContractSubmit}>
-                    <Form.Group  controlId="formVendorContract">>
+                    <Form.Group  controlId="formVendorContract">
                         <Form.Control placeholder="Enter vendor Ethereum Contract Address" defaultValue={this.state.csgoSteamTradeContractAddress} />
                         </Form.Group>
                 </Form>
