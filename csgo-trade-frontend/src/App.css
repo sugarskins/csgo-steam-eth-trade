@@ -23,15 +23,20 @@
   color: white;
   align-items: center;
   justify-content: center;
-  display: flex;
+  
+  flex-direction: column;
+}
+
+.App-footer {
+  background-color: #282c34;
+  font-size: calc(10px + 2vmin);
+  color: white;
+  align-items: center;
+  justify-content: center;
+  
   flex-direction: column;
 }
 
 .App-link {
   color: #09d3ac;
-}
-
-.center-navbar {
-  width:30%;
-  margin-left: 35%;
 }

@@ -39,7 +39,7 @@ function App() {
 
 function footer() {
   return (
-    <Navbar expand="lg" bg="dark"  text="white" className='center-navbar' >
+    <Navbar expand="lg" bg="dark"  text="white" className='App-footer' >
       <Nav.Link > Sugarskins 2019 </Nav.Link>
       <Nav.Link href="https://github.com/sugarskins" > <img height="32" width="32" src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/github.svg" />  </Nav.Link>
       <Nav.Link href="/help">Help </Nav.Link>
@@ -51,5 +51,6 @@ function footer() {
 function Help() {
   return <h2>Help</h2>;
 }
+
 
 export default App;

@@ -127,6 +127,9 @@ class SaleItemComponent extends Component {
                 <Card.Text style={{fontSize: 12}}>
                     Wear: {this.props.item.wear}
                 </Card.Text>
+                <Card.Text style={{fontSize: 12}}>
+                    Paint seed: {this.props.item.paintSeed}
+                </Card.Text>
                 <Card.Link href={this.props.item.inspectLink}>
                     <span role="img" aria-label="eyes">👀</span>
                 </Card.Link>
