@@ -306,9 +306,8 @@ class ItemsListComponent extends Component {
     }
 
     renderPurchaseCountsBadges(purchaseHistoryListings) {
-
-        const processing = purchaseHistoryListings.filter(l => l.stage === 1 || l.stage === 2).length
-        const done = purchaseHistoryListings.filter(l => l.stage === 3).length
+        const processing = purchaseHistoryListings.filter(l => l.stage === '1' || l.stage === '2').length
+        const done = purchaseHistoryListings.filter(l => l.stage === '3').length
         return (
             <div style={{display:'inline-block'}}>
                 <Badge variant="warning">{processing}</Badge> 
