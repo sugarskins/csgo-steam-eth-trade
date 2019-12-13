@@ -1,5 +1,5 @@
 const CSGO_APP_ID = 730
-
+const CSGO_CONTEXT_ID = 2
 
 function inspectLinkToSMAD(inspectLink) {
     const inspectLinkRegex = /([sm])([0-9]+)a([0-9]+)d([0-9]+)/i
@@ -14,7 +14,7 @@ function inspectLinkToSMAD(inspectLink) {
 
 
 function getInventoryURL(smad) {
-    return `https://steamcommunity.com/profiles/${smad.s}/inventory#${CSGO_APP_ID}_2_${smad.a}`
+    return `https://steamcommunity.com/profiles/${smad.s}/inventory#${CSGO_APP_ID}_${CSGO_CONTEXT_ID}_${smad.a}`
 }
 
 export default {

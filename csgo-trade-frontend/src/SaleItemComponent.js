@@ -134,7 +134,7 @@ class SaleItemComponent extends Component {
                     <span role="img" aria-label="eyes">👀</span>
                 </Card.Link>
 
-                <Card.Link href={this.props.item.inventoryLink} text="View on Steam">
+                <Card.Link href={this.props.item.inventoryLink} target="_blank" text="View on Steam">
                 <img height="32" width="32" src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/steam.svg" />
                 </Card.Link>
                 <Button variant="primary" onClick={this.handleShowPurchaseModal} > Purchase </Button>
@@ -161,6 +161,7 @@ class SaleItemComponent extends Component {
 
                     <button type="button" className="btn btn-primary" disabled={!this.state.metamaskAvailable || !this.state.metamaskPermissionGranted }  onClick={this.handlePurchaseRequest} > Purchase </button>
                     <a href={this.props.item.inspectLink}><button type="button" className="btn btn-primary"> View on Steam </button></a>
+                    <a target="_blank" href={this.props.item.inventoryLink}><button type="button" className="btn btn-primary"> View in inventory </button></a>
                     <Button variant="secondary" onClick={this.handleClosePurchaseModal}>
                         Close
                     </Button>
