@@ -29,6 +29,7 @@ contract CSGOSteamTrade is ChainlinkClient {
         string wear;
         string skinName;
         uint paintSeed;
+        string extraItemData;
         uint price;
         address sellerEthereumAdress;
         address owner;
@@ -78,10 +79,11 @@ contract CSGOSteamTrade is ChainlinkClient {
     }
     
     function createListing(string _ownerInspectLink, string memory _wear,
-        string memory _skinName, uint _paintSeed, uint _price, address _sellerEthereumAdress) public returns (uint listingId) {
+        string memory _skinName, uint _paintSeed, string memory _extraItemData,
+        uint _price, address _sellerEthereumAdress) public returns (uint listingId) {
         listingId = numListings++;
         PurchaseOffer memory placeholder = PurchaseOffer(0, 0, '', false);
-        Listing memory listing = Listing(listingId, _ownerInspectLink, _wear, _skinName, _paintSeed,
+        Listing memory listing = Listing(listingId, _ownerInspectLink, _wear, _skinName, _paintSeed, _extraItemData,
             _price, _sellerEthereumAdress, msg.sender, placeholder, true, ListingStage.OPEN);
         emit ListingCreation(listing);
         listings[listingId] = listing;

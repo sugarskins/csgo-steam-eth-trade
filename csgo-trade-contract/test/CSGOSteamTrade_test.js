@@ -53,12 +53,13 @@ contract('CSGOSteamTrade', accounts => {
         let wear = '0.0356150865554809600000000'
         let skinName = 'StatTrak™ M4A4 | Desert-Strike (Factory New)'
         let price = '150000000000000000'
+        const extraItemData = '{ "statTrak": true }'
         let ownerInspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198862566094A16975411865D479860722137102858'
         let paintSeed = 210
         let sellerEthereumAdress = seller
       
         const r = await csGOContract.createListing(ownerInspectLink, wear,
-          skinName, paintSeed, price, sellerEthereumAdress, {from: seller })
+          skinName, paintSeed, extraItemData, price, sellerEthereumAdress, {from: seller })
         const creationEventLog = r.logs[0].args.listing
         assert.equal(r.receipt.status, true)
 
@@ -74,11 +75,12 @@ contract('CSGOSteamTrade', accounts => {
         const wear = '0.0356150865554809600000000'
         const skinName = 'StatTrak™ M4A4 | Desert-Strike (Factory New)'
         const price = '100000000000000000'
+        const extraItemData = '{ "statTrak": true }'
         const ownerInspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198862566094A16975411865D479860722137102858'
         const paintSeed = 210
         const sellerEthereumAdress = seller
         const createListingTx = await csGOContract.createListing(ownerInspectLink, wear,
-          skinName, paintSeed, price, sellerEthereumAdress, { from: seller })
+          skinName, paintSeed, extraItemData, price, sellerEthereumAdress, { from: seller })
 
         const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
         const stored = await csGOContract.getListing.call(createdListingId)
@@ -100,6 +102,7 @@ contract('CSGOSteamTrade', accounts => {
       const skinName = 'StatTrak™ M4A4 | Desert-Strike (Factory New)'
       const price = '100000000000000000'
       const ownerInspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198862566094A16975411865D479860722137102858'
+      const extraItemData = '{ "statTrak": true }'
       const paintSeed = 210
       const sellerEthereumAdress = seller
 
@@ -107,7 +110,7 @@ contract('CSGOSteamTrade', accounts => {
   
       beforeEach(async () => {
         await csGOContract.createListing(ownerInspectLink, wear,
-          skinName, paintSeed, price, sellerEthereumAdress, { from: seller })
+          skinName, paintSeed, extraItemData, price, sellerEthereumAdress, { from: seller })
       })
       it('creates a purchase offer for the listing', async () => {
         const listingId = 0
@@ -138,6 +141,7 @@ contract('CSGOSteamTrade', accounts => {
       const wear = '0.0356150865554809600000000'
       const skinName = 'StatTrak™ M4A4 | Desert-Strike (Factory New)'
       const price = '100000000000000000'
+      const extraItemData = '{ "statTrak": true }'
       const ownerInspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198862566094A16975411865D479860722137102858'
       const buyerInspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198266545231A16941417193D7840463547991005224'
       const paintSeed = 210
@@ -150,7 +154,7 @@ contract('CSGOSteamTrade', accounts => {
       beforeEach(async () => {
         await linkToken.transfer(csGOContract.address, web3.utils.toWei('1', 'ether'))
         await csGOContract.createListing(ownerInspectLink, wear,
-          skinName, paintSeed, price, sellerEthereumAdress, { from: seller })
+          skinName, paintSeed, extraItemData, price, sellerEthereumAdress, { from: seller })
         listingId = 0
         await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
             from: buyer,

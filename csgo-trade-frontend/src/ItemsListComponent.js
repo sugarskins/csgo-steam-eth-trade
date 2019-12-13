@@ -145,6 +145,7 @@ class ItemsListComponent extends Component {
         }
 
         console.info(`Loaded trade URL: ${this.state.userTradeURL}`)
+    
 
         // this.state.items = testItems
         
@@ -179,7 +180,7 @@ class ItemsListComponent extends Component {
 
         // TODO: pull all price suggestions here with competition data
         // this.setState({ componentMounted: true })
-
+        
         let listingsCount = 0
         try {
             listingsCount = await this.state.contractInstance.methods.getListingsCount().call()
