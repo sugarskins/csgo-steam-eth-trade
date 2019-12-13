@@ -74,6 +74,20 @@ You also need the postgres machine to have SSL enabled.
 
 
 
+### Contributor acknowledgements
+
+Acknolwedging contributions that are not reflected by the commit history ownership.
+
+* [Catalin Amza](https://github.com/CatalinAmza)
+	* Reverse engineed  the steam API for read/write operations, rate limits, item properties (wear, paintseed)
+	* Evaluated the value of the project and weighed on its design with his deep knowledge of the Steam community market dynamics and trading ecosystem
+	* Did a security review of the project to identify potential exploits from the Steam API perspective
+	* Authored the first version of the inspect link scanner https://github.com/danoctavian/csgo-steam-eth-trade/blob/master/steam-chainlink-adapter/src/scanner.js
+	* Authored the first version of the steam user code https://github.com/danoctavian/csgo-steam-eth-trade/blob/master/steam-chainlink-adapter/src/steamUser.js
+	* Advised on the UX/UI design of the frontend (content and style)
+
+
+
 
 
 
