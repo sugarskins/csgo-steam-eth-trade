@@ -83,8 +83,10 @@ function contractListingToDisplayItem(listing, ethToFiatPrice) {
 
     const displayPrice = getDisplayPrice(listing.price, ethToFiatPrice)
 
+    const extraItemData = JSON.parse(listing.extraItemData)
+
     const itemData = new ItemData(listing.listingId, listing.wear, listing.skinName, listing.paintSeed,
-        TEMP_PLACEHOLDER_STATTRAK, listing.ownerInspectLink, inventoryURL, listing.price, displayPrice, TEMP_PLACEHOLDER_PIC)
+        extraItemData.statTrak, listing.ownerInspectLink, inventoryURL, listing.price, displayPrice, extraItemData.image)
     return itemData
 }
 
