@@ -115,7 +115,7 @@ class ListingManager {
   }
 
   async validateItemDelivery(listingId) {
-
+    // TODO: implement
   }
 
   async getListings(filters) {
@@ -141,7 +141,6 @@ class ListingManager {
   }
 
   async deleteListing(listingId) {
-
   }
 
 }
