@@ -19,6 +19,9 @@ const ListingManager = require('./src/ListingManager')
       .option('rpc',{
         desc: 'HTTP Rpc address to use to connect to the Ethereum network.'
       })
+      .option('dedupe', {
+        desc: 'Scans the contract active listings to prevent posting of duplicate listings'
+      })
       .help()
       .argv
 
@@ -31,7 +34,7 @@ const ListingManager = require('./src/ListingManager')
 
     await listingManager.setup(true)
 
-    await listingManager.createListings(argv.listings)
+    await listingManager.createListings(argv.listings, argv.dedupe)
 
     process.exit(0)
   } catch (e) {

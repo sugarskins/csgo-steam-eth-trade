@@ -11,6 +11,8 @@ function to0xHexString(decimal) {
   return `0x${parseInt(decimal).toString(16)}`
 }
 
+const LISTING_FETCH_BATCH_SIZE = 50
+
 class ListingManager {
 
   constructor(rpc, contractAddress, credentials) {
@@ -45,7 +47,18 @@ class ListingManager {
 
   }
 
-  async createListings(listings) {
+  async createListings(listings, dedupe) {
+    dedupe = dedupe || false
+
+    let currentListingsInspectLinks = null
+    if (dedupe) {
+      const currentListings = await this.getListings()
+      // filter for listings that still exist and are not DONE
+      currentListingsInspectLinks = new Set(
+        currentListings
+          .filter(l => l.exists === true && l.stage !== 4)
+          .map(l => l.ownerInspectLink))
+    }
 
     const inventory = await new Promise((resolve, reject) => {
       this.steamClients.tradeOfferManager.getInventoryContents(
@@ -62,6 +75,11 @@ class ListingManager {
       log.info(`Processing listing ${JSON.stringify(listing)}`)
 
       const [inspectLink, price] = listing.split(',')
+
+      if (dedupe && currentListingsInspectLinks.has(inspectLink)) {
+        log.info(`Skipping ${inspectLink} because there already exists an active listing with this inspectLink.`)
+        continue
+      }
 
       const smad = utils.inspectLinkToSMAD(inspectLink)
       const inventoryItem = inventory.filter(item => item.assetid === smad.a)[0]
@@ -100,8 +118,26 @@ class ListingManager {
 
   }
 
-  async getListings() {
+  async getListings(filters) {
+    const listingsCount = await this.contract.getListingsCount()
+    log.debug(`Current listing count: ${listingsCount}`)
 
+    const listingIds = []
+    for (let i = 0; i < listingsCount; i++) {
+      listingIds.push(i)
+    }
+
+    const batches = utils.makeGroups(listingIds, LISTING_FETCH_BATCH_SIZE)
+
+    log.debug(`Fetching listings in ${batches.length} batches.`)
+
+    let allListings = []
+    for (const batch of batches) {
+      const batchListings = await Promise.all(batch.map(listingId => this.contract.getListing(listingId)))
+      allListings = allListings.concat(batchListings)
+    }
+
+    return allListings
   }
 
   async deleteListing(listingId) {

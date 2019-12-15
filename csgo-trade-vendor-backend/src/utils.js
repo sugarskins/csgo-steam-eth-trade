@@ -1,14 +1,6 @@
 const CSGO_APP_ID = 730
 const CSGO_CONTEXT_ID = 2
 
-function getInventoryUrl(steamId) {
-  return `https://steamcommunity.com/profiles/${steamId}/inventory`
-}
-
-function getCsgoInventoryUrl(steamId, pageSize = 100) {
-  return `${getInventoryUrl(steamId)}/json/730/2?count=${pageSize}`
-}
-
 function isValidWearValue(wear) {
   return /^0\.\d+$/.test(wear)
 }
@@ -42,11 +34,30 @@ function inspectLinkToSMAD(inspectLink) {
   }
 }
 
+function makeGroups(array, groupSize) {
+  if (groupSize < 1) {
+    throw new Error(`Group size ${groupSize} < 1.`)
+  }
+
+  const groups = []
+  let group = []
+  for (let i = 0; i < array.length; i++) {
+    if (group.length < groupSize) {
+      group.push(array[i])
+    } else {
+      groups.push(group)
+      group = [array[i]]
+    }
+  }
+  groups.push(group)
+  return groups
+}
+
 module.exports = {
   isSameWear,
   inspectLinkToSMAD,
   sleep,
-  getInventoryUrl,
+  makeGroups,
   CSGO_APP_ID,
   CSGO_CONTEXT_ID
 }
