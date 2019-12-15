@@ -53,11 +53,6 @@ class ItemData {
     }
 }
 
-
-const TEMP_PLACEHOLDER_PIC = 'https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot6-iFBRv7ODcfi9P6s65mpS0n_L1JaLummpD78A_0u2X9o332A22-UI5amuncYGdcwJtZ1nT_1S8w-i-g5Xt6p_LySdivT5iuyiWgPKs_g/330x192'
-const TEMP_PLACEHOLDER_STATTRAK = false
-
-
 function getDisplayPrice(price, ethToFiatPrice) {
     const etherValue = BigNumber((new Web3()).utils.fromWei(price, 'ether'))
     let displayPrice = null
@@ -90,26 +85,6 @@ function contractListingToDisplayItem(listing, ethToFiatPrice) {
     return itemData
 }
 
-
-const testItem1 = new ItemData(
-    12,
-    '0.6945993900299072',
-    'AUG | Storm (Battle-Scarred)',
-    '334',
-    false,
-    'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198862566094A16975411865D10106128984445219556',
-    'https://steamcommunity.com/profiles/76561198862566094/inventory#730',
-    '100000000000000000',
-    "https://steamcommunity-a.akamaihd.net/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot6-iFBRv7ODcfi9P6s65mpS0n_L1JaLummpD78A_0u2X9o332A22-UI5amuncYGdcwJtZ1nT_1S8w-i-g5Xt6p_LySdivT5iuyiWgPKs_g/330x192",
-)
-
-const testItems = []
-const TEST_ITEM_COUNT = 12
-for (let i = 0; i < TEST_ITEM_COUNT; i++) {
-    const item = JSON.parse(JSON.stringify(testItem1))
-    item.listingId = i
-    testItems.push(item)
-}
 // function validateTradeURL(tradeURL) {
 //     const { host, hostname, protocol, pathname, query } = new URL(tradeURL)
 //     const parsedQuerystring = querystring.parse(query)
@@ -118,8 +93,6 @@ for (let i = 0; i < TEST_ITEM_COUNT; i++) {
 //       throw InvalidTradeURLError(`The trade url ${tradeURL} is not a valid steamcommunity.com trade URL.`)
 //     }
 // }
-  
-
 
 const DISPLAY_CURRENCY = 'USD'
 const COOKIE_TRADE_URL = 'TRADE_URL'
@@ -146,12 +119,7 @@ class ItemsListComponent extends Component {
             initialLoadFinished: false
         }
 
-        console.info(`Loaded trade URL: ${this.state.userTradeURL}`)
-    
-
-        // this.state.items = testItems
-        
-        // eslint-disable-next-line             
+        console.info(`Loaded trade URL: ${this.state.userTradeURL}`)      
 
         // eslint-disable-next-line            
         this.state.web3 = new Web3(this.state.ethNetworkURL)
@@ -179,9 +147,6 @@ class ItemsListComponent extends Component {
 
     async componentDidMount() {
         console.info('ItemsListComponent componentDidMount')
-
-        // TODO: pull all price suggestions here with competition data
-        // this.setState({ componentMounted: true })
         
         let listingsCount = 0
         try {
@@ -233,7 +198,6 @@ class ItemsListComponent extends Component {
         const listings = await Promise.all(listingIds.map(id => this.state.contractInstance.methods.getListing(id).call()))
         
         console.info(`Fetched ${this.state.listings.length} listings`)
-        //console.info(this.state.listings[0])
 
         await this.setState({
             listings,
