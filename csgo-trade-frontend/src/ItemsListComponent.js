@@ -280,7 +280,8 @@ class ItemsListComponent extends Component {
                 { this.renderNavBar(purchaseHistoryListings) }
                 <div>
                     <h3> Buy CSGO Weapons using Ethereum payments secured with smart contracts </h3>
-                    <p text="dark" >No sign in, no deposits, just sweet deals.</p>
+                    <p text="dark" >No sign in, no deposits, no trusted-middleman, just sweet deals.</p>
+                    <Alert variant='info'>Sugarskins is currently alpha stage software. <a href="mailto:dan@danoctavian.com">Get in touch</a> about bugs and <a href="https://github.com/sugarskins">development</a>.  </Alert>
                     { this.renderTradeDataForm() }
                     {!this.state.initialLoadFinished ? (<Spinner animation="border" variant="primary" />) : null }
                     { this.state.errorState ? (<Alert variant={this.state.errorState.alertVariant}> {this.state.errorState.message}</Alert> ) : null}
