@@ -25,6 +25,7 @@
   "devDependencies": {
     "@chainlink/eslint-config": "0.0.1",
     "@chainlink/prettier-config": "0.0.1",
+    "@openzeppelin/test-helpers": "^0.5.4",
     "depcheck": "^0.8.3",
     "eslint": "^6.3.0",
     "prettier": "^1.18.2",
