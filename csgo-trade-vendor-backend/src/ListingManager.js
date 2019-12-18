@@ -141,6 +141,18 @@ class ListingManager {
   }
 
   async deleteListing(listingId) {
+    return await this.contract.deleteListing(listingId)
+  }
+
+  async deleteListings(listingIds) {
+    for (const listingId of listingIds) {
+      log.info(`Deleting listing with Id ${listingId}`)
+      try {
+        const response = await this.deleteListing(listingId)
+      } catch (e) {
+        log.error(`Failed to delete listing ${listingId} with ${e.stack}`)
+      }
+    }
   }
 
 }
