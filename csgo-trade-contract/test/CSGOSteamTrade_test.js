@@ -22,11 +22,6 @@ contract('CSGOSteamTrade', accounts => {
   // For the latest JobIDs, visit our docs here:
   // https://docs.chain.link/docs/testnet-oracles
   const jobId = web3.utils.toHex('4c7b7ffb66b344fbaa64995af81e355a')
-  const url =
-    'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=USD,EUR,JPY'
-  const path = 'USD'
-  const times = 100
-
     // Represents 1 LINK for testnet requests
     const payment = web3.utils.toWei('1')
 
@@ -167,8 +162,6 @@ contract('CSGOSteamTrade', accounts => {
           oracleContract.address,
           jobId,
           payment,
-          url,
-          path,
           buyerInspectLink,
           { from: seller },
         )

@@ -148,8 +148,6 @@ contract CSGOSteamTrade is ChainlinkClient {
         address _oracle,
         bytes32 _jobId,
         uint256 _payment,
-        string _url,
-        string _path,
         string _buyerInspectLink)
         public
         returns (bytes32 requestId) {
