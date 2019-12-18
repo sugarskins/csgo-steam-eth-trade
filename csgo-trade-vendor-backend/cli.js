@@ -41,6 +41,21 @@ const ListingManager = require('./src/ListingManager')
 
           process.exit(0)
       })
+      .command('list', 'list existing listings', async (yargs) => {
+        const argv = yargs
+          .option('contract',{
+            desc: 'Contract address of the vendor contract'
+          })
+          .option('rpc',{
+            desc: 'HTTP Rpc address to use to connect to the Ethereum network.'
+          })
+          .help().argv
+
+        const listingManager = new ListingManager(argv.rpc, argv.contract)
+        await listingManager.setup(false)
+        const currentListings = await listingManager.getListings()
+        console.log(currentListings)
+      })
       .command('delete')
       .help('help')
       .wrap(null)

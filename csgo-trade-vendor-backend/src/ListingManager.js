@@ -27,9 +27,13 @@ class ListingManager {
     const provider = new ethers.providers.JsonRpcProvider(this.rpc)
     log.info(`Provider loaded.`)
 
-    this.wallet = new ethers.Wallet(this.credentials.ethPrivateKey, provider)
-
-    this.contract = new ethers.Contract(this.contractAddress, csgoTradeContract.abi, this.wallet)
+    if (this.credentials) {
+      this.wallet = new ethers.Wallet(this.credentials.ethPrivateKey, provider)
+      this.contract = new ethers.Contract(this.contractAddress, csgoTradeContract.abi, this.wallet)
+    } else {
+      log.info(`Credentials not defined. Wallet won't be defined.`)
+      this.contract = new ethers.Contract(this.contractAddress, csgoTradeContract.abi, provider)
+    }
 
     const listingsCount = await this.contract.getListingsCount()
     log.info(`Current Listings count: ${listingsCount}`)
