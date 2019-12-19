@@ -40,6 +40,26 @@ contract('CSGOSteamTrade', accounts => {
     sellerEthereumAdress: seller
   }
 
+  const listing2 = {
+    ownerInspectLink: 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198862566094A17372518075D11710184251699433565',
+    wear: '0.7134350538253784',
+    skinName: 'MAG-7 | Rust Coat (Battle-Scarred)',
+    price: '120000000000000000',
+    paintSeed: 178,
+    extraItemData: '{"statTrak":false }',
+    sellerEthereumAdress: seller,
+  }
+
+  const listing3 = {
+    ownerInspectLink: 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198862566094A17372520653D4630342583408093179',
+    wear: '0.6625427603721619',
+    skinName: 'MP5-SD | Dirt Drop (Battle-Scarred)',
+    price: '130000000000000000',
+    paintSeed: 17,
+    extraItemData: '{"statTrak":false}',
+    sellerEthereumAdress: seller,
+  }
+
   beforeEach(async () => {
     linkToken = await LinkToken.new()
     oracleContract = await Oracle.new(linkToken.address, { from: defaultAccount })
@@ -84,6 +104,17 @@ contract('CSGOSteamTrade', accounts => {
         assert.equal(stored.sellerEthereumAdress, listing1.sellerEthereumAdress)
         assert.equal(stored.owner, seller)
         assert.equal(stored.exists, true)
+      })
+
+      it('creates 3 listings in a row with incrementing ids', async () => {
+        let expectedListingId = 0
+        for (const listing of [listing1, listing2, listing3]) {
+          const createListingTx = await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
+            listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
+            listing.sellerEthereumAdress, { from: seller })
+            const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
+            assert.equal(createdListingId, expectedListingId++)
+        }
       })
     })
   })
