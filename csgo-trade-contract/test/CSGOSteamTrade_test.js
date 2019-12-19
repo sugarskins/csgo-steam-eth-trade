@@ -90,34 +90,27 @@ contract('CSGOSteamTrade', accounts => {
 
   describe('#createPurchaseOffer', () => {
     context('on a contract with an existing listing', () => {
-      const wear = '0.0356150865554809600000000'
-      const skinName = 'StatTrak™ M4A4 | Desert-Strike (Factory New)'
-      const price = '100000000000000000'
-      const ownerInspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198862566094A16975411865D479860722137102858'
-      const extraItemData = '{ "statTrak": true }'
-      const paintSeed = 210
-      const sellerEthereumAdress = seller
-
       const buyerTradeURL = 'https://steamcommunity.com/tradeoffer/new/?partner=902300366&token=HYgPwBhA'
   
       beforeEach(async () => {
-        await csGOContract.createListing(ownerInspectLink, wear,
-          skinName, paintSeed, extraItemData, price, sellerEthereumAdress, { from: seller })
+        await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
+          listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
+          listing1.sellerEthereumAdress, { from: seller })
       })
       it('creates a purchase offer for the listing', async () => {
         const listingId = 0
         await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
           from: buyer,
-          value: price
+          value: listing1.price
         })
 
         const stored = await csGOContract.getListing.call(listingId)
         const updatedOffer = stored.purchaseOffer
-        assert.equal(stored.ownerInspectLink, ownerInspectLink)
-        assert.equal(stored.wear, wear)
-        assert.equal(stored.skinName, skinName)
-        assert.equal(stored.price, price)
-        assert.equal(stored.sellerEthereumAdress, sellerEthereumAdress)
+        assert.equal(stored.ownerInspectLink, listing1.ownerInspectLink)
+        assert.equal(stored.wear, listing1.wear)
+        assert.equal(stored.skinName, listing1.skinName)
+        assert.equal(stored.price, listing1.price)
+        assert.equal(stored.sellerEthereumAdress, listing1.sellerEthereumAdress)
         assert.equal(stored.owner, seller)
         assert.equal(stored.exists, true)
         
@@ -130,27 +123,20 @@ contract('CSGOSteamTrade', accounts => {
 
   describe('#createItemTransferConfirmationRequest', () => {
     context('a contract with an existing listing with a matching valid purchase offer', () => {
-      const wear = '0.0356150865554809600000000'
-      const skinName = 'StatTrak™ M4A4 | Desert-Strike (Factory New)'
-      const price = '100000000000000000'
-      const extraItemData = '{ "statTrak": true }'
-      const ownerInspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198862566094A16975411865D479860722137102858'
       const buyerInspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198266545231A16941417193D7840463547991005224'
-      const paintSeed = 210
-      const sellerEthereumAdress = seller
-  
       const buyerTradeURL = 'https://steamcommunity.com/tradeoffer/new/?partner=902300366&token=HYgPwBhA'
-
       let listingId = 0
   
       beforeEach(async () => {
+        const listing = listing1
         await linkToken.transfer(csGOContract.address, web3.utils.toWei('1', 'ether'))
-        await csGOContract.createListing(ownerInspectLink, wear,
-          skinName, paintSeed, extraItemData, price, sellerEthereumAdress, { from: seller })
+        await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
+          listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
+          listing.sellerEthereumAdress, { from: seller })
         listingId = 0
         await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
             from: buyer,
-            value: price
+            value: listing.price
           })
       })
       it('triggers transfer confirmation request for the existing listing', async () => {
