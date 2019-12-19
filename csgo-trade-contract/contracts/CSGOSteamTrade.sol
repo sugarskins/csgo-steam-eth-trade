@@ -2,9 +2,10 @@ pragma solidity ^0.4.24;
 pragma experimental ABIEncoderV2;
 
 import "chainlink/contracts/ChainlinkClient.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
-contract CSGOSteamTrade is ChainlinkClient {
+contract CSGOSteamTrade is ChainlinkClient, Ownable {
     // 6 hours
     uint public constant MINIMUM_PURCHASE_OFFER_AGE = 60 * 60 * 6;
     string public constant CHECK_INVENTORY_CONTAINS_ITEM_METHOD = "tradelinkownerhasinspectlinktarget";
@@ -80,11 +81,13 @@ contract CSGOSteamTrade is ChainlinkClient {
     
     function createListing(string _ownerInspectLink, string memory _wear,
         string memory _skinName, uint _paintSeed, string memory _extraItemData,
-        uint _price, address _sellerEthereumAdress) public returns (uint listingId) {
+        uint _price, address _sellerEthereumAdress)
+        public
+        returns (uint listingId) {
         listingId = numListings++;
-        PurchaseOffer memory placeholder = PurchaseOffer(0, 0, '', false);
+        PurchaseOffer memory emptyOffer;
         Listing memory listing = Listing(listingId, _ownerInspectLink, _wear, _skinName, _paintSeed, _extraItemData,
-            _price, _sellerEthereumAdress, msg.sender, placeholder, true, ListingStage.OPEN);
+            _price, _sellerEthereumAdress, msg.sender, emptyOffer, true, ListingStage.OPEN);
         emit ListingCreation(listing);
         listings[listingId] = listing;
     }
@@ -97,7 +100,9 @@ contract CSGOSteamTrade is ChainlinkClient {
         return numListings;
     }
     
-    function deleteListing(uint _listingId) public {
+    function deleteListing(uint _listingId)
+        public
+         {
         Listing memory listing = listings[_listingId];
         require(listing.exists == true,  "Listing does not exist.");
         require(listing.owner == msg.sender, "Only the owner can delete his listing.");
@@ -138,7 +143,7 @@ contract CSGOSteamTrade is ChainlinkClient {
         // send the funds back to the owner of the purchase offer.
         listing.purchaseOffer.owner.transfer(listing.price);
 
-        listing.purchaseOffer = PurchaseOffer(0, 0, '', false);
+        listing.purchaseOffer.exists = false;
         listing.stage = ListingStage.OPEN;
         listings[_listingId] = listing;
     }
@@ -210,6 +215,34 @@ contract CSGOSteamTrade is ChainlinkClient {
         
         listings[listingId] = listing;
     }
+
+    // /**
+    //  * @notice Allows the owner to withdraw any LINK balance on the contract
+    // */
+    // function withdrawLink() public onlyOwner {
+    //     LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
+    //     require(link.transfer(msg.sender, link.balanceOf(address(this))), "Unable to transfer");
+    // }
+
+    // /**
+    // * @notice Call this method if no response is received within 5 minutes
+    // * @param _requestId The ID that was generated for the request to cancel
+    // * @param _payment The payment specified for the request to cancel
+    // * @param _callbackFunctionId The bytes4 callback function ID specified for
+    // * the request to cancel
+    // * @param _expiration The expiration generated for the request to cancel
+    // */
+    // function cancelRequest(
+    //     bytes32 _requestId,
+    //     uint256 _payment,
+    //     bytes4 _callbackFunctionId,
+    //     uint256 _expiration
+    // )
+    //     public
+    //     onlyOwner
+    // {
+    //     cancelChainlinkRequest(_requestId, _payment, _callbackFunctionId, _expiration);
+    // }
 
     /**
      * @notice Converts a uint to a string. Extracted from https://github.com/provable-things/ethereum-api/blob/master/oraclizeAPI_0.5.sol
