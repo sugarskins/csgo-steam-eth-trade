@@ -15,6 +15,8 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     uint256 constant public OWNERSHIP_STATUS_TRUE = 1;
     uint256 constant public OWNERSHIP_STATUS_INVENTORY_PRIVATE = 2;
 
+    string constant ERR_LISTING_NOT_FOUND = "Listing not found";
+
     enum ListingStage {OPEN, RECEIVED_OFFER, PENDING_TRANSFER_CONFIRMATON, DONE }
     
     struct PurchaseOffer {
@@ -104,8 +106,8 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         public
          {
         Listing memory listing = listings[_listingId];
-        require(listing.exists == true,  "Listing does not exist.");
-        require(listing.owner == msg.sender, "Only the owner can delete his listing.");
+        require(listing.exists == true,  ERR_LISTING_NOT_FOUND);
+        require(listing.owner == msg.sender, "Only owner can delete listing");
 
         if (listing.purchaseOffer.exists) {
             // return funds
@@ -117,10 +119,10 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
 
     function createPurchaseOffer(uint _listingId, string _buyerTradeURL) public payable {
         Listing memory listing = listings[_listingId];
-        require(listing.exists == true, "Listing does not exist.");
-        require(listing.stage == ListingStage.OPEN, "Listing is not open for offers.");
-        require(listing.purchaseOffer.exists == false, "Listing already has a purchase offer.");
-        require(listing.price == msg.value, "Value sent does not match listing price.");
+        require(listing.exists == true, ERR_LISTING_NOT_FOUND);
+        require(listing.stage == ListingStage.OPEN, "Listing not OPEN");
+        require(listing.purchaseOffer.exists == false, "Listing already has a purchase offer");
+        require(listing.price == msg.value, "Price and value do not match");
 
         uint currentTimestamp = block.timestamp;
         PurchaseOffer memory purchaseOffer = PurchaseOffer(msg.sender, currentTimestamp, _buyerTradeURL, true);
@@ -133,8 +135,8 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
 
     function deletePurchaseOffer(uint _listingId) public {
         Listing memory listing = listings[_listingId];
-        require(listing.exists == true, "There is no listing to delete the purchase offer for.");
-        require(listing.purchaseOffer.exists == true, "There is no purchase offer to delete for the listing.");
+        require(listing.exists == true, ERR_LISTING_NOT_FOUND);
+        require(listing.purchaseOffer.exists == true, "Purchase offer does not exist");
         require(listing.purchaseOffer.owner == msg.sender, "Only the owner can delete the purchase offer");
 
         uint secondsSinceOfferCreation = block.timestamp - listing.purchaseOffer.creationTimestamp;
@@ -158,7 +160,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         returns (bytes32 requestId) {
 
         Listing memory listing = listings[_listingId];
-        require(listing.exists == true, "There is no listing to confirm transfer for.");
+        require(listing.exists == true, ERR_LISTING_NOT_FOUND);
         require(listing.stage == ListingStage.RECEIVED_OFFER, "The listing has not yet received an offer.");
         require(listing.purchaseOffer.exists == true, "There is no purchase offer present.");
         require(listing.owner == msg.sender, "Only the owner can confirm purchase fulfilment");
@@ -197,9 +199,9 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         recordChainlinkFulfillment(_requestId) {
         uint listingId = requestIdToListingId[_requestId];
         Listing memory listing = listings[listingId];
-        require(listing.exists == true, "There is no listing with that id.");
-        require(listing.stage == ListingStage.PENDING_TRANSFER_CONFIRMATON, "Listing is not pending transfer confirmation.");
-        require(_ownershipStatus >= 0 && _ownershipStatus <= 2, "_ownershipStatus is not within the known range of values");
+        require(listing.exists == true, ERR_LISTING_NOT_FOUND);
+        require(listing.stage == ListingStage.PENDING_TRANSFER_CONFIRMATON, "Listing is not pending confirmation");
+        require(_ownershipStatus >= 0 && _ownershipStatus <= 2, "_ownershipStatus value invalid");
 
         if (_ownershipStatus == OWNERSHIP_STATUS_TRUE) {
             listing.stage = ListingStage.DONE;
