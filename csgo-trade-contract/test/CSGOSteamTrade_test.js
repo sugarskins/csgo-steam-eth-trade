@@ -30,6 +30,16 @@ contract('CSGOSteamTrade', accounts => {
   let linkToken = null
   let oracleContract = null
 
+  const listing1 = {
+    wear: '0.0356150865554809600000000',
+    skinName: 'StatTrak™ M4A4 | Desert-Strike (Factory New)',
+    price: '150000000000000000',
+    extraItemData: '{ "statTrak": true }',
+    ownerInspectLink: 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198862566094A16975411865D479860722137102858',
+    paintSeed: 210,
+    sellerEthereumAdress: seller
+  }
+
   beforeEach(async () => {
     linkToken = await LinkToken.new()
     oracleContract = await Oracle.new(linkToken.address, { from: defaultAccount })
@@ -45,25 +55,18 @@ contract('CSGOSteamTrade', accounts => {
     context('on a contract with no previous history', () => {
       it('can create a new listing and emits creation event', async () => {
         
-        let wear = '0.0356150865554809600000000'
-        let skinName = 'StatTrak™ M4A4 | Desert-Strike (Factory New)'
-        let price = '150000000000000000'
-        const extraItemData = '{ "statTrak": true }'
-        let ownerInspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198862566094A16975411865D479860722137102858'
-        let paintSeed = 210
-        let sellerEthereumAdress = seller
-      
-        const r = await csGOContract.createListing(ownerInspectLink, wear,
-          skinName, paintSeed, extraItemData, price, sellerEthereumAdress, {from: seller })
+        const r = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
+          listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
+          listing1.sellerEthereumAdress, {from: seller })
         const creationEventLog = r.logs[0].args.listing
         assert.equal(r.receipt.status, true)
 
-        assert.equal(creationEventLog.ownerInspectLink, ownerInspectLink)
-        assert.equal(creationEventLog.wear, wear)
-        assert.equal(creationEventLog.skinName, skinName)
-        assert.equal(creationEventLog.price, price)
-        assert.equal(creationEventLog.owner, seller)
-        assert.equal(creationEventLog.sellerEthereumAdress, seller)
+        assert.equal(creationEventLog.ownerInspectLink, listing1.ownerInspectLink)
+        assert.equal(creationEventLog.wear, listing1.wear)
+        assert.equal(creationEventLog.skinName, listing1.skinName)
+        assert.equal(creationEventLog.price, listing1.price)
+        assert.equal(creationEventLog.owner, listing1.sellerEthereumAdress)
+        assert.equal(creationEventLog.sellerEthereumAdress, listing1.sellerEthereumAdress)
       })
 
       it('fetches created listing by id', async () => {
