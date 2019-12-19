@@ -108,12 +108,25 @@ contract('CSGOSteamTrade', accounts => {
 
       it('creates 3 listings in a row with incrementing ids', async () => {
         let expectedListingId = 0
-        for (const listing of [listing1, listing2, listing3]) {
+        const listings = [listing1, listing2, listing3]
+        for (const listing of listings) {
           const createListingTx = await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
             listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
             listing.sellerEthereumAdress, { from: seller })
             const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
             assert.equal(createdListingId, expectedListingId++)
+        }
+
+        for (let i = 0; i < listings.length; i++) {
+          const listing = listings[i]
+          const stored = await csGOContract.getListing(i)
+          assert.equal(stored.ownerInspectLink, listing.ownerInspectLink)
+          assert.equal(stored.wear, listing.wear)
+          assert.equal(stored.skinName, listing.skinName)
+          assert.equal(stored.price, listing.price)
+          assert.equal(stored.sellerEthereumAdress, listing.sellerEthereumAdress)
+          assert.equal(stored.owner, seller)
+          assert.equal(stored.exists, true)
         }
       })
     })
