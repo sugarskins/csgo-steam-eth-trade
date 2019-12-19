@@ -69,9 +69,6 @@ contract('CSGOSteamTrade', accounts => {
     })
   })
   describe('#createListing', () => {
-    beforeEach(async () => {
-    })
-
     context('on a contract with no previous history', () => {
       it('can create a new listing and emits creation event', async () => {
         
@@ -128,6 +125,27 @@ contract('CSGOSteamTrade', accounts => {
           assert.equal(stored.owner, seller)
           assert.equal(stored.exists, true)
         }
+      })
+    })
+  })
+
+  describe('#deleteListing', () => {
+
+    context('on a contract with no previous history', () => {
+      it('can delete existing listing', async () => {
+        const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
+          listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
+          listing1.sellerEthereumAdress, { from: seller })
+
+        const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
+
+        const storedBeforeDeletion = await csGOContract.getListing(createdListingId)
+        assert.equal(storedBeforeDeletion.exists, true)
+
+        await csGOContract.deleteListing(createdListingId, { from: seller })
+
+        const stored = await csGOContract.getListing(createdListingId)
+        assert.equal(stored.exists, false)
       })
     })
   })
