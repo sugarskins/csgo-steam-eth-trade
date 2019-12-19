@@ -70,24 +70,18 @@ contract('CSGOSteamTrade', accounts => {
       })
 
       it('fetches created listing by id', async () => {
-        const wear = '0.0356150865554809600000000'
-        const skinName = 'StatTrak™ M4A4 | Desert-Strike (Factory New)'
-        const price = '100000000000000000'
-        const extraItemData = '{ "statTrak": true }'
-        const ownerInspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198862566094A16975411865D479860722137102858'
-        const paintSeed = 210
-        const sellerEthereumAdress = seller
-        const createListingTx = await csGOContract.createListing(ownerInspectLink, wear,
-          skinName, paintSeed, extraItemData, price, sellerEthereumAdress, { from: seller })
+        const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
+          listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
+          listing1.sellerEthereumAdress, { from: seller })
 
         const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
         const stored = await csGOContract.getListing.call(createdListingId)
 
-        assert.equal(stored.ownerInspectLink, ownerInspectLink)
-        assert.equal(stored.wear, wear)
-        assert.equal(stored.skinName, skinName)
-        assert.equal(stored.price, price)
-        assert.equal(stored.sellerEthereumAdress, sellerEthereumAdress)
+        assert.equal(stored.ownerInspectLink, listing1.ownerInspectLink)
+        assert.equal(stored.wear, listing1.wear)
+        assert.equal(stored.skinName, listing1.skinName)
+        assert.equal(stored.price, listing1.price)
+        assert.equal(stored.sellerEthereumAdress, listing1.sellerEthereumAdress)
         assert.equal(stored.owner, seller)
         assert.equal(stored.exists, true)
       })
