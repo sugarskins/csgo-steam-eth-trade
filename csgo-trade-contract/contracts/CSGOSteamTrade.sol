@@ -9,7 +9,6 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     // 6 hours
     uint public constant MINIMUM_PURCHASE_OFFER_AGE = 60 * 60 * 6;
     string public constant CHECK_INVENTORY_CONTAINS_ITEM_METHOD = "tradelinkownerhasinspectlinktarget";
-    uint256 constant private ORACLE_PAYMENT = 1 * LINK;
 
     uint256 constant public OWNERSHIP_STATUS_FALSE = 0;
     uint256 constant public OWNERSHIP_STATUS_TRUE = 1;
@@ -217,20 +216,18 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     * @notice Call this method if no response is received within 5 minutes
     * @param _requestId The ID that was generated for the request to cancel
     * @param _payment The payment specified for the request to cancel
-    * @param _callbackFunctionId The bytes4 callback function ID specified for
     * the request to cancel
     * @param _expiration The expiration generated for the request to cancel
     */
     function cancelRequest(
         bytes32 _requestId,
         uint256 _payment,
-        bytes4 _callbackFunctionId,
         uint256 _expiration
     )
         public
         onlyOwner
     {
-        cancelChainlinkRequest(_requestId, _payment, _callbackFunctionId, _expiration);
+        cancelChainlinkRequest(_requestId, _payment, this.fulfillItemTransferConfirmation.selector, _expiration);
     }
 
     /**
