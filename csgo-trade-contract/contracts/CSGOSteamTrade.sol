@@ -105,7 +105,6 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         onlyOwner {
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
-        require(listing.owner == msg.sender, "Only owner can delete listing");
 
         if (listing.purchaseOffer.exists) {
             // return funds
@@ -154,11 +153,11 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         uint256 _payment,
         string _buyerInspectLink)
         public
+        onlyOwner
         returns (bytes32 requestId) {
 
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
-        require(listing.owner == msg.sender, "Only the owner can confirm purchase fulfilment");
         require(listing.purchaseOffer.exists == true, "The listing has not yet received an offer.");
         
         Chainlink.Request memory req = buildChainlinkRequest(_jobId,
