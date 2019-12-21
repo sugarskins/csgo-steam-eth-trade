@@ -2,6 +2,7 @@
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const h = require('chainlink-test-helpers')
+const truffleAssert = require('truffle-assertions')
 
 contract('CSGOSteamTrade', accounts => {
   const LinkToken = artifacts.require('LinkToken.sol')
@@ -63,7 +64,7 @@ contract('CSGOSteamTrade', accounts => {
   beforeEach(async () => {
     linkToken = await LinkToken.new()
     oracleContract = await Oracle.new(linkToken.address, { from: defaultAccount })
-    csGOContract = await CSGOSteamTrade.new(linkToken.address, { from: consumer })
+    csGOContract = await CSGOSteamTrade.new(linkToken.address, { from: seller })
     await oracleContract.setFulfillmentPermission(oracleNode, true, {
       from: defaultAccount,
     })
@@ -146,6 +147,23 @@ contract('CSGOSteamTrade', accounts => {
 
         const stored = await csGOContract.getListing(createdListingId)
         assert.equal(stored.exists, false)
+      })
+
+      it('a stranger cannot delete an existing listing he does not own', async () => {
+        const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
+          listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
+          listing1.sellerEthereumAdress, { from: seller })
+
+        const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
+
+        const storedBeforeDeletion = await csGOContract.getListing(createdListingId)
+        assert.equal(storedBeforeDeletion.exists, true)
+
+        await truffleAssert.reverts(
+          csGOContract.deleteListing(createdListingId, { from: stranger }))
+
+        const stored = await csGOContract.getListing(createdListingId)
+        assert.equal(stored.exists, true)
       })
     })
   })
