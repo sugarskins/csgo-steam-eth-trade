@@ -51,6 +51,8 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     enum TradeOutcome { SUCCESSFULLY_CONFIRMED, UNABLE_TO_CONFIRM_PRIVATE_PROFILE }
 
     event TradeDone (
+        string indexed _buyerTradeURL,
+        address indexed buyerEthereumAddress,
         Listing listing,
         TradeOutcome tradeOutcome
     );
@@ -196,12 +198,12 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
 
         if (_ownershipStatus == OWNERSHIP_STATUS_TRUE) {
             listing.sellerEthereumAdress.transfer(listing.price);
-            emit TradeDone(listing, TradeOutcome.SUCCESSFULLY_CONFIRMED);
+            emit TradeDone(listing.purchaseOffer.buyerTradeURL, listing.purchaseOffer.owner, listing, TradeOutcome.SUCCESSFULLY_CONFIRMED);
             listing.exists = false;
             listings[listingId] = listing;
         } else if (_ownershipStatus == OWNERSHIP_STATUS_INVENTORY_PRIVATE) {
             listing.sellerEthereumAdress.transfer(listing.price);
-            emit TradeDone(listing, TradeOutcome.UNABLE_TO_CONFIRM_PRIVATE_PROFILE);
+            emit TradeDone(listing.purchaseOffer.buyerTradeURL, listing.purchaseOffer.owner, listing, TradeOutcome.UNABLE_TO_CONFIRM_PRIVATE_PROFILE);
             listing.exists = false;
             listings[listingId] = listing;
         } else if (_ownershipStatus == OWNERSHIP_STATUS_FALSE) {
@@ -211,33 +213,25 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         listings[listingId] = listing;
     }
 
-    // /**
-    //  * @notice Allows the owner to withdraw any LINK balance on the contract
-    // */
-    // function withdrawLink() public onlyOwner {
-    //     LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
-    //     require(link.transfer(msg.sender, link.balanceOf(address(this))), "Unable to transfer");
-    // }
-
-    // /**
-    // * @notice Call this method if no response is received within 5 minutes
-    // * @param _requestId The ID that was generated for the request to cancel
-    // * @param _payment The payment specified for the request to cancel
-    // * @param _callbackFunctionId The bytes4 callback function ID specified for
-    // * the request to cancel
-    // * @param _expiration The expiration generated for the request to cancel
-    // */
-    // function cancelRequest(
-    //     bytes32 _requestId,
-    //     uint256 _payment,
-    //     bytes4 _callbackFunctionId,
-    //     uint256 _expiration
-    // )
-    //     public
-    //     onlyOwner
-    // {
-    //     cancelChainlinkRequest(_requestId, _payment, _callbackFunctionId, _expiration);
-    // }
+    /**
+    * @notice Call this method if no response is received within 5 minutes
+    * @param _requestId The ID that was generated for the request to cancel
+    * @param _payment The payment specified for the request to cancel
+    * @param _callbackFunctionId The bytes4 callback function ID specified for
+    * the request to cancel
+    * @param _expiration The expiration generated for the request to cancel
+    */
+    function cancelRequest(
+        bytes32 _requestId,
+        uint256 _payment,
+        bytes4 _callbackFunctionId,
+        uint256 _expiration
+    )
+        public
+        onlyOwner
+    {
+        cancelChainlinkRequest(_requestId, _payment, _callbackFunctionId, _expiration);
+    }
 
     /**
      * @notice Converts a uint to a string. Extracted from https://github.com/provable-things/ethereum-api/blob/master/oraclizeAPI_0.5.sol
