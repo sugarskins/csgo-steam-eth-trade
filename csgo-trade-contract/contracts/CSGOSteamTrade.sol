@@ -121,7 +121,6 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
         require(listing.stage == ListingStage.OPEN, "Listing not OPEN");
-        require(listing.purchaseOffer.exists == false, "Listing already has a purchase offer");
         require(listing.price == msg.value, "Price and value do not match");
 
         uint currentTimestamp = block.timestamp;
@@ -138,6 +137,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
         require(listing.purchaseOffer.exists == true, "Purchase offer does not exist");
         require(listing.purchaseOffer.owner == msg.sender, "Only the owner can delete the purchase offer");
+
 
         uint secondsSinceOfferCreation = block.timestamp - listing.purchaseOffer.creationTimestamp;
         require(secondsSinceOfferCreation > MINIMUM_PURCHASE_OFFER_AGE, "The minimum block age requirement not met for deletion.");
@@ -161,9 +161,8 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
 
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
-        require(listing.stage == ListingStage.RECEIVED_OFFER, "The listing has not yet received an offer.");
-        require(listing.purchaseOffer.exists == true, "There is no purchase offer present.");
         require(listing.owner == msg.sender, "Only the owner can confirm purchase fulfilment");
+        require(listing.stage == ListingStage.RECEIVED_OFFER, "The listing has not yet received an offer.");
         
         Chainlink.Request memory req = buildChainlinkRequest(_jobId,
             this,
