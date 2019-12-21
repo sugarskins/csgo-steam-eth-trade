@@ -47,7 +47,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         Listing listing
     );
 
-    enum TradeOutcome { SUCCESSFULLY_CONFIRMED, UNABLE_TO_CONFIRM_PRIVATE_PROFILE }
+    enum TradeOutcome { SUCCESSFULLY_CONFIRMED, UNABLE_TO_CONFIRM_PRIVATE_PROFILE, DELETED_LISTING }
 
     event TradeDone (
         string indexed _buyerTradeURL,
@@ -110,6 +110,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         if (listing.purchaseOffer.exists) {
             // return funds
             listing.purchaseOffer.owner.transfer(listing.price);
+            emit TradeDone(listing.purchaseOffer.buyerTradeURL, listing.purchaseOffer.owner, listing, TradeOutcome.DELETED_LISTING);
         }
         
         listings[_listingId].exists = false;
