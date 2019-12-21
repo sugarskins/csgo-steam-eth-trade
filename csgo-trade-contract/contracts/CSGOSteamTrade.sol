@@ -16,8 +16,6 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     uint256 constant public OWNERSHIP_STATUS_INVENTORY_PRIVATE = 2;
 
     string constant ERR_LISTING_NOT_FOUND = "Listing not found";
-
-    enum ListingStage {OPEN, RECEIVED_OFFER, PENDING_TRANSFER_CONFIRMATON, DONE }
     
     struct PurchaseOffer {
         address owner;
@@ -38,7 +36,6 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         address owner;
         PurchaseOffer purchaseOffer;
         bool exists;
-        ListingStage stage;
     }
 
     event ListingCreation(
@@ -89,7 +86,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         listingId = numListings++;
         PurchaseOffer memory emptyOffer;
         Listing memory listing = Listing(listingId, _ownerInspectLink, _wear, _skinName, _paintSeed, _extraItemData,
-            _price, _sellerEthereumAdress, msg.sender, emptyOffer, true, ListingStage.OPEN);
+            _price, _sellerEthereumAdress, msg.sender, emptyOffer, true);
         emit ListingCreation(listing);
         listings[listingId] = listing;
     }
@@ -106,7 +103,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         public
          {
         Listing memory listing = listings[_listingId];
-        require(listing.exists == true,  ERR_LISTING_NOT_FOUND);
+        require(listing.exists == true, ERR_LISTING_NOT_FOUND);
         require(listing.owner == msg.sender, "Only owner can delete listing");
 
         if (listing.purchaseOffer.exists) {
@@ -120,13 +117,12 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     function createPurchaseOffer(uint _listingId, string _buyerTradeURL) public payable {
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
-        require(listing.stage == ListingStage.OPEN, "Listing not OPEN");
+        require(listing.purchaseOffer.exists == false, "Listing already has a purchase offer");
         require(listing.price == msg.value, "Price and value do not match");
 
         uint currentTimestamp = block.timestamp;
         PurchaseOffer memory purchaseOffer = PurchaseOffer(msg.sender, currentTimestamp, _buyerTradeURL, true);
         listing.purchaseOffer = purchaseOffer;
-        listing.stage = ListingStage.RECEIVED_OFFER;
 
         emit PurchaseOfferMade(_buyerTradeURL, msg.sender, listing);
         listings[_listingId] = listing;
@@ -146,7 +142,6 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         listing.purchaseOffer.owner.transfer(listing.price);
 
         listing.purchaseOffer.exists = false;
-        listing.stage = ListingStage.OPEN;
         listings[_listingId] = listing;
     }
 
@@ -162,7 +157,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
         require(listing.owner == msg.sender, "Only the owner can confirm purchase fulfilment");
-        require(listing.stage == ListingStage.RECEIVED_OFFER, "The listing has not yet received an offer.");
+        require(listing.purchaseOffer.exists == true, "The listing has not yet received an offer.");
         
         Chainlink.Request memory req = buildChainlinkRequest(_jobId,
             this,
@@ -181,9 +176,6 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
 
         requestId = sendChainlinkRequestTo(_oracle, req, _payment);
         requestIdToListingId[requestId] = _listingId;
-
-        listing.stage = ListingStage.PENDING_TRANSFER_CONFIRMATON;
-        listings[_listingId] = listing;
     }
 
     /**
@@ -199,17 +191,19 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         uint listingId = requestIdToListingId[_requestId];
         Listing memory listing = listings[listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
-        require(listing.stage == ListingStage.PENDING_TRANSFER_CONFIRMATON, "Listing is not pending confirmation");
+        require(listing.purchaseOffer.exists == true, "Listing has no purchase offer");
         require(_ownershipStatus >= 0 && _ownershipStatus <= 2, "_ownershipStatus value invalid");
 
         if (_ownershipStatus == OWNERSHIP_STATUS_TRUE) {
-            listing.stage = ListingStage.DONE;
             listing.sellerEthereumAdress.transfer(listing.price);
             emit TradeDone(listing, TradeOutcome.SUCCESSFULLY_CONFIRMED);
+            listing.exists = false;
+            listings[listingId] = listing;
         } else if (_ownershipStatus == OWNERSHIP_STATUS_INVENTORY_PRIVATE) {
-            listing.stage = ListingStage.DONE;
             listing.sellerEthereumAdress.transfer(listing.price);
             emit TradeDone(listing, TradeOutcome.UNABLE_TO_CONFIRM_PRIVATE_PROFILE);
+            listing.exists = false;
+            listings[listingId] = listing;
         } else if (_ownershipStatus == OWNERSHIP_STATUS_FALSE) {
             emit TradeFulfilmentFail(listing);
         }
