@@ -43,7 +43,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
 
     event PurchaseOfferMade(
         string indexed _buyerTradeURL,
-        address indexed buyerEthereumAddress,
+        address indexed buyerAddress,
         Listing listing
     );
 
@@ -51,7 +51,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
 
     event TradeDone (
         string indexed _buyerTradeURL,
-        address indexed buyerEthereumAddress,
+        address indexed buyerAddress,
         Listing listing,
         TradeOutcome tradeOutcome
     );
