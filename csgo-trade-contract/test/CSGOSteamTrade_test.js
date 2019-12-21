@@ -38,7 +38,7 @@ contract('CSGOSteamTrade', accounts => {
     extraItemData: '{ "statTrak": true }',
     ownerInspectLink: 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198862566094A16975411865D479860722137102858',
     paintSeed: 210,
-    sellerEthereumAdress: seller
+    sellerAddress: seller
   }
 
   const listing2 = {
@@ -48,7 +48,7 @@ contract('CSGOSteamTrade', accounts => {
     price: '120000000000000000',
     paintSeed: 178,
     extraItemData: '{"statTrak":false }',
-    sellerEthereumAdress: seller,
+    sellerAddress: seller
   }
 
   const listing3 = {
@@ -58,7 +58,7 @@ contract('CSGOSteamTrade', accounts => {
     price: '130000000000000000',
     paintSeed: 17,
     extraItemData: '{"statTrak":false}',
-    sellerEthereumAdress: seller,
+    sellerAddress: seller
   }
 
   beforeEach(async () => {
@@ -75,7 +75,7 @@ contract('CSGOSteamTrade', accounts => {
         
         const r = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerEthereumAdress, {from: seller })
+          listing1.sellerAddress, {from: seller })
         const creationEventLog = r.logs[0].args.listing
         assert.equal(r.receipt.status, true)
 
@@ -83,14 +83,13 @@ contract('CSGOSteamTrade', accounts => {
         assert.equal(creationEventLog.wear, listing1.wear)
         assert.equal(creationEventLog.skinName, listing1.skinName)
         assert.equal(creationEventLog.price, listing1.price)
-        assert.equal(creationEventLog.owner, listing1.sellerEthereumAdress)
-        assert.equal(creationEventLog.sellerEthereumAdress, listing1.sellerEthereumAdress)
+        assert.equal(creationEventLog.sellerAddress, listing1.sellerAddress)
       })
 
       it('fetches created listing by id', async () => {
         const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerEthereumAdress, { from: seller })
+          listing1.sellerAddress, { from: seller })
 
         const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
         const stored = await csGOContract.getListing.call(createdListingId)
@@ -99,8 +98,7 @@ contract('CSGOSteamTrade', accounts => {
         assert.equal(stored.wear, listing1.wear)
         assert.equal(stored.skinName, listing1.skinName)
         assert.equal(stored.price, listing1.price)
-        assert.equal(stored.sellerEthereumAdress, listing1.sellerEthereumAdress)
-        assert.equal(stored.owner, seller)
+        assert.equal(stored.sellerAddress, listing1.sellerAddress)
         assert.equal(stored.exists, true)
       })
 
@@ -110,7 +108,7 @@ contract('CSGOSteamTrade', accounts => {
         for (const listing of listings) {
           const createListingTx = await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
             listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
-            listing.sellerEthereumAdress, { from: seller })
+            listing.sellerAddress, { from: seller })
             const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
             assert.equal(createdListingId, expectedListingId++)
         }
@@ -122,8 +120,7 @@ contract('CSGOSteamTrade', accounts => {
           assert.equal(stored.wear, listing.wear)
           assert.equal(stored.skinName, listing.skinName)
           assert.equal(stored.price, listing.price)
-          assert.equal(stored.sellerEthereumAdress, listing.sellerEthereumAdress)
-          assert.equal(stored.owner, seller)
+          assert.equal(stored.sellerAddress, listing.sellerAddress)
           assert.equal(stored.exists, true)
         }
       })
@@ -136,7 +133,7 @@ contract('CSGOSteamTrade', accounts => {
       it('can delete existing listing', async () => {
         const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerEthereumAdress, { from: seller })
+          listing1.sellerAddress, { from: seller })
 
         const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
 
@@ -152,7 +149,7 @@ contract('CSGOSteamTrade', accounts => {
       it('a stranger cannot delete an existing listing he does not own', async () => {
         const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerEthereumAdress, { from: seller })
+          listing1.sellerAddress, { from: seller })
 
         const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
 
@@ -175,7 +172,7 @@ contract('CSGOSteamTrade', accounts => {
       beforeEach(async () => {
         await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerEthereumAdress, { from: seller })
+          listing1.sellerAddress, { from: seller })
       })
       it('creates a purchase offer for the listing', async () => {
         const listingId = 0
@@ -190,8 +187,7 @@ contract('CSGOSteamTrade', accounts => {
         assert.equal(stored.wear, listing1.wear)
         assert.equal(stored.skinName, listing1.skinName)
         assert.equal(stored.price, listing1.price)
-        assert.equal(stored.sellerEthereumAdress, listing1.sellerEthereumAdress)
-        assert.equal(stored.owner, seller)
+        assert.equal(stored.sellerAddress, listing1.sellerAddress)
         assert.equal(stored.exists, true)
         
         assert.equal(updatedOffer.owner, buyer)
@@ -212,7 +208,7 @@ contract('CSGOSteamTrade', accounts => {
         await linkToken.transfer(csGOContract.address, web3.utils.toWei('1', 'ether'))
         await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
           listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
-          listing.sellerEthereumAdress, { from: seller })
+          listing.sellerAddress, { from: seller })
         listingId = 0
         await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
             from: buyer,

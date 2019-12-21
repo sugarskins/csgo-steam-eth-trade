@@ -31,8 +31,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         uint paintSeed;
         string extraItemData;
         uint price;
-        address sellerEthereumAdress;
-        address owner;
+        address sellerAddress;
         PurchaseOffer purchaseOffer;
         bool exists;
     }
@@ -81,13 +80,13 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     
     function createListing(string _ownerInspectLink, string memory _wear,
         string memory _skinName, uint _paintSeed, string memory _extraItemData,
-        uint _price, address _sellerEthereumAdress)
+        uint _price, address _sellerAddress)
         public
         returns (uint listingId) {
         listingId = numListings++;
         PurchaseOffer memory emptyOffer;
         Listing memory listing = Listing(listingId, _ownerInspectLink, _wear, _skinName, _paintSeed, _extraItemData,
-            _price, _sellerEthereumAdress, msg.sender, emptyOffer, true);
+            _price, _sellerAddress, emptyOffer, true);
         emit ListingCreation(listing);
         listings[listingId] = listing;
     }
@@ -196,12 +195,12 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         require(_ownershipStatus >= 0 && _ownershipStatus <= 2, "_ownershipStatus value invalid");
 
         if (_ownershipStatus == OWNERSHIP_STATUS_TRUE) {
-            listing.sellerEthereumAdress.transfer(listing.price);
+            listing.sellerAddress.transfer(listing.price);
             emit TradeDone(listing.purchaseOffer.buyerTradeURL, listing.purchaseOffer.owner, listing, TradeOutcome.SUCCESSFULLY_CONFIRMED);
             listing.exists = false;
             listings[listingId] = listing;
         } else if (_ownershipStatus == OWNERSHIP_STATUS_INVENTORY_PRIVATE) {
-            listing.sellerEthereumAdress.transfer(listing.price);
+            listing.sellerAddress.transfer(listing.price);
             emit TradeDone(listing.purchaseOffer.buyerTradeURL, listing.purchaseOffer.owner, listing, TradeOutcome.UNABLE_TO_CONFIRM_PRIVATE_PROFILE);
             listing.exists = false;
             listings[listingId] = listing;
