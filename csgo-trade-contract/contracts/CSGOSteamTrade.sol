@@ -102,7 +102,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     
     function deleteListing(uint _listingId)
         public
-         {
+        onlyOwner {
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
         require(listing.owner == msg.sender, "Only owner can delete listing");
@@ -226,8 +226,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         uint256 _expiration
     )
         public
-        onlyOwner
-    {
+        onlyOwner {
         cancelChainlinkRequest(_requestId, _payment, this.fulfillItemTransferConfirmation.selector, _expiration);
     }
 
