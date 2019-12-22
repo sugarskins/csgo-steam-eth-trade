@@ -236,13 +236,6 @@ contract('CSGOSteamTrade', accounts => {
           value: listing.price
         })
 
-        const stored = await csGOContract.getListing.call(listingId)
-        const updatedOffer = stored.purchaseOffer
-        assert.equal(updatedOffer.owner, buyer)
-        assert.equal(updatedOffer.buyerTradeURL, buyerTradeURL)
-        assert.equal(updatedOffer.exists, true)
-
-
         await truffleTestUtils.advanceTimeAndBlock(minimumAgeForPurchaseDeletion + 5)
 
         await csGOContract.deletePurchaseOffer(listingId, {
@@ -259,12 +252,6 @@ contract('CSGOSteamTrade', accounts => {
           from: buyer,
           value: listing.price
         })
-
-        const stored = await csGOContract.getListing.call(listingId)
-        const updatedOffer = stored.purchaseOffer
-        assert.equal(updatedOffer.owner, buyer)
-        assert.equal(updatedOffer.buyerTradeURL, buyerTradeURL)
-        assert.equal(updatedOffer.exists, true)
 
         await truffleTestUtils.advanceTimeAndBlock(minimumAgeForPurchaseDeletion - 1000)
 
@@ -283,18 +270,28 @@ contract('CSGOSteamTrade', accounts => {
           from: buyer,
           value: listing.price
         })
-
-        const stored = await csGOContract.getListing.call(listingId)
-        const updatedOffer = stored.purchaseOffer
-        assert.equal(updatedOffer.owner, buyer)
-        assert.equal(updatedOffer.buyerTradeURL, buyerTradeURL)
-        assert.equal(updatedOffer.exists, true)
-
+        
         await truffleTestUtils.advanceTimeAndBlock(minimumAgeForPurchaseDeletion + 5)
         
         await truffleAssert.reverts(
           csGOContract.deletePurchaseOffer(listingId, {
             from: stranger
+          }))
+      })
+
+      it(`it fails to delete a purchase offer of a listing that was deleted`, async () => {
+        const listingId = 0
+        await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
+          from: buyer,
+          value: listing.price
+        })
+        await csGOContract.deleteListing(listingId, {
+          from: seller
+        })
+        await truffleTestUtils.advanceTimeAndBlock(minimumAgeForPurchaseDeletion + 5)
+        await truffleAssert.reverts(
+          csGOContract.deletePurchaseOffer(listingId, {
+            from: buyer
           }))
       })
     })
