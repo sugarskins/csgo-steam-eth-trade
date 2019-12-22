@@ -109,6 +109,8 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
             // return funds
             listing.purchaseOffer.owner.transfer(listing.price);
             emit TradeDone(listing.purchaseOffer.buyerTradeURL, listing.purchaseOffer.owner, listing, TradeOutcome.DELETED_LISTING);
+        } else {
+            emit TradeDone("", address(0), listing, TradeOutcome.DELETED_LISTING);
         }
         
         listings[_listingId].exists = false;
