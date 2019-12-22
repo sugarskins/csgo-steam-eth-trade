@@ -4,6 +4,13 @@
 const h = require('chainlink-test-helpers')
 const truffleAssert = require('truffle-assertions')
 const truffleTestUtils = require('./truffleTestUtils')
+const BigNumber = require('bignumber.js')
+
+
+async function getTxCost(txResult) {
+  const tx = await web3.eth.getTransaction(txResult.tx)
+  return (BigNumber(txResult.receipt.gasUsed)).multipliedBy(BigNumber(tx.gasPrice))
+ }
 
 contract('CSGOSteamTrade', accounts => {
   const LinkToken = artifacts.require('LinkToken.sol')
@@ -91,7 +98,7 @@ contract('CSGOSteamTrade', accounts => {
         assert.equal(creationEventLog.sellerAddress, listing1.sellerAddress)
       })
 
-      it('fetches created listing by id', async () => {
+      it('creates a new listing which ca be fetched by id and properties match', async () => {
         const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
           listing1.sellerAddress, { from: seller })
@@ -128,6 +135,41 @@ contract('CSGOSteamTrade', accounts => {
           assert.equal(stored.sellerAddress, listing.sellerAddress)
           assert.equal(stored.exists, true)
         }
+      })
+    })
+  })
+
+  describe('#createPurchaseOffer', () => {
+    context('on a contract with an existing listing', () => {
+      const buyerTradeURL = 'https://steamcommunity.com/tradeoffer/new/?partner=902300366&token=HYgPwBhA'
+  
+      beforeEach(async () => {
+        await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
+          listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
+          listing1.sellerAddress, { from: seller })
+      })
+      it('creates a purchase offer for the listing and the contract balance increases with the price', async () => {
+        const listingId = 0
+        await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
+          from: buyer,
+          value: listing1.price
+        })
+
+        const stored = await csGOContract.getListing.call(listingId)
+        const updatedOffer = stored.purchaseOffer
+        assert.equal(stored.ownerInspectLink, listing1.ownerInspectLink)
+        assert.equal(stored.wear, listing1.wear)
+        assert.equal(stored.skinName, listing1.skinName)
+        assert.equal(stored.price, listing1.price)
+        assert.equal(stored.sellerAddress, listing1.sellerAddress)
+        assert.equal(stored.exists, true)
+        
+        assert.equal(updatedOffer.owner, buyer)
+        assert.equal(updatedOffer.buyerTradeURL, buyerTradeURL)
+        assert.equal(updatedOffer.exists, true)
+
+        const contractBalance = await web3.eth.getBalance(csGOContract.address)
+        assert.equal(contractBalance, listing1.price)
       })
     })
   })
@@ -181,42 +223,30 @@ contract('CSGOSteamTrade', accounts => {
 
         await truffleAssert.reverts(
           csGOContract.deleteListing(createdListingId, { from: seller }))
-
       })
     })
-  })
 
-  describe('#createPurchaseOffer', () => {
-    context('on a contract with an existing listing', () => {
+    it('deletes an existing listing with a purchase offer and refunds the buyer', async () => {
       const buyerTradeURL = 'https://steamcommunity.com/tradeoffer/new/?partner=902300366&token=HYgPwBhA'
-  
-      beforeEach(async () => {
-        await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
-          listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerAddress, { from: seller })
-      })
-      it('creates a purchase offer for the listing', async () => {
-        const listingId = 0
-        await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
-          from: buyer,
-          value: listing1.price
-        })
-
-        const stored = await csGOContract.getListing.call(listingId)
-        const updatedOffer = stored.purchaseOffer
-        assert.equal(stored.ownerInspectLink, listing1.ownerInspectLink)
-        assert.equal(stored.wear, listing1.wear)
-        assert.equal(stored.skinName, listing1.skinName)
-        assert.equal(stored.price, listing1.price)
-        assert.equal(stored.sellerAddress, listing1.sellerAddress)
-        assert.equal(stored.exists, true)
+      const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
+        listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
+        listing1.sellerAddress, { from: seller })
         
-        assert.equal(updatedOffer.owner, buyer)
-        assert.equal(updatedOffer.buyerTradeURL, buyerTradeURL)
-        assert.equal(updatedOffer.exists, true)
+      const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
+
+      await csGOContract.createPurchaseOffer(createdListingId, buyerTradeURL, {
+        from: buyer,
+        value: listing1.price
       })
+      
+      const balanceBefore = BigNumber(await web3.eth.getBalance(buyer))
+      await csGOContract.deleteListing(createdListingId, { from: seller })
+      const balanceAfter = BigNumber(await web3.eth.getBalance(buyer))
+
+      assert.equal(balanceAfter.toFixed(), balanceBefore.plus(listing1.price).toFixed())
     })
   })
+
 
   describe('deletePurchaseOffer', () => {
     
@@ -229,24 +259,29 @@ contract('CSGOSteamTrade', accounts => {
           listing.sellerAddress, { from: seller })
       })
 
-      it('deletes a purchase offer for the listing', async () => {
+      it('deletes a purchase offer for the listing after minimum time passed and refunds the buyer', async () => {
         const listingId = 0
         await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
           from: buyer,
           value: listing.price
         })
 
+        const balanceBefore = BigNumber(await web3.eth.getBalance(buyer))
         await truffleTestUtils.advanceTimeAndBlock(minimumAgeForPurchaseDeletion + 5)
 
-        await csGOContract.deletePurchaseOffer(listingId, {
+        const result = await csGOContract.deletePurchaseOffer(listingId, {
           from: buyer
         })
+        const txCost = await getTxCost(result)
 
         const storedAfterPurchaseOfferDeletion = await csGOContract.getListing.call(listingId)
         assert.equal(storedAfterPurchaseOfferDeletion.purchaseOffer.exists, false)
+
+        const balanceAfter = BigNumber(await web3.eth.getBalance(buyer))
+        assert.equal(balanceAfter.toFixed(), balanceBefore.plus(BigNumber(listing.price)).minus(txCost).toFixed())
       })
 
-      it(`it fails to delete a purchase offer who doesn't meet minimum age requirement`, async () => {
+      it(`fails to delete a purchase offer who doesn't meet minimum age requirement`, async () => {
         const listingId = 0
         await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
           from: buyer,
@@ -264,13 +299,13 @@ contract('CSGOSteamTrade', accounts => {
         assert.equal(storedAfterPurchaseOfferDeletion.purchaseOffer.exists, true)
       })
 
-      it(`it fails to delete a purchase offer that does not belong to caller`, async () => {
+      it(`fails to delete a purchase offer that does not belong to caller`, async () => {
         const listingId = 0
         await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
           from: buyer,
           value: listing.price
         })
-        
+
         await truffleTestUtils.advanceTimeAndBlock(minimumAgeForPurchaseDeletion + 5)
         
         await truffleAssert.reverts(
@@ -279,7 +314,7 @@ contract('CSGOSteamTrade', accounts => {
           }))
       })
 
-      it(`it fails to delete a purchase offer of a listing that was deleted`, async () => {
+      it(`fails to delete a purchase offer of a listing that was deleted`, async () => {
         const listingId = 0
         await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
           from: buyer,
@@ -325,7 +360,6 @@ contract('CSGOSteamTrade', accounts => {
           { from: seller },
         )
         const request = h.decodeRunRequest(tx.receipt.rawLogs[3])
-        console.log(request)
         assert.equal(oracleContract.address, tx.receipt.rawLogs[3].address)
         assert.equal(
           request.topic,
@@ -339,7 +373,6 @@ contract('CSGOSteamTrade', accounts => {
         await h.fulfillOracleRequest(oracleContract, request, response, { from: oracleNode })
 
         const postConfirmationListing = await csGOContract.getListing.call(listingId)
-        console.log(postConfirmationListing)
       })
     })
   })

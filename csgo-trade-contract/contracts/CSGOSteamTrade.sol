@@ -6,8 +6,8 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 contract CSGOSteamTrade is ChainlinkClient, Ownable {
-    // 6 hours
-    uint public constant MINIMUM_PURCHASE_OFFER_AGE = 60 * 60 * 6;
+    uint private constant hour = 60 * 60;
+    uint public constant MINIMUM_PURCHASE_OFFER_AGE = hour * 6;
     string public constant CHECK_INVENTORY_CONTAINS_ITEM_METHOD = "tradelinkownerhasinspectlinktarget";
 
     uint256 constant public OWNERSHIP_STATUS_FALSE = 0;
@@ -138,7 +138,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
 
 
         uint secondsSinceOfferCreation = block.timestamp - listing.purchaseOffer.creationTimestamp;
-        require(secondsSinceOfferCreation > MINIMUM_PURCHASE_OFFER_AGE, "The minimum block age requirement not met for deletion.");
+        require(secondsSinceOfferCreation > MINIMUM_PURCHASE_OFFER_AGE, "The minimum block age requirement not met for deletion");
 
         // send the funds back to the owner of the purchase offer.
         listing.purchaseOffer.owner.transfer(listing.price);

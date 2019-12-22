@@ -1,7 +1,7 @@
 /*
     advanceTimeAndBlock, advanceTime, advanceBlock
     are taken from  https://medium.com/edgefund/time-travelling-truffle-tests-f581c1964687
-    credit goes to https://gist.github.com/AndyWatt83
+    credit goes to https://gist.github.com/AndyWatt83   
 */
 
 advanceTimeAndBlock = async (time) => {
