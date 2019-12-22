@@ -12,6 +12,10 @@ async function getTxCost(txResult) {
   return (BigNumber(txResult.receipt.gasUsed)).multipliedBy(BigNumber(tx.gasPrice))
  }
 
+ function getListingId(createListingTx) {
+  return parseInt(createListingTx.logs[0].args.listing.listingId)
+ }
+
 contract('CSGOSteamTrade', accounts => {
   const LinkToken = artifacts.require('LinkToken.sol')
   const Oracle = artifacts.require('Oracle.sol')
@@ -103,7 +107,7 @@ contract('CSGOSteamTrade', accounts => {
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
           listing1.sellerAddress, { from: seller })
 
-        const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
+        const createdListingId = getListingId(createListingTx)
         const stored = await csGOContract.getListing.call(createdListingId)
 
         assert.equal(stored.ownerInspectLink, listing1.ownerInspectLink)
@@ -121,7 +125,7 @@ contract('CSGOSteamTrade', accounts => {
           const createListingTx = await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
             listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
             listing.sellerAddress, { from: seller })
-            const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
+            const createdListingId = getListingId(createListingTx)
             assert.equal(createdListingId, expectedListingId++)
         }
 
@@ -149,7 +153,7 @@ contract('CSGOSteamTrade', accounts => {
         const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
           listing1.sellerAddress, { from: seller })
-        listingId = parseInt(createListingTx.logs[0].args.listing.listingId)
+        listingId = getListingId(createListingTx)
       })
       it('creates a purchase offer for the listing and the contract balance increases with the price', async () => {
         await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
@@ -197,7 +201,7 @@ contract('CSGOSteamTrade', accounts => {
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
           listing1.sellerAddress, { from: seller })
 
-        const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
+        const createdListingId = getListingId(createListingTx)
 
         const storedBeforeDeletion = await csGOContract.getListing(createdListingId)
         assert.equal(storedBeforeDeletion.exists, true)
@@ -213,7 +217,7 @@ contract('CSGOSteamTrade', accounts => {
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
           listing1.sellerAddress, { from: seller })
 
-        const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
+        const createdListingId = getListingId(createListingTx)
 
         const storedBeforeDeletion = await csGOContract.getListing(createdListingId)
         assert.equal(storedBeforeDeletion.exists, true)
@@ -230,7 +234,7 @@ contract('CSGOSteamTrade', accounts => {
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
           listing1.sellerAddress, { from: seller })
 
-        const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
+        const createdListingId = getListingId(createListingTx)
         await csGOContract.deleteListing(createdListingId, { from: seller })
 
         const stored = await csGOContract.getListing(createdListingId)
@@ -247,7 +251,7 @@ contract('CSGOSteamTrade', accounts => {
         listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
         listing1.sellerAddress, { from: seller })
         
-      const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
+      const createdListingId = getListingId(createListingTx)
 
       await csGOContract.createPurchaseOffer(createdListingId, buyerTradeURL, {
         from: buyer,
