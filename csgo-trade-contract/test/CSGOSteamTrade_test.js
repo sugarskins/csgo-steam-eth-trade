@@ -142,14 +142,16 @@ contract('CSGOSteamTrade', accounts => {
   describe('#createPurchaseOffer', () => {
     context('on a contract with an existing listing', () => {
       const buyerTradeURL = 'https://steamcommunity.com/tradeoffer/new/?partner=902300366&token=HYgPwBhA'
-  
+      
+      let listingId = null
+      const listing = listing1
       beforeEach(async () => {
-        await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
+        const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
           listing1.sellerAddress, { from: seller })
+        listingId = parseInt(createListingTx.logs[0].args.listing.listingId)
       })
       it('creates a purchase offer for the listing and the contract balance increases with the price', async () => {
-        const listingId = 0
         await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
           from: buyer,
           value: listing1.price
@@ -170,6 +172,19 @@ contract('CSGOSteamTrade', accounts => {
 
         const contractBalance = await web3.eth.getBalance(csGOContract.address)
         assert.equal(contractBalance, listing1.price)
+      })
+
+      it('fails to create a purchase offer when a listing already has one', async () => {
+        await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
+          from: buyer,
+          value: listing.price
+        })
+        
+        await truffleAssert.reverts(
+          csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
+            from: buyer,
+            value: listing.price
+          }))
       })
     })
   })
