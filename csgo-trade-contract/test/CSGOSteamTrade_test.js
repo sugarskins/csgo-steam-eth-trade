@@ -3,6 +3,7 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const h = require('chainlink-test-helpers')
 const truffleAssert = require('truffle-assertions')
+const truffleTestUtils = require('./truffleTestUtils')
 
 contract('CSGOSteamTrade', accounts => {
   const LinkToken = artifacts.require('LinkToken.sol')
@@ -162,6 +163,22 @@ contract('CSGOSteamTrade', accounts => {
         const stored = await csGOContract.getListing(createdListingId)
         assert.equal(stored.exists, true)
       })
+
+      it('a seller cannot delete a listing twice', async () => {
+        const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
+          listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
+          listing1.sellerAddress, { from: seller })
+
+        const createdListingId = parseInt(createListingTx.logs[0].args.listing.listingId)
+        await csGOContract.deleteListing(createdListingId, { from: seller })
+
+        const stored = await csGOContract.getListing(createdListingId)
+        assert.equal(stored.exists, false)
+
+        await truffleAssert.reverts(
+          csGOContract.deleteListing(createdListingId, { from: seller }))
+
+      })
     })
   })
 
@@ -193,6 +210,43 @@ contract('CSGOSteamTrade', accounts => {
         assert.equal(updatedOffer.owner, buyer)
         assert.equal(updatedOffer.buyerTradeURL, buyerTradeURL)
         assert.equal(updatedOffer.exists, true)
+      })
+    })
+  })
+
+  describe('deletePurchaseOffer', () => {
+    
+    context('on a contract with an existing listing', () => {
+      const buyerTradeURL = 'https://steamcommunity.com/tradeoffer/new/?partner=902300366&token=HYgPwBhA'
+      const listing = listing1
+      beforeEach(async () => {
+        await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
+          listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
+          listing.sellerAddress, { from: seller })
+      })
+
+      it('deletes a purchase offer for the listing', async () => {
+        const listingId = 0
+        await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
+          from: buyer,
+          value: listing.price
+        })
+
+        const stored = await csGOContract.getListing.call(listingId)
+        const updatedOffer = stored.purchaseOffer
+        assert.equal(updatedOffer.owner, buyer)
+        assert.equal(updatedOffer.buyerTradeURL, buyerTradeURL)
+        assert.equal(updatedOffer.exists, true)
+
+        const minimumAgeForDeletion =  60 * 60 * 6 + 5
+        await truffleTestUtils.advanceTimeAndBlock(minimumAgeForDeletion)
+
+        await csGOContract.deletePurchaseOffer(listingId, {
+          from: buyer
+        })
+
+        const storedAfterPurchaseOfferDeletion = await csGOContract.getListing.call(listingId)
+        assert.equal(storedAfterPurchaseOfferDeletion.purchaseOffer.exists, false)
       })
     })
   })
