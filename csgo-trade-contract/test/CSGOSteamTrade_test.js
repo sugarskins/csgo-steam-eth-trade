@@ -31,6 +31,7 @@ contract('CSGOSteamTrade', accounts => {
   let csGOContract = null
   let linkToken = null
   let oracleContract = null
+  let minimumAgeForPurchaseDeletion = null
 
   const listing1 = {
     wear: '0.0356150865554809600000000',
@@ -69,6 +70,9 @@ contract('CSGOSteamTrade', accounts => {
     await oracleContract.setFulfillmentPermission(oracleNode, true, {
       from: defaultAccount,
     })
+
+    const minimumAgeForDeletionObject = await csGOContract.MINIMUM_PURCHASE_OFFER_AGE.call()
+    minimumAgeForPurchaseDeletion = parseInt(minimumAgeForDeletionObject.toString())
   })
   describe('#createListing', () => {
     context('on a contract with no previous history', () => {
@@ -238,8 +242,8 @@ contract('CSGOSteamTrade', accounts => {
         assert.equal(updatedOffer.buyerTradeURL, buyerTradeURL)
         assert.equal(updatedOffer.exists, true)
 
-        const minimumAgeForDeletion =  60 * 60 * 6 + 5
-        await truffleTestUtils.advanceTimeAndBlock(minimumAgeForDeletion)
+
+        await truffleTestUtils.advanceTimeAndBlock(minimumAgeForPurchaseDeletion + 5)
 
         await csGOContract.deletePurchaseOffer(listingId, {
           from: buyer
@@ -247,6 +251,51 @@ contract('CSGOSteamTrade', accounts => {
 
         const storedAfterPurchaseOfferDeletion = await csGOContract.getListing.call(listingId)
         assert.equal(storedAfterPurchaseOfferDeletion.purchaseOffer.exists, false)
+      })
+
+      it(`it fails to delete a purchase offer who doesn't meet minimum age requirement`, async () => {
+        const listingId = 0
+        await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
+          from: buyer,
+          value: listing.price
+        })
+
+        const stored = await csGOContract.getListing.call(listingId)
+        const updatedOffer = stored.purchaseOffer
+        assert.equal(updatedOffer.owner, buyer)
+        assert.equal(updatedOffer.buyerTradeURL, buyerTradeURL)
+        assert.equal(updatedOffer.exists, true)
+
+        await truffleTestUtils.advanceTimeAndBlock(minimumAgeForPurchaseDeletion - 1000)
+
+        await truffleAssert.reverts(
+          csGOContract.deletePurchaseOffer(listingId, {
+            from: buyer
+          }))
+
+        const storedAfterPurchaseOfferDeletion = await csGOContract.getListing.call(listingId)
+        assert.equal(storedAfterPurchaseOfferDeletion.purchaseOffer.exists, true)
+      })
+
+      it(`it fails to delete a purchase offer that does not belong to caller`, async () => {
+        const listingId = 0
+        await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
+          from: buyer,
+          value: listing.price
+        })
+
+        const stored = await csGOContract.getListing.call(listingId)
+        const updatedOffer = stored.purchaseOffer
+        assert.equal(updatedOffer.owner, buyer)
+        assert.equal(updatedOffer.buyerTradeURL, buyerTradeURL)
+        assert.equal(updatedOffer.exists, true)
+
+        await truffleTestUtils.advanceTimeAndBlock(minimumAgeForPurchaseDeletion + 5)
+        
+        await truffleAssert.reverts(
+          csGOContract.deletePurchaseOffer(listingId, {
+            from: stranger
+          }))
       })
     })
   })
