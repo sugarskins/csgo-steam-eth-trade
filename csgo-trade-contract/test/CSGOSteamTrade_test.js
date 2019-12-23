@@ -24,7 +24,6 @@ contract('CSGOSteamTrade', accounts => {
   const defaultAccount = accounts[0]
   const oracleNode = accounts[1]
   const stranger = accounts[2]
-  const consumer = accounts[3]
 
   const seller = accounts[4]
   const buyer = accounts[5]
@@ -360,10 +359,10 @@ contract('CSGOSteamTrade', accounts => {
       beforeEach(async () => {
         const listing = listing1
         await linkToken.transfer(csGOContract.address, web3.utils.toWei('1', 'ether'))
-        await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
+        const createListingTx = await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
           listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
           listing.sellerAddress, { from: seller })
-        listingId = 0
+        listingId = getListingId(createListingTx)
         await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
             from: buyer,
             value: listing.price
@@ -378,6 +377,10 @@ contract('CSGOSteamTrade', accounts => {
           buyerInspectLink,
           { from: seller },
         )
+
+        // console.log(`args 1`)
+        // console.log(tx.receipt.logs[1])
+
         const request = h.decodeRunRequest(tx.receipt.rawLogs[3])
         assert.equal(oracleContract.address, tx.receipt.rawLogs[3].address)
         assert.equal(
@@ -387,11 +390,17 @@ contract('CSGOSteamTrade', accounts => {
           ),
         )
 
-        const expected = 1
-        const response = web3.utils.toHex(expected)
-        await h.fulfillOracleRequest(oracleContract, request, response, { from: oracleNode })
+        console.log(request)
 
-        const postConfirmationListing = await csGOContract.getListing.call(listingId)
+        const responseToQuery = 1
+        const response = web3.utils.toHex(responseToQuery)
+        const fulfillTx = await h.fulfillOracleRequest(oracleContract, request, response, { from: oracleNode })
+
+
+        await csGOContract.fulfillItemTransferConfirmation(request.id, response, {
+          from: oracleContract.address
+        })
+        console.log(fulfillTx)
       })
     })
   })

@@ -46,6 +46,11 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         Listing listing
     );
 
+    event ItemTransferConfirmationRequest(
+        uint listingId,
+        bytes32 requestId
+    );
+
     enum TradeOutcome { SUCCESSFULLY_CONFIRMED, UNABLE_TO_CONFIRM_PRIVATE_PROFILE, DELETED_LISTING }
 
     event TradeDone (
@@ -178,6 +183,8 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
 
         requestId = sendChainlinkRequestTo(_oracle, req, _payment);
         requestIdToListingId[requestId] = _listingId;
+
+        emit ItemTransferConfirmationRequest(_listingId, requestId);
     }
 
     /**
@@ -199,18 +206,14 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         if (_ownershipStatus == OWNERSHIP_STATUS_TRUE) {
             listing.sellerAddress.transfer(listing.price);
             emit TradeDone(listing.purchaseOffer.buyerTradeURL, listing.purchaseOffer.owner, listing, TradeOutcome.SUCCESSFULLY_CONFIRMED);
-            listing.exists = false;
-            listings[listingId] = listing;
+            listings[listingId].exists = false;
         } else if (_ownershipStatus == OWNERSHIP_STATUS_INVENTORY_PRIVATE) {
             listing.sellerAddress.transfer(listing.price);
             emit TradeDone(listing.purchaseOffer.buyerTradeURL, listing.purchaseOffer.owner, listing, TradeOutcome.UNABLE_TO_CONFIRM_PRIVATE_PROFILE);
-            listing.exists = false;
-            listings[listingId] = listing;
+            listings[listingId].exists = false;
         } else if (_ownershipStatus == OWNERSHIP_STATUS_FALSE) {
             emit TradeFulfilmentFail(listing);
         }
-        
-        listings[listingId] = listing;
     }
 
     /**
