@@ -390,17 +390,10 @@ contract('CSGOSteamTrade', accounts => {
           ),
         )
 
-        console.log(request)
-
         const responseToQuery = 1
         const response = web3.utils.toHex(responseToQuery)
-        const fulfillTx = await h.fulfillOracleRequest(oracleContract, request, response, { from: oracleNode })
 
-
-        await csGOContract.fulfillItemTransferConfirmation(request.id, response, {
-          from: oracleContract.address
-        })
-        console.log(fulfillTx)
+        await h.fulfillOracleRequest(oracleContract, request, response, { from: oracleNode })
       })
     })
   })
