@@ -417,7 +417,33 @@ contract('CSGOSteamTrade', accounts => {
         await h.fulfillOracleRequest(oracleContract, request, response, { from: oracleNode })
         const balanceAfter = BigNumber(await web3.eth.getBalance(csGOContract.address))
 
+        const listing = await csGOContract.getListing(listingId)
+        assert.equal(true, listing.exists)
+
         assert.equal(balanceBefore.toFixed(), balanceAfter.toFixed())
+      })
+
+      it ('triggers transfer confirmation request for a listing whose owner has profile set to private', async () => {
+        const tx = await csGOContract.createItemTransferConfirmationRequest(
+          listingId,
+          oracleContract.address,
+          jobId,
+          payment,
+          buyerInspectLink,
+          { from: seller },
+        )
+
+        const request = h.decodeRunRequest(tx.receipt.rawLogs[3])
+        const inventoryIsPrivate = 2
+        const response = web3.utils.toHex(inventoryIsPrivate)
+        const balanceBefore = BigNumber(await web3.eth.getBalance(seller))
+        await h.fulfillOracleRequest(oracleContract, request, response, { from: oracleNode })
+        const balanceAfter = BigNumber(await web3.eth.getBalance(seller))
+
+        const listing = await csGOContract.getListing(listingId)
+        assert.equal(false, listing.exists)
+
+        assert.equal(balanceBefore.plus(listing.price).toFixed(), balanceAfter.toFixed())
       })
     })
   })
