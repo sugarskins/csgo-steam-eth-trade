@@ -446,5 +446,78 @@ contract('CSGOSteamTrade', accounts => {
         assert.equal(balanceBefore.plus(listing.price).toFixed(), balanceAfter.toFixed())
       })
     })
+
+    describe('#cancelRequest', () => {
+      let request
+    
+      beforeEach(async () => {
+        const listing = listing1
+        const buyerInspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198266545231A16941417193D7840463547991005224'
+        const buyerTradeURL = 'https://steamcommunity.com/tradeoffer/new/?partner=902300366&token=HYgPwBhA'
+        await linkToken.transfer(csGOContract.address, web3.utils.toWei('4', 'ether'))
+        const createListingTx = await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
+          listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
+          listing.sellerAddress, { from: seller })
+        const listingId = getListingId(createListingTx)
+        await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
+          from: buyer,
+          value: listing.price
+        })
+
+        await linkToken.transfer(csGOContract.address, web3.utils.toWei('1', 'ether'))
+        const tx = await csGOContract.createItemTransferConfirmationRequest(
+          listingId,
+          oracleContract.address,
+          jobId,
+          payment,
+          buyerInspectLink,
+          { from: seller },
+        )
+        request = h.decodeRunRequest(tx.receipt.rawLogs[3])
+      })
+  
+      context('before the expiration time', () => {
+        it('cannot cancel a request', async () => {
+          await h.assertActionThrows(async () => {
+            await csGOContract.cancelRequest(
+              request.id,
+              request.payment,
+              request.expiration,
+              { from: seller },
+            )
+          })
+        })
+      })
+  
+      context('after the expiration time', () => {
+        beforeEach(async () => {
+          await h.increaseTime5Minutes()
+        })
+  
+        context('when called by a non-owner', () => {
+          it('cannot cancel a request', async () => {
+            await h.assertActionThrows(async () => {
+              await csGOContract.cancelRequest(
+                request.id,
+                request.payment,
+                request.expiration,
+                { from: stranger },
+              )
+            })
+          })
+        })
+  
+        context('when called by an owner', () => {
+          it('can cancel a request', async () => {
+            await csGOContract.cancelRequest(
+              request.id,
+              request.payment,
+              request.expiration,
+              { from: seller },
+            )
+          })
+        })
+      })
+    })
   })
 })
