@@ -8,11 +8,11 @@ import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 contract CSGOSteamTrade is ChainlinkClient, Ownable {
     uint private constant hour = 60 * 60;
     uint public constant MINIMUM_PURCHASE_OFFER_AGE = hour * 6;
-    string public constant CHECK_INVENTORY_CONTAINS_ITEM_METHOD = "tradelinkownerhasinspectlinktarget";
+    string public constant CHECK_INVENTORY_CONTAINS_ITEM_METHOD = "tradeurlownerhasinspectlinktarget";
 
-    uint256 constant public OWNERSHIP_STATUS_FALSE = 0;
-    uint256 constant public OWNERSHIP_STATUS_TRUE = 1;
-    uint256 constant public OWNERSHIP_STATUS_INVENTORY_PRIVATE = 2;
+    uint256 constant public OWNERSHIP_STATUS_FALSE = 0x0;
+    uint256 constant public OWNERSHIP_STATUS_TRUE = 0x100000000000000000000000000000000000000000000000000000000000000;
+    uint256 constant public OWNERSHIP_STATUS_INVENTORY_PRIVATE = 0x200000000000000000000000000000000000000000000000000000000000000;
 
     string constant ERR_LISTING_NOT_FOUND = "Listing not found";
     
@@ -44,11 +44,6 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         string indexed _buyerTradeURL,
         address indexed buyerAddress,
         Listing listing
-    );
-
-    event ItemTransferConfirmationRequest(
-        uint listingId,
-        bytes32 requestId
     );
 
     enum TradeOutcome { SUCCESSFULLY_CONFIRMED, UNABLE_TO_CONFIRM_PRIVATE_PROFILE, DELETED_LISTING }
@@ -183,8 +178,6 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
 
         requestId = sendChainlinkRequestTo(_oracle, req, _payment);
         requestIdToListingId[requestId] = _listingId;
-
-        emit ItemTransferConfirmationRequest(_listingId, requestId);
     }
 
     /**
@@ -197,11 +190,11 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     function fulfillItemTransferConfirmation(bytes32 _requestId, uint256 _ownershipStatus)
         public
         recordChainlinkFulfillment(_requestId) {
+            
         uint listingId = requestIdToListingId[_requestId];
         Listing memory listing = listings[listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
         require(listing.purchaseOffer.exists == true, "Listing has no purchase offer");
-        require(_ownershipStatus >= 0 && _ownershipStatus <= 2, "_ownershipStatus value invalid");
 
         if (_ownershipStatus == OWNERSHIP_STATUS_TRUE) {
             listing.sellerAddress.transfer(listing.price);
@@ -213,6 +206,8 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
             listings[listingId].exists = false;
         } else if (_ownershipStatus == OWNERSHIP_STATUS_FALSE) {
             emit TradeFulfilmentFail(listing);
+        } else {
+            require(false, 'ownershipStatus has an unsupported value');
         }
     }
 

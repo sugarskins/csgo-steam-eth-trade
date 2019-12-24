@@ -358,7 +358,7 @@ contract('CSGOSteamTrade', accounts => {
   
       beforeEach(async () => {
         const listing = listing1
-        await linkToken.transfer(csGOContract.address, web3.utils.toWei('1', 'ether'))
+        await linkToken.transfer(csGOContract.address, web3.utils.toWei('4', 'ether'))
         const createListingTx = await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
           listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
           listing.sellerAddress, { from: seller })
@@ -368,7 +368,8 @@ contract('CSGOSteamTrade', accounts => {
             value: listing.price
           })
       })
-      it('triggers transfer confirmation request for the existing listing', async () => {
+      it('triggers transfer confirmation request for a listing with the item succesfully delivered', async () => {
+
         const tx = await csGOContract.createItemTransferConfirmationRequest(
           listingId,
           oracleContract.address,
@@ -378,9 +379,6 @@ contract('CSGOSteamTrade', accounts => {
           { from: seller },
         )
 
-        // console.log(`args 1`)
-        // console.log(tx.receipt.logs[1])
-
         const request = h.decodeRunRequest(tx.receipt.rawLogs[3])
         assert.equal(oracleContract.address, tx.receipt.rawLogs[3].address)
         assert.equal(
@@ -389,11 +387,37 @@ contract('CSGOSteamTrade', accounts => {
             'OracleRequest(bytes32,address,bytes32,uint256,address,bytes4,uint256,uint256,bytes)',
           ),
         )
+        const inventoryHasItem = 1
+        const response = web3.utils.toHex(inventoryHasItem)
 
-        const responseToQuery = 1
-        const response = web3.utils.toHex(responseToQuery)
-
+        const balanceBefore = BigNumber(await web3.eth.getBalance(seller))
         await h.fulfillOracleRequest(oracleContract, request, response, { from: oracleNode })
+        const balanceAfter = BigNumber(await web3.eth.getBalance(seller))
+
+        const listing = await csGOContract.getListing(listingId)
+        assert.equal(false, listing.exists)
+        
+        assert.equal(balanceBefore.plus(listing.price).toFixed(), balanceAfter.toFixed())
+      })
+
+      it ('triggers transfer confirmation request for a listing with the item not delivered and nothing changes', async () => {
+        const tx = await csGOContract.createItemTransferConfirmationRequest(
+          listingId,
+          oracleContract.address,
+          jobId,
+          payment,
+          buyerInspectLink,
+          { from: seller },
+        )
+
+        const request = h.decodeRunRequest(tx.receipt.rawLogs[3])
+        const inventoryDoesNotHaveItem = 0
+        const response = web3.utils.toHex(inventoryDoesNotHaveItem)
+        const balanceBefore = BigNumber(await web3.eth.getBalance(csGOContract.address))
+        await h.fulfillOracleRequest(oracleContract, request, response, { from: oracleNode })
+        const balanceAfter = BigNumber(await web3.eth.getBalance(csGOContract.address))
+
+        assert.equal(balanceBefore.toFixed(), balanceAfter.toFixed())
       })
     })
   })
