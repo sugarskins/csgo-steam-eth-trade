@@ -155,10 +155,13 @@ contract('CSGOSteamTrade', accounts => {
         listingId = getListingId(createListingTx)
       })
       it('creates a purchase offer for the listing and the contract balance increases with the price', async () => {
-        await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
+        const creationTx = await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
           from: buyer,
           value: listing1.price
         })
+        const creationEventLog = creationTx.logs[0].args
+        assert.equal(web3.utils.keccak256(buyerTradeURL), creationEventLog.buyerTradeURL)
+        assert.equal(buyer, creationEventLog.buyerAddress)
 
         const stored = await csGOContract.getListing.call(listingId)
         const updatedOffer = stored.purchaseOffer
@@ -266,7 +269,7 @@ contract('CSGOSteamTrade', accounts => {
   })
 
 
-  describe('deletePurchaseOffer', () => {
+  describe('#deletePurchaseOffer', () => {
     
     context('on a contract with an existing listing', () => {
       const buyerTradeURL = 'https://steamcommunity.com/tradeoffer/new/?partner=902300366&token=HYgPwBhA'
