@@ -109,6 +109,7 @@ class ItemsListComponent extends Component {
         this.state = {
             items: [],
             listings: [],
+            pastPurchases: [],
             csgoSteamTradeContractAddress: searchParams.get(CONTRACT_ADDRESS_QUERY_PARAM),
             userTradeURL: cookies.get(COOKIE_TRADE_URL),       
             ethToFiatPrice: null,
@@ -193,13 +194,26 @@ class ItemsListComponent extends Component {
         } catch (e) {
             console.error(`Failed to load ETH/${DISPLAY_CURRENCY} pricing. ${e.stack}`)
         }
-  
         const listings = await Promise.all(listingIds.map(id => this.state.contractInstance.methods.getListing(id).call()))
+
+        const matchingBuyerTradeURLHash = this.state.web3.utils.keccak256(this.state.userTradeURL)
+
+        // TODO: use filter option for getPastEvents. Figure out why it doesn't work in its current form
+        let pastPurchases = await this.state.contractInstance.getPastEvents(
+            'TradeDone', {
+                // filter: { buyerTradeURL: matchingBuyerTradeURLHash },
+                fromBlock: 0,
+                toBlock: 'latest' })
+        pastPurchases = pastPurchases.filter(p => p.returnValues.buyerTradeURL === matchingBuyerTradeURLHash)
+
+        console.info(`Fetched ${pastPurchases.length} past purchases for user.`)
+        console.log(pastPurchases)
         
         console.info(`Fetched ${this.state.listings.length} listings`)
 
         await this.setState({
             listings,
+            pastPurchases,
             ethToFiatPrice,
             initialLoadFinished: true
         })
@@ -231,31 +245,31 @@ class ItemsListComponent extends Component {
     render() {
 
         const displayItems = this.state.listings
-            .filter(listing => !listing.purchaseOffer.exists)
+            .filter(listing => listing.exists && !listing.purchaseOffer.exists)
             .map(listing => contractListingToDisplayItem(listing, this.ethToFiatPrice))
 
-        const purchaseHistoryListings = this.state.listings
-            .filter(listing => listing.purchaseOffer.exists && listing.purchaseOffer.buyerTradeURL === this.state.userTradeURL)
+        const pendingPurchases = this.state.listings
+            .filter(listing => listing.exists && listing.purchaseOffer.exists && listing.purchaseOffer.buyerTradeURL === this.state.userTradeURL)
         const rowSize = 3
         const rowGroupedItems = makeGroups(displayItems, rowSize)
         return (
             <div>
-                { this.renderNavBar(purchaseHistoryListings) }
+                { this.renderNavBar(pendingPurchases, this.state.pastPurchases) }
                 <div>
                     <h3> Buy CSGO Weapons using Ethereum payments secured with smart contracts </h3>
-                    <p text="dark" >No sign in, no deposits, no trusted-middleman, just sweet deals.</p>
+                    <p text="dark" >No sign in, no deposits, no trusted middleman, just sweet deals.</p>
                     <Alert variant='info'>Sugarskins is currently alpha stage software. <a href="mailto:dan@danoctavian.com">Get in touch</a> about bugs and <a href="https://github.com/sugarskins">development</a>.  </Alert>
                     { this.renderTradeDataForm() }
                     {!this.state.initialLoadFinished ? (<Spinner animation="border" variant="primary" />) : null }
                     { this.state.errorState ? (<Alert variant={this.state.errorState.alertVariant}> {this.state.errorState.message}</Alert> ) : null}
                 </div>
-                { this.renderHistoryModal(purchaseHistoryListings)  }
+                { this.renderHistoryModal(pendingPurchases, this.state.pastPurchases)  }
                 { this.renderItemListings(rowGroupedItems) }
             </div>
           )
     }
 
-    renderNavBar(purchaseHistoryListings) {
+    renderNavBar(pendingPurchases, pastPurchases) {
         return (
             <Navbar  expand="lg" bg="dark"  text="white"  >
             <Navbar.Brand href="/">
@@ -269,21 +283,24 @@ class ItemsListComponent extends Component {
                 </Navbar.Brand>
                 <Nav.Link > Sugarskins </Nav.Link>
                 <Nav.Link onClick={() => this.setState({ showHistoryModal: true }) }>
-                    Purchases {!this.state.initialLoadFinished ? (<Spinner animation="border" variant="primary" />) : this.renderPurchaseCountsBadges(purchaseHistoryListings) }  
+                    Purchases {!this.state.initialLoadFinished ?
+                        (<Spinner animation="border" variant="primary" />) : this.renderPurchaseCountsBadges(pendingPurchases, pastPurchases) }  
                 </Nav.Link>
                 <Nav.Link href="/help">Help </Nav.Link>
-                <Nav.Link  href="https://github.com/sugarskins" > <img height="32" width="32" src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/github.svg" />  </Nav.Link>
+                <Nav.Link  href="https://github.com/sugarskins" > <img height="32" width="32" src="https://cdn.jsdelivr.net/npm/simple-icons@latest/icons/github.svg" alt="Github logo" />  </Nav.Link>
             </Navbar>
         )
     }
 
-    renderPurchaseCountsBadges(purchaseHistoryListings) {
-        const processing = purchaseHistoryListings.filter(l => l.stage === '1' || l.stage === '2').length
-        const done = purchaseHistoryListings.filter(l => l.stage === '3').length
+    renderPurchaseCountsBadges(pendingPurchases, pastPurchases) {
+        const processing = pendingPurchases.length
+        const doneSuccesfully = pastPurchases.filter(p => p.tradeOutcome === utils.TradeOutcome.SUCCESSFULLY_CONFIRMED).length
+        const doneFailed = pastPurchases.filter(p => p.tradeOutcome !== utils.TradeOutcome.SUCCESSFULLY_CONFIRMED).length
         return (
             <div style={{display:'inline-block'}}>
                 <Badge variant="warning">{processing}</Badge> 
-                <Badge variant="success">{done}</Badge> 
+                <Badge variant="success">{doneSuccesfully}</Badge> 
+                <Badge variant="danger">{doneFailed}</Badge> 
             </div>
         )
     }
@@ -314,15 +331,20 @@ class ItemsListComponent extends Component {
         )
     }
 
-    renderHistoryModal(historicalListings) {
+    renderHistoryModal(pendingPurchases, pastPurchases) {
         return (
             <div>
-            <Modal size="lg"  bg="dark"  className="modal" show={this.state.showHistoryModal} onHide={() => this.setState( { showHistoryModal: false } )}>
+            <Modal 
+                bg="dark" 
+                dialogClassName="modal-90w"
+                show={this.state.showHistoryModal}
+                onHide={() => this.setState( { showHistoryModal: false } )}
+            >
                 <Modal.Header closeButton>
                 <Modal.Title>Purchase history</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <PurchaseHistoryComponent items={historicalListings}></PurchaseHistoryComponent>
+                    <PurchaseHistoryComponent pendingPurchases={pendingPurchases} pastPurchases={pastPurchases}></PurchaseHistoryComponent>
                 </Modal.Body>
             </Modal>
         </div>
