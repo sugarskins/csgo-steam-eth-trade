@@ -5,6 +5,19 @@ import Badge from 'react-bootstrap/Badge'
 import Button from 'react-bootstrap/Button'
 import utils from './utils'
 
+function getPrettyAge(future, past) {
+    const diff = utils.getTimeDifference(future, past)
+    if (diff.days) {
+        return `${diff.days} days, ${diff.hours} hours`
+    } else if (diff.hours) {
+        return `${diff.hours} hours, ${diff.minutes} minutes`
+    } else if (diff.minutes) {
+        return `${diff.minutes} minutes, ${diff.seconds} seconds`
+    } else {
+        return `${diff.seconds} seconds`
+    }
+}
+
 function getStatusBadge(item) {
     if (item.pending) {
         return {
@@ -72,6 +85,7 @@ class PurchaseHistoryComponent extends Component {
                                 <th> Skin Name </th>
                                 <th> Wear </th>
                                 <th> Price (ETH) </th>
+                                <th> Age </th>
                                 <th> Status </th>
                                 <th> Action </th>
                     </tr>
@@ -86,6 +100,7 @@ class PurchaseHistoryComponent extends Component {
                             <th>{item.skinName}</th>
                             <th>{item.wear}</th>
                             <th>{this.state.web3.utils.fromWei(item.price,'ether')}</th>
+                            <th> {getPrettyAge(Date.now(), item.purchaseOffer.creationTimestamp * 1000)} </th>
                             <th><Badge variant={getStatusBadge(item).variant} > {getStatusBadge(item).text} </Badge></th>
                             <th> {item.pending ? (<Button variant='outline-danger'> Cancel </Button>)
                                     : (<Button variant='secondary' disabled={true}> None </Button>)} </th>
