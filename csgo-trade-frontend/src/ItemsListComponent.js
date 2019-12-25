@@ -206,6 +206,7 @@ class ItemsListComponent extends Component {
                 toBlock: 'latest' })
         pastPurchases = pastPurchases.filter(p => p.returnValues.buyerTradeURL === matchingBuyerTradeURLHash)
 
+
         console.info(`Fetched ${pastPurchases.length} past purchases for user.`)
         console.log(pastPurchases)
         

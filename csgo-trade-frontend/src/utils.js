@@ -17,7 +17,14 @@ function getInventoryURL(smad) {
     return `https://steamcommunity.com/profiles/${smad.s}/inventory#${CSGO_APP_ID}_${CSGO_CONTEXT_ID}_${smad.a}`
 }
 
+const TradeOutcome = {
+    SUCCESSFULLY_CONFIRMED: 0,
+    UNABLE_TO_CONFIRM_PRIVATE_PROFILE: 1,
+    DELETED_LISTING: 2
+}
+
 export default {
     inspectLinkToSMAD,
-    getInventoryURL
+    getInventoryURL,
+    TradeOutcome
 }

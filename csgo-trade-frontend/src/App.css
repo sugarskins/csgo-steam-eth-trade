@@ -43,6 +43,11 @@
   font-size: 14px
 }
 
+.modal-90w {
+  width: 90%;
+  max-width: none!important;
+}
+
 .App-link {
   color: #09d3ac;
 }
