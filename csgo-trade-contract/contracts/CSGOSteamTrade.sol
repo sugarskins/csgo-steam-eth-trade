@@ -41,7 +41,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     );
 
     event PurchaseOfferMade(
-        string indexed _buyerTradeURL,
+        string indexed buyerTradeURL,
         address indexed buyerAddress,
         Listing listing
     );
@@ -49,7 +49,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     enum TradeOutcome { SUCCESSFULLY_CONFIRMED, UNABLE_TO_CONFIRM_PRIVATE_PROFILE, DELETED_LISTING }
 
     event TradeDone (
-        string indexed _buyerTradeURL,
+        string indexed buyerTradeURL,
         address indexed buyerAddress,
         Listing listing,
         TradeOutcome tradeOutcome
@@ -190,7 +190,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     function fulfillItemTransferConfirmation(bytes32 _requestId, uint256 _ownershipStatus)
         public
         recordChainlinkFulfillment(_requestId) {
-            
+
         uint listingId = requestIdToListingId[_requestId];
         Listing memory listing = listings[listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
