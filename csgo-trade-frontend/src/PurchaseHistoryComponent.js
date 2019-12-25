@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import Table from 'react-bootstrap/Table'
 import Web3 from 'web3'
-import listing from './listing'
 import Badge from 'react-bootstrap/Badge'
 import Button from 'react-bootstrap/Button'
 import utils from './utils'
