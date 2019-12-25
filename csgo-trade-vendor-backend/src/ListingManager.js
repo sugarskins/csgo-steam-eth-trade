@@ -145,7 +145,10 @@ class ListingManager {
   }
 
   async deleteListing(listingId) {
-    return await this.contract.deleteListing(listingId)
+    return await this.contract.deleteListing(listingId,  {
+      gasLimit: to0xHexString('6721975'),
+      gasPrice: to0xHexString('20000000000'),
+    })
   }
 
   async deleteListings(listingIds) {
