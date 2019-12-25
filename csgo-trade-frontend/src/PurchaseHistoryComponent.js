@@ -55,6 +55,7 @@ class PurchaseHistoryComponent extends Component {
         })
         pendingItems.sort((item1, item2) => item2.purchaseOffer.creationTimestamp - item1.purchaseOffer.creationTimestamp)
 
+        this.props.pastPurchases.sort((p1, p2) => p1.blockNumber - p2.blockNumber)
         const pastItems = this.props.pastPurchases.map(past => {
             const listing = past.returnValues.listing
             listing.tradeOutcome = past.returnValues.tradeOutcome
