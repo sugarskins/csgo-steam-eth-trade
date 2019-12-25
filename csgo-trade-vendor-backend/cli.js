@@ -3,6 +3,10 @@ const fs = require('fs')
 const yargs = require('yargs')
 const ListingManager = require('./src/ListingManager')
 
+const CREDENTIALS_DESC = 'Path to credentials file for Ethereum account private key and steam account credentials.'
+const CONTRACT_DESC = 'Contract address of the vendor contract'
+const RPC_DESC = 'HTTP Rpc address to use to connect to the Ethereum network.'
+
 ;(async () => {
   try {
 
@@ -14,14 +18,14 @@ const ListingManager = require('./src/ListingManager')
             type: 'array',
             desc: 'One or more listings with <item inspect link>,<price> pairs'
           })
-          .option('credentials',{
-            desc: 'Path to credentials file for Ethereum account private key and steam account credentials.'
+          .option('credentials', {
+            desc: CREDENTIALS_DESC
           })
           .option('contract',{
-            desc: 'Contract address of the vendor contract'
+            desc: CONTRACT_DESC
           })
           .option('rpc',{
-            desc: 'HTTP Rpc address to use to connect to the Ethereum network.'
+            desc: RPC_DESC
           })
           .option('dedupe', {
             desc: 'Scans the contract active listings to prevent posting of duplicate listings'
@@ -43,11 +47,11 @@ const ListingManager = require('./src/ListingManager')
       })
       .command('list', 'list existing listings', async (yargs) => {
         const argv = yargs
-          .option('contract',{
-            desc: 'Contract address of the vendor contract'
+          .option('contract', {
+            desc: CONTRACT_DESC
           })
           .option('rpc',{
-            desc: 'HTTP Rpc address to use to connect to the Ethereum network.'
+            desc: RPC_DESC
           })
           .help().argv
 
@@ -56,7 +60,37 @@ const ListingManager = require('./src/ListingManager')
         const currentListings = await listingManager.getListings()
         console.log(currentListings)
       })
-      .command('delete')
+      .command('delete', 'delete listing', async (yargs) => {
+        const argv = yargs
+          .option('contract', {
+            desc: CONTRACT_DESC
+          })
+          .option('rpc', {
+            desc: RPC_DESC
+          })
+          .option('credentials', {
+            desc: CREDENTIALS_DESC
+          })
+          .option('ids', {
+            type: 'array',
+            desc: 'One or more listing ids to delete'
+          })
+          .help().argv
+
+        try {
+
+          const credentialsFile = fs.readFileSync(argv.credentials, 'utf8')
+          const credentials = JSON.parse(credentialsFile)
+
+          const listingManager = new ListingManager(argv.rpc, argv.contract, credentials)
+          await listingManager.setup(false)
+          await listingManager.deleteListings(argv.ids)
+        } catch (e) {
+          console.error(`FATAL: ${e.stack}`)
+          process.exit(1)
+        }
+
+      })
       .help('help')
       .wrap(null)
       .argv
