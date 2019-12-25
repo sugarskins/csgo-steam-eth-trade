@@ -17,6 +17,21 @@ Contains:
 You can follow the following guide to setup a local chainlink node.
 https://docs.chain.link/docs/running-a-chainlink-node
 
+Sample `.env` file for ropsten:
+
+```
+ROOT=/chainlink
+LOG_LEVEL=debug
+ETH_CHAIN_ID=3
+MIN_OUTGOING_CONFIRMATIONS=2
+LINK_CONTRACT_ADDRESS=0x20fe562d797a42dcb3399062ae9546cd06f63280
+CHAINLINK_TLS_PORT=0
+SECURE_COOKIES=false
+ALLOW_ORIGINS=*
+ETH_URL=wss://ropsten.infura.io/ws
+DATABASE_URL=postgresql://username:password@host:5432/database
+DATABASE_TIMEOUT=0
+```
 
 #### Docker tips
 
