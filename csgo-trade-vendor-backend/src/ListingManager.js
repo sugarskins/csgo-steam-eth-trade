@@ -118,10 +118,6 @@ class ListingManager {
     }
   }
 
-  async validateItemDelivery(listingId) {
-    // TODO: implement
-  }
-
   async getListings(filters) {
     const listingsCount = await this.contract.getListingsCount()
     log.debug(`Current listing count: ${listingsCount}`)
@@ -160,6 +156,18 @@ class ListingManager {
         log.error(`Failed to delete listing ${listingId} with ${e.stack}`)
       }
     }
+  }
+
+  async validateItemDelivery(listingId, oracleAddress, jobId, buyerInspectLink) {
+    log.info(`Processing listing ${listingId} with oracle at ${oracleAddress} and jobId ${jobId} for inspect link ${buyerInspectLink}`)
+
+    const defaultLINKPayment = 10 ** 18
+    await this.contract.createItemTransferConfirmationRequest(
+      listingId, oracleAddress, jobId, defaultLINKPayment, buyerInspectLink, {
+        gasLimit: to0xHexString('6721975'),
+        gasPrice: to0xHexString('20000000000'),
+      })
+
   }
 
 }

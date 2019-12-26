@@ -60,6 +60,44 @@ const RPC_DESC = 'HTTP Rpc address to use to connect to the Ethereum network.'
         const currentListings = await listingManager.getListings()
         console.log(currentListings)
       })
+      .command('confirm', 'request item delivery confirmation', async (yargs) => {
+        const argv = yargs
+          .option('contract', {
+            desc: CONTRACT_DESC
+          })
+          .option('rpc', {
+            desc: RPC_DESC
+          })
+          .option('credentials', {
+            desc: CREDENTIALS_DESC
+          })
+          .option('id', {
+            desc: 'Listing id'
+          })
+          .option('oracle', {
+            desc: 'Address of oracle to be used.'
+          })
+          .option('jobid', {
+            desc: 'Job id to run for oracle to confirm'
+          })
+          .option('inspectlink', {
+            desc: `Inspect link for the item in the buyer's inventory`
+          })
+          .help().argv
+
+          try {
+
+            const credentialsFile = fs.readFileSync(argv.credentials, 'utf8')
+            const credentials = JSON.parse(credentialsFile)
+
+            const listingManager = new ListingManager(argv.rpc, argv.contract, credentials)
+            await listingManager.setup(false)
+            await listingManager.validateItemDelivery(argv.id, argv.oracle, argv.jobid, argv.inspectlink)
+          } catch (e) {
+            console.error(`FATAL :${e.stack}`)
+            process.exit(1)
+          }
+      })
       .command('delete', 'delete listing', async (yargs) => {
         const argv = yargs
           .option('contract', {
