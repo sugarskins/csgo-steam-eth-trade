@@ -98,7 +98,7 @@ const COOKIE_TRADE_URL = 'TRADE_URL'
 const CONTRACT_ADDRESS_QUERY_PARAM = 'contractAddress'
 const RPC_QUERY_PARAM = 'rpc'
 
-const DEFAULT_RPC = 'https://ropsten.infura.io/v3/'
+const DEFAULT_RPC = 'https://ropsten.infura.io/v3/cf8c1af01b1d49198031f5f23baee111'
 
 class ItemsListComponent extends Component {
 
