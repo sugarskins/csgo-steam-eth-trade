@@ -20,9 +20,13 @@ function getMetamask() {
 }
 
 const PURCHASE_STATUSES = {
+    REQUEST_PENDING: {
+        message: 'Sending request to purchase and waiting for confirmation..',
+        variant: 'info'
+    },
     REQUESTED_SUCCESFULLY: {
         message: 'Purchase requested succesfully. You will soon receive a Trade Offer from the seller.',
-        variant: 'info'
+        variant: 'success'
     },
     REQUEST_FAILED: (failureReason) => {
         return  {
@@ -93,7 +97,12 @@ class SaleItemComponent extends Component {
         console.info(`Creating purchase offer for listingId ${this.props.item.listingId} with trade URL ${this.props.userTradeURL} `)
         
         try {
-            const response =  await this.state.contractInstance.methods
+
+            await this.setState({
+                purchaseStatus: PURCHASE_STATUSES.REQUEST_PENDING,
+            })
+
+            const response = await this.state.contractInstance.methods
             .createPurchaseOffer(this.props.item.listingId, this.props.userTradeURL)
             .send({
                 from: window.web3.eth.defaultAccount,

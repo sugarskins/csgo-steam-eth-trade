@@ -96,6 +96,9 @@ function contractListingToDisplayItem(listing, ethToFiatPrice) {
 const DISPLAY_CURRENCY = 'USD'
 const COOKIE_TRADE_URL = 'TRADE_URL'
 const CONTRACT_ADDRESS_QUERY_PARAM = 'contractAddress'
+const RPC_QUERY_PARAM = 'rpc'
+
+const DEFAULT_RPC = 'https://ropsten.infura.io/v3/'
 
 class ItemsListComponent extends Component {
 
@@ -114,7 +117,7 @@ class ItemsListComponent extends Component {
             userTradeURL: cookies.get(COOKIE_TRADE_URL),       
             ethToFiatPrice: null,
             errorState: null,
-            ethNetworkURL: 'http://localhost:8545',
+            ethNetworkURL: searchParams.get(RPC_QUERY_PARAM) || DEFAULT_RPC,
             showHistoryModal: false,
             initialLoadFinished: false
         }
@@ -259,7 +262,7 @@ class ItemsListComponent extends Component {
                 <div>
                     <h3> Buy CSGO Weapons using Ethereum payments secured with smart contracts </h3>
                     <p text="dark" >No sign in, no deposits, no trusted middleman, just sweet deals.</p>
-                    <Alert variant='info'>Sugarskins is currently alpha stage software. <a href="mailto:dan@danoctavian.com">Get in touch</a> about bugs and <a href="https://github.com/sugarskins">development</a>.  </Alert>
+                    <Alert variant='info'>Sugarskins is currently alpha stage software. <a href="mailto:dan@danoctavian.com">Get in touch</a> about bugs and <a href="https://github.com/sugarskins">development</a>. Currently working on Ropsten network only.  </Alert>
                     { this.renderTradeDataForm() }
                     {!this.state.initialLoadFinished ? (<Spinner animation="border" variant="primary" />) : null }
                     { this.state.errorState ? (<Alert variant={this.state.errorState.alertVariant}> {this.state.errorState.message}</Alert> ) : null}
