@@ -98,6 +98,30 @@ const RPC_DESC = 'HTTP Rpc address to use to connect to the Ethereum network.'
             process.exit(1)
           }
       })
+      .command('deploy', 'deploy trade contract', async () => {
+        const argv = yargs
+          .option('rpc', {
+            desc: RPC_DESC
+          })
+          .option('credentials', {
+            desc: CREDENTIALS_DESC
+          })
+          .option('link', {
+            desc: `contract address for the LINK token. (if not specified and it's a known network it will be picked automatically`
+          })
+          .help().argv
+
+        try {
+          const credentialsFile = fs.readFileSync(argv.credentials, 'utf8')
+          const credentials = JSON.parse(credentialsFile)
+
+          await ListingManager.deployContract(argv.rpc, credentials, argv.link)
+        } catch (e) {
+          console.error(`Failed: ${e.stack}`)
+          process.exit(1)
+        }
+
+      })
       .command('delete', 'delete listing', async (yargs) => {
         const argv = yargs
           .option('contract', {

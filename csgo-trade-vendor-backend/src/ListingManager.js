@@ -13,6 +13,11 @@ function to0xHexString(decimal) {
 
 const LISTING_FETCH_BATCH_SIZE = 50
 
+const CHAIN_ID_TO_LINK_CONTRACT = {
+  1: '0x514910771af9ca656af840dff83e8264ecf986ca',
+  3: '0x20fe562d797a42dcb3399062ae9546cd06f63280'
+}
+
 class ListingManager {
 
   constructor(rpc, contractAddress, credentials) {
@@ -170,6 +175,42 @@ class ListingManager {
 
   }
 
+  static async deployContract(rpc, credentials, linkContractAddress) {
+    log.info(`Deploying contract to ${rpc}.`)
+
+
+    const provider = new ethers.providers.JsonRpcProvider(rpc)
+    log.info(`Provider loaded.`)
+
+    if (!linkContractAddress) {
+      const chainId = provider.chainId
+      linkContractAddress = CHAIN_ID_TO_LINK_CONTRACT[chainId]
+      if (!linkContractAddress) {
+        throw new Error(`LINK contract address unspecified and no defautl value is known for chain id ${chainId}`)
+      }
+    }
+
+    let wallet = null
+    if (credentials) {
+      wallet = new ethers.Wallet(credentials.ethPrivateKey, provider)
+    } else {
+      throw new Error('Cannot deploy contract without knowing account credentials')
+    }
+
+    const factory = new ethers.ContractFactory(csgoTradeContract.abi, csgoTradeContract.bytecode, wallet)
+    const contract = await factory.deploy(linkContractAddress)
+    log.info(`Triggered deployment of contract with address ${contract.address} as part of transaction ${contract.deployTransaction.hash}`)
+    log.info(`Waiting for tx to be mined..`)
+
+    await contract.deployed()
+    log.info(`Contract deployed successfully.`)
+
+    log.info(`Generating listing manager..`)
+    const listingManager = new ListingManager(rpc, contract.address, credentials)
+
+    await listingManager.setup(false)
+    return listingManager
+  }
 }
 
 module.exports = ListingManager
