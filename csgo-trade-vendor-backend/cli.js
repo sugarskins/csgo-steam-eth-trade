@@ -53,11 +53,17 @@ const RPC_DESC = 'HTTP Rpc address to use to connect to the Ethereum network.'
           .option('rpc',{
             desc: RPC_DESC
           })
+          .option('ids', {
+            type: 'array',
+            desc: 'Listing ids to fetch'
+          })
           .help().argv
 
         const listingManager = new ListingManager(argv.rpc, argv.contract)
         await listingManager.setup(false)
-        const currentListings = await listingManager.getListings()
+        const currentListings = await listingManager.getListings({
+          ids: argv.ids
+        })
         console.log(currentListings)
       })
       .command('confirm', 'request item delivery confirmation', async (yargs) => {

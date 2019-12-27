@@ -127,10 +127,16 @@ class ListingManager {
     const listingsCount = await this.contract.getListingsCount()
     log.debug(`Current listing count: ${listingsCount}`)
 
-    const listingIds = []
-    for (let i = 0; i < listingsCount; i++) {
-      listingIds.push(i)
+    let listingIds = []
+
+    if (filters.ids) {
+      listingIds = filters.ids
+    } else {
+      for (let i = 0; i < listingsCount; i++) {
+        listingIds.push(i)
+      }
     }
+
 
     const batches = utils.makeGroups(listingIds, LISTING_FETCH_BATCH_SIZE)
 
@@ -143,6 +149,11 @@ class ListingManager {
     }
 
     return allListings
+  }
+
+  async getListing(listingId) {
+    const listing = await this.contract.getListing(listingId)
+    return listing
   }
 
   async deleteListing(listingId) {
@@ -166,9 +177,10 @@ class ListingManager {
   async validateItemDelivery(listingId, oracleAddress, jobId, buyerInspectLink) {
     log.info(`Processing listing ${listingId} with oracle at ${oracleAddress} and jobId ${jobId} for inspect link ${buyerInspectLink}`)
 
-    const defaultLINKPayment = 10 ** 18
+    const serializedJobId  = (new Web3()).utils.toHex(jobId)
+    const defaultLINKPayment = (10 ** 18).toString()
     await this.contract.createItemTransferConfirmationRequest(
-      listingId, oracleAddress, jobId, defaultLINKPayment, buyerInspectLink, {
+      listingId, oracleAddress, serializedJobId, defaultLINKPayment, buyerInspectLink, {
         gasLimit: to0xHexString('6721975'),
         gasPrice: to0xHexString('20000000000'),
       })
