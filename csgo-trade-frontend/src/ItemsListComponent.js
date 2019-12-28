@@ -298,12 +298,12 @@ class ItemsListComponent extends Component {
 
     renderPurchaseCountsBadges(pendingPurchases, pastPurchases) {
         const processing = pendingPurchases.length
-        const doneSuccesfully = pastPurchases.filter(p => p.tradeOutcome === utils.TradeOutcome.SUCCESSFULLY_CONFIRMED).length
-        const doneFailed = pastPurchases.filter(p => p.tradeOutcome !== utils.TradeOutcome.SUCCESSFULLY_CONFIRMED).length
+        const doneSuccessfully = pastPurchases.filter(p => p.returnValues.tradeOutcome === utils.TradeOutcome.SUCCESSFULLY_CONFIRMED.toString()).length
+        const doneFailed = pastPurchases.filter(p => p.returnValues.tradeOutcome !== utils.TradeOutcome.SUCCESSFULLY_CONFIRMED.toString()).length
         return (
             <div style={{display:'inline-block'}}>
                 <Badge variant="warning">{processing}</Badge> 
-                <Badge variant="success">{doneSuccesfully}</Badge> 
+                <Badge variant="success">{doneSuccessfully}</Badge> 
                 <Badge variant="danger">{doneFailed}</Badge> 
             </div>
         )
