@@ -6,7 +6,7 @@ async function makeRequest(i) {
   const inspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198862566094A16975411865D479860722137102858'
   const skinName = 'AUG | Storm (Battle-Scarred)'
   const paintSeed = '334'
-  
+
   let apiURL = 'http://localhost:8080'
 
   try {

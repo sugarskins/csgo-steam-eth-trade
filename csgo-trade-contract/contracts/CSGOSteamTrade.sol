@@ -10,9 +10,9 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     uint public constant MINIMUM_PURCHASE_OFFER_AGE = hour * 6;
     string public constant CHECK_INVENTORY_CONTAINS_ITEM_METHOD = "tradeurlownerhasinspectlinktarget";
 
-    uint256 constant public OWNERSHIP_STATUS_FALSE = 0x0;
-    uint256 constant public OWNERSHIP_STATUS_TRUE = 0x100000000000000000000000000000000000000000000000000000000000000;
-    uint256 constant public OWNERSHIP_STATUS_INVENTORY_PRIVATE = 0x200000000000000000000000000000000000000000000000000000000000000;
+    uint256 constant public OWNERSHIP_STATUS_FALSE = 0;
+    uint256 constant public OWNERSHIP_STATUS_TRUE = 1;
+    uint256 constant public OWNERSHIP_STATUS_INVENTORY_PRIVATE = 2;
 
     string constant ERR_LISTING_NOT_FOUND = "Listing not found";
     

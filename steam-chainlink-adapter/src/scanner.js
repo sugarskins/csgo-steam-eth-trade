@@ -26,7 +26,7 @@ class SteamScanner {
         log.info(`SteamClient processing ${request.assetid}. Left in queue: ${this.queue.length}`);
 
         let resolveWrapper = new Promise((resolve) => {
-          this.csgo.inspectItem(request.owner, request.assetid, request.dick, resolve);
+          this.csgo.inspectItem(request.owner, request.assetid, request.d, resolve);
         });
 
         try {
@@ -75,7 +75,7 @@ class SteamScanner {
         this.queue.push({
           owner: smad.s || smad.m,
           assetid: smad.a,
-          dick: smad.d,
+          d: smad.d,
           resolves: [resolve],
         })
 
@@ -87,7 +87,7 @@ class SteamScanner {
 }
 
 function prettify(request) {
-  return JSON.stringify({ owner: request.owner, assetid: request.assetid, dick: request.dick });
+  return JSON.stringify({ owner: request.owner, assetid: request.assetid, d: request.d });
 }
 
 
