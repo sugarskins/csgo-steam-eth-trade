@@ -1,7 +1,8 @@
-const express = require("express")
-const bodyParser = require("body-parser")
+const express = require('express')
+const bodyParser = require('body-parser')
 const app = express()
-const port = process.env.EA_PORT || 8080
+const config = require('./src/config')
+const port = config.getPort() || 8080
 const log = require('./src/log')
 const steam = require('./src/steam')
 
