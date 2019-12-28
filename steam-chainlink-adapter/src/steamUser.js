@@ -4,6 +4,7 @@ const SteamTotp = require('steam-totp')
 const GlobalOffensive = require('globaloffensive')
 const Scanner = require('./scanner')
 const log = require('./log')
+const config = require('./config')
 
 const LOG_ON_TIMEOUT = 20000
 const CSGO_APP_ID = 730
@@ -98,11 +99,7 @@ function getRandomLogonId() {
 
 log.runWithContinuationId('steam-clients-init', async () => {
   try {
-    const logOnDetails = {
-      accountName: process.env.STEAM_ACCOUNT_NAME,
-      password: process.env.STEAM_ACCOUNT_PASSWORD,
-      secretToken: process.env.STEAM_ACCOUNT_SECRET_TOKEN,
-    }
+    const logOnDetails = config.getSteamConfig()
     steamClients = await getSteamUserClients(logOnDetails)
     steamWebSession = steamClients.webSession
     steamScanner = new Scanner(steamClients.csgo)
