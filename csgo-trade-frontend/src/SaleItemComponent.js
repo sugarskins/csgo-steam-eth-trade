@@ -60,6 +60,10 @@ class SaleItemComponent extends Component {
     }
 
     async handleShowPurchaseModal() {
+        if (!this.props.userTradeURL) {
+            alert('Please set a valid Steam URL before purchasing.')
+            return
+        }
         await this.requestMetamaskAccess()
         await this.setState({ showPurchaseModal: true })
     }
