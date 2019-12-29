@@ -154,6 +154,53 @@ class ItemsListComponent extends Component {
         let listingsCount = 0
         try {
             listingsCount = await this.state.contractInstance.methods.getListingsCount().call()
+
+            console.info(`Listings available: ${listingsCount}`)
+
+            const listingIds = []
+            for (let i = 0; i < listingsCount; i++) {
+                listingIds.push(i)
+            }
+    
+            let ethToFiatPrice = null
+            try {
+                const ethPricingResponse = await Axios.get(`https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=${DISPLAY_CURRENCY}`)
+                const ethToFiatPriceValue = ethPricingResponse.data[DISPLAY_CURRENCY]
+                console.info(`Succesfully fetched ETH/${DISPLAY_CURRENCY} price at ${ethToFiatPriceValue}`)
+                ethToFiatPrice = {
+                        value: ethToFiatPriceValue,
+                        currency: DISPLAY_CURRENCY
+                }
+            } catch (e) {
+                console.error(`Failed to load ETH/${DISPLAY_CURRENCY} pricing. ${e.stack}`)
+            }
+            const listings = await Promise.all(listingIds.map(id => this.state.contractInstance.methods.getListing(id).call()))
+            console.info(`Fetched ${this.state.listings.length} listings`)
+    
+            let pastPurchases = []
+    
+            if (this.state.userTradeURL) {
+                const matchingBuyerTradeURLHash = this.state.web3.utils.keccak256(this.state.userTradeURL)
+    
+                // TODO: use filter option for getPastEvents. Figure out why it doesn't work in its current form
+                let pastPurchases = await this.state.contractInstance.getPastEvents(
+                    'TradeDone', {
+                        // filter: { buyerTradeURL: matchingBuyerTradeURLHash },
+                        fromBlock: 0,
+                        toBlock: 'latest' })
+                pastPurchases = pastPurchases.filter(p => p.returnValues.buyerTradeURL === matchingBuyerTradeURLHash)
+        
+        
+                console.info(`Fetched ${pastPurchases.length} past purchases for user.`)
+                console.log(pastPurchases)
+            }
+
+            await this.setState({
+                listings,
+                pastPurchases,
+                ethToFiatPrice,
+                initialLoadFinished: true
+            })
         } catch (e) {
             if (e.message.includes('is not a contract address')) {
                 const message = `Provided ${this.state.csgoSteamTradeContractAddress} is not a valid contract address. Cannot load sale listings.`
@@ -162,7 +209,8 @@ class ItemsListComponent extends Component {
                     errorState: {
                         message,
                         alertVariant: 'danger'
-                    }
+                    },
+                    initialLoadFinished: true
                 })
             } else if(e.message.includes(`please set an address first`)) {
                 const message = `No contract address provided. Cannot load sale listings. Please set one.`
@@ -172,55 +220,12 @@ class ItemsListComponent extends Component {
                         message,
                         alertVariant: 'primary'
                     },
+                    initialLoadFinished: true
                 })
             } else {
                 await this.handleWeb3ConnectionFailure(e)
             }
         }
-        
-        console.info(`Listings available: ${listingsCount}`)
-
-        const listingIds = []
-        for (let i = 0; i < listingsCount; i++) {
-            listingIds.push(i)
-        }
-
-        let ethToFiatPrice = null
-        try {
-            const ethPricingResponse = await Axios.get(`https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=${DISPLAY_CURRENCY}`)
-            const ethToFiatPriceValue = ethPricingResponse.data[DISPLAY_CURRENCY]
-            console.info(`Succesfully fetched ETH/${DISPLAY_CURRENCY} price at ${ethToFiatPriceValue}`)
-            ethToFiatPrice = {
-                    value: ethToFiatPriceValue,
-                    currency: DISPLAY_CURRENCY
-            }
-        } catch (e) {
-            console.error(`Failed to load ETH/${DISPLAY_CURRENCY} pricing. ${e.stack}`)
-        }
-        const listings = await Promise.all(listingIds.map(id => this.state.contractInstance.methods.getListing(id).call()))
-
-        const matchingBuyerTradeURLHash = this.state.web3.utils.keccak256(this.state.userTradeURL)
-
-        // TODO: use filter option for getPastEvents. Figure out why it doesn't work in its current form
-        let pastPurchases = await this.state.contractInstance.getPastEvents(
-            'TradeDone', {
-                // filter: { buyerTradeURL: matchingBuyerTradeURLHash },
-                fromBlock: 0,
-                toBlock: 'latest' })
-        pastPurchases = pastPurchases.filter(p => p.returnValues.buyerTradeURL === matchingBuyerTradeURLHash)
-
-
-        console.info(`Fetched ${pastPurchases.length} past purchases for user.`)
-        console.log(pastPurchases)
-        
-        console.info(`Fetched ${this.state.listings.length} listings`)
-
-        await this.setState({
-            listings,
-            pastPurchases,
-            ethToFiatPrice,
-            initialLoadFinished: true
-        })
     }
 
     async handleTradeURLSubmit(event) {
