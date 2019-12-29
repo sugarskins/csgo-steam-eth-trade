@@ -5,7 +5,8 @@ module.exports = {
     env: {
       STEAM_ACCOUNT_NAME: "",
       STEAM_ACCOUNT_PASSWORD: "",
-      STEAM_ACCOUNT_SECRET_TOKEN: ""
+      STEAM_ACCOUNT_SECRET_TOKEN: "",
+      EA_HOST: "localhost"
     },
   }]
 }

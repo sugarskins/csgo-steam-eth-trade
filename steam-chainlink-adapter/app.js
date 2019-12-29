@@ -60,4 +60,6 @@ app.post("/",  async (req, res) => {
   })
 })
 
-app.listen(port, () => log.info(`Listening on port ${port}.`))
+const host = config.getHost() || '0.0.0.0'
+
+app.listen(port, host, () => log.info(`Listening on port ${port} and host ${host}.`))
