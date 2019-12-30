@@ -391,7 +391,8 @@ contract('CSGOSteamTrade', accounts => {
           ),
         )
         const inventoryHasItem = 1
-        const response = web3.utils.toHex(inventoryHasItem)
+        // padding left is necessary so that the uint256 is encoded correctly
+        const response = web3.utils.padLeft(web3.utils.toHex(inventoryHasItem), 63)
 
         const balanceBefore = BigNumber(await web3.eth.getBalance(seller))
         await h.fulfillOracleRequest(oracleContract, request, response, { from: oracleNode })
@@ -415,7 +416,7 @@ contract('CSGOSteamTrade', accounts => {
 
         const request = h.decodeRunRequest(tx.receipt.rawLogs[3])
         const inventoryDoesNotHaveItem = 0
-        const response = web3.utils.toHex(inventoryDoesNotHaveItem)
+        const response = web3.utils.padLeft(web3.utils.toHex(inventoryDoesNotHaveItem), 63)
         const balanceBefore = BigNumber(await web3.eth.getBalance(csGOContract.address))
         await h.fulfillOracleRequest(oracleContract, request, response, { from: oracleNode })
         const balanceAfter = BigNumber(await web3.eth.getBalance(csGOContract.address))
@@ -438,7 +439,7 @@ contract('CSGOSteamTrade', accounts => {
 
         const request = h.decodeRunRequest(tx.receipt.rawLogs[3])
         const inventoryIsPrivate = 2
-        const response = web3.utils.toHex(inventoryIsPrivate)
+        const response = web3.utils.padLeft(web3.utils.toHex(inventoryIsPrivate), 63)
         const balanceBefore = BigNumber(await web3.eth.getBalance(seller))
         await h.fulfillOracleRequest(oracleContract, request, response, { from: oracleNode })
         const balanceAfter = BigNumber(await web3.eth.getBalance(seller))
