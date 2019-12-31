@@ -101,13 +101,14 @@ class ItemsListComponent extends Component {
 
         const searchParams = new URLSearchParams(this.props.location.search)
 
+        const currentTradeURL = cookies.get(COOKIE_TRADE_URL)
         this.state = {
             items: [],
             listings: [],
             pastPurchases: [],
             csgoSteamTradeContractAddress: searchParams.get(CONTRACT_ADDRESS_QUERY_PARAM),
-            userTradeURL: cookies.get(COOKIE_TRADE_URL),
-            validTradeURL: false,       
+            userTradeURL: currentTradeURL,
+            validTradeURL: validateTradeURL(currentTradeURL).valid,       
             ethToFiatPrice: null,
             errorState: null,
             ethNetworkURL: searchParams.get(RPC_QUERY_PARAM) || DEFAULT_RPC,
@@ -243,15 +244,16 @@ class ItemsListComponent extends Component {
         const tradeURL = form.elements.formTradeURL.value
         console.info(`Saving trade URL saving ${tradeURL}`)
 
-        try {
-            validateTradeURL(tradeURL)
+
+        const tradeURLValidation = validateTradeURL(tradeURL)
+        if (tradeURLValidation.valid) {
             this.props.cookies.set(COOKIE_TRADE_URL, tradeURL, { path: '/' })
             await this.setState( {
                 validTradeURL: true,
                 userTradeURL: tradeURL
             })    
-        } catch (e) {
-            console.error(`Trade URL ${tradeURL} is invalid. ${e.message}`)
+        } else {
+            console.error(`Trade URL ${tradeURL} is invalid. ${tradeURLValidation.error}`)
             await this.setState({
                 validTradeURL: false
             })
@@ -343,7 +345,7 @@ class ItemsListComponent extends Component {
                     <Form.Group as={Row} controlId="formTradeURL">
                         <Form.Label column sm="2" >Steam Trade URL </Form.Label>
                         <Col sm="10">
-                            <Form.Control style={{ width: 680 }} type="url" placeholder="Enter Steam Community Trade URL" defaultValue={this.state.userTradeURL} />
+                            <Form.Control isInvalid={!this.state.validTradeURL} style={{ width: 680 }} type="url" placeholder="Enter Steam Community Trade URL" defaultValue={this.state.userTradeURL} />
                         </Col>
                         <Form.Control.Feedback type="invalid">
                             Please provide a valid Trade URL.
