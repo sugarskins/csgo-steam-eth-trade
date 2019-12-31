@@ -6,7 +6,7 @@ import Nav from 'react-bootstrap/Nav'
 class HelpComponent extends Component {
     render() {
         return (
-        <div >
+        <div className="Help">
              <Navbar  expand="lg" bg="dark"  text="white"  >
                 <Navbar.Brand href="/">
                     <img
@@ -29,7 +29,7 @@ class HelpComponent extends Component {
 
             <h2> How does it work? </h2>
                 <p>SugarSkins works by enabling vendors to post their listings within an < a href="https://ethereum.org/">Ethereum smart contract</a> which defines precise rules as to when the funds can reach the seller and when the buyer can ask for a refund.</p>
-                <p>It uses the <a href="https://chain.link/"> Chainlink </a> oracle technology to establish that an item with a unique wear and paint seed is currently owned by the buyer's account to allow the seller to access the funds</p>
+                <p>It uses the <a href="https://chain.link/"> Chainlink </a> oracle technology to establish that an item with a unique wear and paint seed is currently owned by the buyer's account to allow the seller to access the funds.</p>
                 If the smart contract cannot establish that the item has reached the buyer's account within 6 hours of the creation of the purchase offer, the buyer can request a refund which will be fulfilled automatically.
 
                 For a detailed technical understanding of the smart contract used, oracle technology and frontend visit the page on <a href="https://github.com/sugarskins">Github </a>.

@@ -27,6 +27,10 @@
   flex-direction: column;
 }
 
+.Help {
+  font-size: 16px
+}
+
 .App-footer {
   background-color: #282c34;
   font-size: calc(10px + 2vmin);
@@ -36,7 +40,6 @@
   font-size: 14px;
   
   flex-direction: column;
-  
 }
 
 .App-trade-form {

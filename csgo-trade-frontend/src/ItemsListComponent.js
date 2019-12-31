@@ -298,6 +298,7 @@ class ItemsListComponent extends Component {
                 </div>
                 { this.renderHistoryModal(pendingPurchases, this.state.pastPurchases)  }
                 { this.renderItemListings(rowGroupedItems) }
+                <br></br>
             </div>
           )
     }
