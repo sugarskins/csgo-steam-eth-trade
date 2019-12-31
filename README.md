@@ -2,6 +2,16 @@
 
 Perform secure trading of CS:GO Steam community market items without a trusted third-party middleman. Check the website for a high-level overview and FAQ http://sugarskins.com/#/help
 
+In a nutshell, SugarSkins allows you to:
+
+* post item listings to a smart trade contract deployed on Ethereum as a seller
+* potential buyers can post purchase offers for those item listings accompanied by a a payment in ETH
+* the seller has the responsibility to send the item to the buyer, and request the contract to validate using a chainlink oracle that the item is now in the buyer's inventory. Then and only then are the funds dispatched to the seller
+* If not delivered and confirmed within the defined time limit, the buyer can request a refund and be refunded automatically by the smart contract
+
+
+This eliminates the need for a third party holding items in its inventory, and money deposits either fiat or crypto, thus reducing fees and unreliability that comes with third party middle-men.
+
 Contains:
 
 * csgo-steam-eth-contract - the Solidity contract supports the ability to purchase CS:GO items with the wear and paintseed properties using ETH.
