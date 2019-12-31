@@ -30,6 +30,14 @@ Once that is done you need to obtain the 2-factor secret token for that account 
 
 As shown in the [`config.js`](https://github.com/sugarskins/csgo-steam-eth-trade/blob/master/steam-chainlink-adapter/src/config.js) file, the adapter requires the following environment variables:
 
+| Variable      |               | Description | Example |
+|---------------|:-------------:|------------- |:---------:|
+| `STEAM_ACCOUNT_NAME `     | **Required**  | Your Steam account name | `mynameismrsteam` |
+| `STEAM_ACCOUNT_PASSWORD `  | **Required**  | Your Steam account two-factor authentication secret token | `thisismysecretaccountpassword` |
+| `STEAM_ACCOUNT_SECRET_TOKEN `  | **Required**  | Your Steam account password | `GhB30aWoHGC67qC4rbSEtpeGcvN=` |
+| `EA_PORT `  | *Optional*  | The port to run the server on. Defaults to `8080` | `9000` |
+| `EA_HOST` | *Optional* | The host to run the server on. Defaults to `0.0.0.0` | `localhost` |
+
 ## Disclaimer 
 
 Disclaimer
