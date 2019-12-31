@@ -17,6 +17,7 @@ import utils from './utils'
 import SaleItemComponent from './SaleItemComponent'
 import PurchaseHistoryComponent from './PurchaseHistoryComponent'
 import Spinner from 'react-bootstrap/Spinner'
+import { validateTradeURL } from './validation'
 
 function makeGroups(array, groupSize) {
     if (groupSize < 1) {
@@ -84,15 +85,6 @@ function contractListingToDisplayItem(listing, ethToFiatPrice) {
     return itemData
 }
 
-// function validateTradeURL(tradeURL) {
-//     const { host, hostname, protocol, pathname, query } = new URL(tradeURL)
-//     const parsedQuerystring = querystring.parse(query)
-//     if (protocol !== 'https:' || host !== 'steamcommunity.com' || hostname !== 'steamcommunity.com' ||
-//         pathname !== '/tradeoffer/new/' || !parsedQuerystring['partner'] || !parsedQuerystring['token']) {
-//       throw InvalidTradeURLError(`The trade url ${tradeURL} is not a valid steamcommunity.com trade URL.`)
-//     }
-// }
-
 const DISPLAY_CURRENCY = 'USD'
 const COOKIE_TRADE_URL = 'TRADE_URL'
 const CONTRACT_ADDRESS_QUERY_PARAM = 'contractAddress'
@@ -114,7 +106,8 @@ class ItemsListComponent extends Component {
             listings: [],
             pastPurchases: [],
             csgoSteamTradeContractAddress: searchParams.get(CONTRACT_ADDRESS_QUERY_PARAM),
-            userTradeURL: cookies.get(COOKIE_TRADE_URL),       
+            userTradeURL: cookies.get(COOKIE_TRADE_URL),
+            validTradeURL: false,       
             ethToFiatPrice: null,
             errorState: null,
             ethNetworkURL: searchParams.get(RPC_QUERY_PARAM) || DEFAULT_RPC,
@@ -127,11 +120,21 @@ class ItemsListComponent extends Component {
         // eslint-disable-next-line            
         this.state.web3 = new Web3(this.state.ethNetworkURL)
         
-        this.state.contractInstance = new this.state.web3.eth.Contract(
-            CSGOSteamTradeContract.abi,
-            this.state.csgoSteamTradeContractAddress,
-            {}
-          )
+        try {
+            this.state.contractInstance = new this.state.web3.eth.Contract(
+                CSGOSteamTradeContract.abi,
+                this.state.csgoSteamTradeContractAddress,
+                {}
+              )
+    
+        } catch (e) {
+            const message = `Failed to initialize contract. ${e.message}`
+            console.error(message)
+            this.state.errorState = {
+                message,
+                alertVariant: 'danger'
+            }
+        }
 
         this.handleTradeURLSubmit = this.handleTradeURLSubmit.bind(this)
         this.handleVendorContractSubmit = this.handleVendorContractSubmit.bind(this)
@@ -153,6 +156,12 @@ class ItemsListComponent extends Component {
         
         let listingsCount = 0
         try {
+            if (!this.state.contractInstance) {
+                await this.setState( {
+                    initialLoadFinished: true
+                })
+                return
+            }
             listingsCount = await this.state.contractInstance.methods.getListingsCount().call()
 
             console.info(`Listings available: ${listingsCount}`)
@@ -180,14 +189,14 @@ class ItemsListComponent extends Component {
             let pastPurchases = []
     
             if (this.state.userTradeURL) {
-                const matchingBuyerTradeURLHash = this.state.web3.utils.keccak256(this.state.userTradeURL)
-    
                 // TODO: use filter option for getPastEvents. Figure out why it doesn't work in its current form
-                let pastPurchases = await this.state.contractInstance.getPastEvents(
+                const matchingBuyerTradeURLHash = this.state.web3.utils.keccak256(this.state.userTradeURL)
+                pastPurchases = await this.state.contractInstance.getPastEvents(
                     'TradeDone', {
                         // filter: { buyerTradeURL: matchingBuyerTradeURLHash },
                         fromBlock: 0,
                         toBlock: 'latest' })
+
                 pastPurchases = pastPurchases.filter(p => p.returnValues.buyerTradeURL === matchingBuyerTradeURLHash)
         
         
@@ -202,7 +211,7 @@ class ItemsListComponent extends Component {
                 initialLoadFinished: true
             })
         } catch (e) {
-            if (e.message.includes('is not a contract address')) {
+            if (e.message.includes('is not a contract address') || e.message.includes('capitalization checksum test failed')) {
                 const message = `Provided ${this.state.csgoSteamTradeContractAddress} is not a valid contract address. Cannot load sale listings.`
                 console.error(message)
                 await this.setState({
@@ -212,7 +221,7 @@ class ItemsListComponent extends Component {
                     },
                     initialLoadFinished: true
                 })
-            } else if(e.message.includes(`please set an address first`)) {
+            } else if (e.message.includes(`please set an address first`)) {
                 const message = `No contract address provided. Cannot load sale listings. Please set one.`
                 console.error(message)
                 await this.setState({
@@ -233,7 +242,20 @@ class ItemsListComponent extends Component {
         const form = event.currentTarget
         const tradeURL = form.elements.formTradeURL.value
         console.info(`Saving trade URL saving ${tradeURL}`)
-        this.props.cookies.set(COOKIE_TRADE_URL, tradeURL, { path: '/' })      
+
+        try {
+            validateTradeURL(tradeURL)
+            this.props.cookies.set(COOKIE_TRADE_URL, tradeURL, { path: '/' })
+            await this.setState( {
+                validTradeURL: true,
+                userTradeURL: tradeURL
+            })    
+        } catch (e) {
+            console.error(`Trade URL ${tradeURL} is invalid. ${e.message}`)
+            await this.setState({
+                validTradeURL: false
+            })
+        }
     }
 
     async handleVendorContractSubmit(event) {
@@ -317,11 +339,11 @@ class ItemsListComponent extends Component {
     renderTradeDataForm() {
         return (
             <div>
-                <Form className='App-trade-form' onSubmit={this.handleTradeURLSubmit}>
+                <Form className='App-trade-form' noValidate validated={this.state.validTradeURL} onSubmit={this.handleTradeURLSubmit}>
                     <Form.Group as={Row} controlId="formTradeURL">
                         <Form.Label column sm="2" >Steam Trade URL </Form.Label>
                         <Col sm="10">
-                            <Form.Control style={{ width: 660 }} type="url" placeholder="Enter Steam Community Trade URL" defaultValue={this.state.userTradeURL} />
+                            <Form.Control style={{ width: 680 }} type="url" placeholder="Enter Steam Community Trade URL" defaultValue={this.state.userTradeURL} />
                         </Col>
                         <Form.Control.Feedback type="invalid">
                             Please provide a valid Trade URL.
