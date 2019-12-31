@@ -2,6 +2,7 @@ import React from 'react'
 import logo from './logo.svg'
 import './App.css'
 import ItemsListComponent from './ItemsListComponent'
+import HelpComponent from './HelpComponent'
 import url from 'url'
 import Navbar from 'react-bootstrap/Navbar'
 import Nav from 'react-bootstrap/Nav'
@@ -47,7 +48,7 @@ function footer() {
 }
 
 function Help() {
-  return <h2>Help</h2>;
+  return <HelpComponent></HelpComponent>
 }
 
 
