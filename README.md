@@ -46,7 +46,7 @@ npm i -g ganache-cli
 
 And run it with 
 ```
- ganache-cli --defaultBalanceEther 100000000000000000 --account="<private address of choice >,10000000000000000000000000000"
+ ganache-cli --defaultBalanceEther 100000000000000000 --account="<private address of choice that defaults to be the owner of the trade contract >,10000000000000000000000000000"
 --account="<your metamask address to make sure you can use it during testing >,10000000000000000000000000000"
 ```
 
@@ -64,6 +64,10 @@ npm start
 ```
 
 Assuming you have metamask enabled, and you have valid trade link to paste in the trade link field, you can execute a purchase request and allow access to metamask.
+
+### Adding items as vendor to trade contract
+
+To post listings go to `csgo-trade-vendor-backend/README.md` or run `node cli.js --help` to see what is needed.
 
 ### Running a chainlink node
 
