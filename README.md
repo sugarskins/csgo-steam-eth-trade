@@ -63,7 +63,7 @@ npm start
 # or simply paste that address in the contract address form and press enter
 ```
 
-Assuming you have metamask enabled, and you have valid trade link to paste in the trade link field, you can execute a purchase request and allow access to metamask.
+Assuming you have metamask enabled, and you have valid trade URL to paste in the trade URL field, you can execute a purchase request and allow access to metamask.
 
 ### Adding items as vendor to trade contract
 
