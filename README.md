@@ -24,8 +24,50 @@ The use case was referenced in the [Chainlink 2017 paper](https://link.smartcont
 
 ## Local development setup
 
+This assumes you have `npm` installed, and you have a browser with the [MetaMask](https://metamask.io/) extension (known to work well with Chrome, for [Brave](https://brave.com/) browser make sure you disable the built-in MetaMask  wallet, otherwise the 2 will clash at runtime).
+
+To run the project locally with a setup that has everything except for the chainlink node and confirmations and uses ganache, install all dependencies:
+
+```
+ git clone https://github.com/sugarskins/csgo-steam-eth-trade.git
+ cd csgo-steam-eth-trade
+ cd csgo-trade-frontend
+ npm i
+ cd ../csgo-trade-vendor-backend
+ npm i
+ cd ../csgo-trade-contract
+ npm i
+```
+
+You need ganache, you can obtain it with:
+```
+npm i -g ganache-cli
+```
+
+And run it with 
+```
+ ganache-cli --defaultBalanceEther 100000000000000000 --account="<private address of choice >,10000000000000000000000000000"
+--account="<your metamask address to make sure you can use it during testing >,10000000000000000000000000000"
+```
+
+```
+# Assuming you are still in csgo-trade-contract do:
+truffle migrate --network cldev
+```
+This should output your contract addresses for the CS:GO trade contract and the oracle contract. Make a note of them at this point.
+
+```
+cd ../csgo-trade-frontend
+npm start
+# navigate to to localhost:3000/#/?contractAddress=<the address which came out of the truffle migrate for the trade contract>
+# or simply paste that address in the contract address form and press enter
+```
+
+Assuming you have metamask enabled, and you have valid trade link to paste in the trade link field, you can execute a purchase request and allow access to metamask.
 
 ### Running a chainlink node
+
+For use on ropsten and main-net follow these instructions to deploy a chainlink node.
 
 You can follow the following guide to setup a local chainlink node.
 https://docs.chain.link/docs/running-a-chainlink-node
