@@ -38,6 +38,20 @@ As shown in the [`config.js`](https://github.com/sugarskins/csgo-steam-eth-trade
 | `EA_PORT `  | *Optional*  | The port to run the server on. Defaults to `8080` | `9000` |
 | `EA_HOST` | *Optional* | The host to run the server on. Defaults to `0.0.0.0` | `localhost` |
 
+## Available methods
+
+Method can be specified by the `method` key in the request body.
+
+### tradeurlownerhasinspectlinktarget
+
+| Variable | Type |   | Description |
+|----------|------|---|-------------|
+| `tradeURL` | String | **Required** | Steam trade URL of potential owner (example: `https://steamcommunity.com/tradeoffer/new/?partner=987654321&token=ABcDeFgH` |
+| `inspectLink` | String | **Required** | Inspect link of the item checked for ownership (example: `steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198862566094A17372503775D7836475188778060447` |
+| `wear` | String | **Required** | Wear of the the item being checked (example: `0.1419128179550171`) |
+| `paintSeed` | String | **Required** | Paint seed of the item being checked. (example: `334`) |
+| `skinName` | String | **Required** | Skin name of the item being checked. (example: `'AUG | Storm (Battle-Scarred)'` |
+
 ## Disclaimer 
 
 Disclaimer
