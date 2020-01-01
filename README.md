@@ -20,7 +20,11 @@ Contains:
 * csgo-trade-vendor-backend - a CLI backend for deploying a trade contracts, posting and deleting listings, requesting item delivery confirmations
 
 
-The use case was referenced in the [Chainlink 2017 paper](https://link.smartcontract.com/whitepaper). This implementation covers the use case specifically for CS:GO weapons (with skin name, wear and paint-seed properties) and does not require credential authentication on the side of the seller and buyer, because the checks are performed by validating that the properties of the delivered item uniquely match the properties in the initial listing, by inspecting the public inventory of the buyer post-delivery, and scanning the respective item with the Steam client protocol.  
+The use case was referenced in the [Chainlink 2017 paper](https://link.smartcontract.com/whitepaper). This implementation covers the use case specifically for CS:GO weapons (with skin name, wear and paint-seed properties) and does not require credential authentication on the side of the seller and buyer, because the checks are performed by validating that the properties of the delivered item uniquely match the properties in the initial listing, by inspecting the public inventory of the buyer post-delivery, and scanning the respective item with the Steam client protocol.
+
+Here's a diagram of the high level flow:
+
+![high-level flow](https://github.com/sugarskins/csgo-steam-eth-trade/blob/master/docs/sugarskins-flow.png?raw=true)
 
 ## Local development setup
 
