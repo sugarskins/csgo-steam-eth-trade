@@ -44,6 +44,8 @@ Method can be specified by the `method` key in the request body.
 
 ### tradeurlownerhasinspectlinktarget
 
+#### Request
+
 | Variable | Type |   | Description |
 |----------|------|---|-------------|
 | `tradeURL` | String | **Required** | Steam trade URL of potential owner (example: `https://steamcommunity.com/tradeoffer/new/?partner=987654321&token=ABcDeFgH` |
@@ -51,6 +53,23 @@ Method can be specified by the `method` key in the request body.
 | `wear` | String | **Required** | Wear of the the item being checked (example: `0.1419128179550171`) |
 | `paintSeed` | String | **Required** | Paint seed of the item being checked. (example: `334`) |
 | `skinName` | String | **Required** | Skin name of the item being checked. (example: `AUG | Storm (Battle-Scarred)`) |
+
+#### Response
+
+JSON response is:
+
+```
+{ data: { containsItem: 1, steamID64: '72571197292524013' },
+  error: null }
+```
+
+Where `containsItem` field is:
+
+* 0 - for contains is false
+* 1 - for contains is true
+* 2 - for owner profile is set to private, cannot check
+
+
 
 ## Disclaimer 
 
