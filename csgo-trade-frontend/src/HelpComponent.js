@@ -25,7 +25,7 @@ class HelpComponent extends Component {
             <br></br>
 
             <h2> What is SugarSkins? </h2>
-            <p> SugarSkins is a collection of tools that allows you to trade <a href='https://steamcommunity.com/market/search?appid=730'> Counter Strike: Global Offensive weapons </a> outside the official market in a way that protects both the buyer and seller from fraud, without using a trusted middleman market and by using Ethereum payments.</p>
+            <p> SugarSkins is a collection of tools that allows you to trade <a href='https://steamcommunity.com/market/search?appid=730'> Counter Strike: Global Offensive weapons </a> outside the official steam-community market in a way that protects both the buyer and seller from fraud, without using a trusted middleman market and by using Ethereum payments.</p>
 
             <h2> How does it work? </h2>
                 <p>SugarSkins works by enabling vendors to post their listings within an < a href="https://ethereum.org/">Ethereum smart contract</a> which defines precise rules as to when the funds can reach the seller and when the buyer can ask for a refund.</p>
@@ -49,6 +49,17 @@ class HelpComponent extends Component {
             <h2> Does it work with any other Steam games or types of items?</h2>
             <p> No, the system is currently tailored specifically for trading CS:GO weapons, meaning CS:GO items that have a wear and paint seed property to allow for easy identification once they move from one account to the other.</p>
 
+            <h2> Why not use an unique id(or ids) to track the item as being part of an inventory instead of skin name, wear and paintseed  (eg. asset id)? </h2>
+            <p> As it stands, when items move from one Steam inventory to another, no unique ids or combination of ids is guaranteed to be maintained after the change.
+                The only guarantee that Steam offers is that the asset id is unique within the app id (730 for CS:GO) and context id at any given time. </p>
+            <p> The 3 properties of the item (skin name, wear, paint seed) are maintained and
+                given the fact that the wear is a float with 12+ significant digits of precision, although not completely random in combination with skin name and paint seed
+                it almost certain to identify that item uniquely even after the item changes inventories.
+                References: <a href="https://dev.doctormckay.com/topic/652-asset-id-of-an-item-changes-after-trade/"> asset id changing behaviour </a></p>
+            <h2> Are the Steam items represented as Non-fungible tokens (NFTs) ?</h2>
+            <p> No, the listed items are not tracked as NFTs currently, since the protocol is only meant to facilitate a safe trading session and not meant to track
+                item owenrship throughout its lifetime.
+            </p>
             <br></br>
             <br></br>
         </div>
