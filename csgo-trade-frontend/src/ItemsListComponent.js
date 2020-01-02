@@ -273,10 +273,16 @@ class ItemsListComponent extends Component {
                 <div>
                     <h3> Buy CSGO Weapons using Ethereum payments secured with smart contracts </h3>
                     <p text="dark" >No sign in, no deposits, no trusted middleman, just sweet deals.</p>
-                    <Alert variant='info'>Sugarskins is currently alpha stage software. <a href="mailto:dan@danoctavian.com">Get in touch</a> about bugs and <a href="https://github.com/sugarskins">development</a>. Currently working on Ropsten network only.  </Alert>
+                    <div className='App-alert'>
+                        <Alert variant='info'>Sugarskins is currently alpha stage software. <a href="mailto:dan@danoctavian.com">Get in touch</a> about bugs and <a href="https://github.com/sugarskins">development</a>. Currently working on Ropsten network only.  </Alert>
+                    </div>
                     { this.renderTradeDataForm() }
                     {!this.state.initialLoadFinished ? (<Spinner animation="border" variant="primary" />) : null }
-                    { this.state.errorState ? (<Alert variant={this.state.errorState.alertVariant}> {this.state.errorState.message}</Alert> ) : null}
+                    { this.state.errorState ? (
+                        <div className='App-alert'>
+                            <Alert variant={this.state.errorState.alertVariant}> {this.state.errorState.message}</Alert> 
+                        </div>    
+                        ) : null}
                 </div>
                 { this.renderHistoryModal(pendingPurchases, this.state.pastPurchases)  }
                 { this.state.csgoSteamTradeContractAddress  ? this.renderItemListings(rowGroupedItems) : <InfoCardsComponent> </InfoCardsComponent>}

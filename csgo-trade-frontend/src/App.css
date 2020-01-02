@@ -54,3 +54,9 @@
 .App-link {
   color: #09d3ac;
 }
+
+.App-alert {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
