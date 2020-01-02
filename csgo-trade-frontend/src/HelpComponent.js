@@ -25,10 +25,11 @@ class HelpComponent extends Component {
             <br></br>
 
             <h2> What is SugarSkins? </h2>
-            <p> SugarSkins is a collection of tools that allows you to trade <a href='https://steamcommunity.com/market/search?appid=730'> Counter Strike: Global Offensive weapons </a> outside the official steam-community market in a way that protects both the buyer and seller from fraud, without using a trusted middleman market and by using Ethereum payments.</p>
+            <p> SugarSkins is a collection of tools that allows you to trade <a href='https://steamcommunity.com/market/search?appid=730'> Counter Strike: Global Offensive weapons </a>
+                outside the official steam-community market in a way that protects both the buyer and seller from fraud, without using a trusted middleman market and by using  <a href="https://ethereum.org/">Ethereum</a> payments.</p>
 
             <h2> How does it work? </h2>
-                <p>SugarSkins works by enabling vendors to post their listings within an < a href="https://ethereum.org/">Ethereum smart contract</a> which defines precise rules as to when the funds can reach the seller and when the buyer can ask for a refund.</p>
+                <p>SugarSkins works by enabling vendors to post their listings within an < a href="https://github.com/sugarskins/csgo-steam-eth-trade/blob/master/csgo-trade-contract/contracts/CSGOSteamTrade.sol">Ethereum smart contract</a> which defines precise rules as to when the funds can reach the seller and when the buyer can ask for a refund.</p>
                 <p>It uses the <a href="https://chain.link/"> Chainlink </a> oracle technology to establish that an item with a unique wear and paint seed is currently owned by the buyer's account to allow the seller to access the funds.</p>
                 If the smart contract cannot establish that the item has reached the buyer's account within 6 hours of the creation of the purchase offer, the buyer can request a refund which will be fulfilled automatically.
 
@@ -53,8 +54,8 @@ class HelpComponent extends Component {
             <p> As it stands, when items move from one Steam inventory to another, no unique ids or combination of ids is guaranteed to be maintained after the change.
                 The only guarantee that Steam offers is that the asset id is unique within the app id (730 for CS:GO) and context id at any given time. </p>
             <p> The 3 properties of the item (skin name, wear, paint seed) are maintained and
-                given the fact that the wear is a float with 12+ significant digits of precision, although not completely random in combination with skin name and paint seed
-                it almost certain to identify that item uniquely even after the item changes inventories.
+                given the fact that the wear is a float with 12+ significant digits of precision, although not completely random, in combination with skin name and paint seed
+                it is almost certain able to identify that item uniquely even after the item changes inventories.
                 References: <a href="https://dev.doctormckay.com/topic/652-asset-id-of-an-item-changes-after-trade/"> asset id changing behaviour </a></p>
             <h2> Are the Steam items represented as Non-fungible tokens (NFTs) ?</h2>
             <p> No, the listed items are not tracked as NFTs currently, since the protocol is only meant to facilitate a safe trading session and not meant to track
