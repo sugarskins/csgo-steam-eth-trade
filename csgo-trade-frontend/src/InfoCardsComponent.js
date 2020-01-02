@@ -32,10 +32,9 @@ class InfoCardsComponent extends Component {
             <Container >
                 {rowGroupedItems.map((rowOfItems, rowIndex) => (
                     <Row key={rowIndex}>
-                         <CardDeck style={{display: 'flex', flexDirection: 'row', justifyContent: 'center' }} >
                         {rowOfItems.map(item => (
                             <Col key={item.title} >
-                                <Card border="info" style={{ width: '18rem', flex: 1 }}  bg="dark"  text="white" >
+                                <Card border="info" style={{ width: '18rem' }}  bg="dark"  text="white" >
                                     <Card.Img variant="top" src={item.img} />
                                     
                                     <Card.Body>
@@ -47,7 +46,6 @@ class InfoCardsComponent extends Component {
                                 </Card>
                             </Col>
                         ))}
-                        </CardDeck>
                     </Row>
                 ))}
             </Container> 
