@@ -328,7 +328,7 @@ class ItemsListComponent extends Component {
                     <Form.Group as={Row} controlId="formTradeURL">
                         <Form.Label column sm="2" >Steam Trade URL </Form.Label>
                         <Col sm="10">
-                            <Form.Control isInvalid={!this.state.validTradeURL} style={{ width: 680 }} type="url" placeholder="Enter Steam Community Trade URL" defaultValue={this.state.userTradeURL} />
+                            <Form.Control isInvalid={!this.state.validTradeURL} style={{ maxWidth: 680 }} type="url" placeholder="Enter Steam Community Trade URL" defaultValue={this.state.userTradeURL} />
                         </Col>
                         <Form.Control.Feedback type="invalid">
                             Please provide a valid Trade URL.
@@ -339,7 +339,7 @@ class ItemsListComponent extends Component {
                     <Form.Group as={Row} type="text"  controlId="formVendorContract">
                         <Form.Label column sm="2" > Contract Address  </Form.Label>
                          <Col sm="10">
-                            <Form.Control  style={{ width: 420 }} placeholder="Enter vendor Ethereum Contract Address" defaultValue={this.state.csgoSteamTradeContractAddress} />
+                            <Form.Control  style={{ maxWidth: 420 }} placeholder="Enter vendor Ethereum Contract Address" defaultValue={this.state.csgoSteamTradeContractAddress} />
                         </Col>
                     </Form.Group>
                 </Form>
