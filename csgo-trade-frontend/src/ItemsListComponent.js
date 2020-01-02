@@ -18,25 +18,7 @@ import SaleItemComponent from './SaleItemComponent'
 import PurchaseHistoryComponent from './PurchaseHistoryComponent'
 import Spinner from 'react-bootstrap/Spinner'
 import { validateTradeURL } from './validation'
-
-function makeGroups(array, groupSize) {
-    if (groupSize < 1) {
-        throw new Error(`Group size ${groupSize} < 1.`)
-    }
-
-    const groups = []
-    let group = []
-    for (let i = 0; i < array.length; i++) {
-        if (group.length < groupSize) {
-            group.push(array[i])
-        } else {
-            groups.push(group) 
-            group = [array[i]]
-        }
-    }
-    groups.push(group)
-    return groups
-}
+import InfoCardsComponent from './InfoCardsComponent'
 
 class ItemData {
     constructor(listingId, wear, skinName, paintSeed, statTrak, inspectLink, inventoryLink, price, displayPrice, imageSrc) {
@@ -223,7 +205,7 @@ class ItemsListComponent extends Component {
                     initialLoadFinished: true
                 })
             } else if (e.message.includes(`please set an address first`)) {
-                const message = `No contract address provided. Cannot load sale listings. Please set one.`
+                const message = `No contract address provided. Set one to load item listings.`
                 console.error(message)
                 await this.setState({
                     errorState: {
@@ -284,7 +266,7 @@ class ItemsListComponent extends Component {
         const pendingPurchases = this.state.listings
             .filter(listing => listing.exists && listing.purchaseOffer.exists && listing.purchaseOffer.buyerTradeURL === this.state.userTradeURL)
         const rowSize = 3
-        const rowGroupedItems = makeGroups(displayItems, rowSize)
+        const rowGroupedItems = utils.makeGroups(displayItems, rowSize)
         return (
             <div>
                 { this.renderNavBar(pendingPurchases, this.state.pastPurchases) }
@@ -297,7 +279,7 @@ class ItemsListComponent extends Component {
                     { this.state.errorState ? (<Alert variant={this.state.errorState.alertVariant}> {this.state.errorState.message}</Alert> ) : null}
                 </div>
                 { this.renderHistoryModal(pendingPurchases, this.state.pastPurchases)  }
-                { this.renderItemListings(rowGroupedItems) }
+                { this.state.csgoSteamTradeContractAddress  ? this.renderItemListings(rowGroupedItems) : <InfoCardsComponent> </InfoCardsComponent>}
                 <br></br>
             </div>
           )

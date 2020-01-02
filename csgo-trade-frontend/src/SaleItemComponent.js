@@ -130,7 +130,7 @@ class SaleItemComponent extends Component {
     render() {
         return (
             <div>
-            <Card border="primary" style={{ width: '18rem' }}  bg="dark"  text="white" >
+            <Card border="info" style={{ width: '18rem' }}  bg="dark"  text="white" >
                 <Card.Img variant="top" src={this.props.item.imageSrc} />
                 <Card.Body>
                 <Card.Title style={{fontSize: 14}} > {this.props.item.skinName} {this.props.item.statTrak ? 'StatTrak™' : null} </Card.Title>

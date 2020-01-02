@@ -48,10 +48,29 @@ function getTimeDifference(future, past) {
     }
 }
 
+function makeGroups(array, groupSize) {
+    if (groupSize < 1) {
+        throw new Error(`Group size ${groupSize} < 1.`)
+    }
+
+    const groups = []
+    let group = []
+    for (let i = 0; i < array.length; i++) {
+        if (group.length < groupSize) {
+            group.push(array[i])
+        } else {
+            groups.push(group) 
+            group = [array[i]]
+        }
+    }
+    groups.push(group)
+    return groups
+}
 
 export default {
     inspectLinkToSMAD,
     getInventoryURL,
     TradeOutcome,
-    getTimeDifference
+    getTimeDifference,
+    makeGroups
 }
