@@ -1,6 +1,6 @@
 # csgo-steam-eth-trade
 
-Perform secure trading of CS:GO Steam community market items without a trusted third-party middleman. Check the website for a high-level overview and FAQ http://sugarskins.com/#/help
+Perform secure trading of CS:GO Steam community market items without a trusted third-party middleman. Check the website for a high-level overview and FAQ https://sugarskins.com/#/help
 
 In a nutshell, SugarSkins allows you to:
 
