@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@terminal-packages/sdk": "^1.1.5",
     "bignumber.js": "^9.0.0",
     "bootstrap": "^4.3.1",
     "react": "^16.12.0",

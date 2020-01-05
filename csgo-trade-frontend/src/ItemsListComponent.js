@@ -12,6 +12,7 @@ import Alert from 'react-bootstrap/Alert'
 import Web3 from 'web3'
 import BigNumber from 'bignumber.js'
 import {  withCookies } from 'react-cookie'
+import { TerminalHttpProvider, SourceType } from '@terminal-packages/sdk'
 import CSGOSteamTradeContract from './CSGOSteamTrade'
 import utils from './utils'
 import SaleItemComponent from './SaleItemComponent'
@@ -73,6 +74,10 @@ const CONTRACT_ADDRESS_QUERY_PARAM = 'contractAddress'
 const RPC_QUERY_PARAM = 'rpc'
 
 const DEFAULT_RPC = 'https://ropsten.infura.io/v3/cf8c1af01b1d49198031f5f23baee111'
+const TERMINAL_SDK = {
+    API_KEY: 'Kak4Kf8ZtnGpZGFyaB1/Fg==',
+    PROJECT_ID: 'ryAqzgjMBXoJWnxv',
+}
 
 class ItemsListComponent extends Component {
 
@@ -100,8 +105,15 @@ class ItemsListComponent extends Component {
 
         console.info(`Loaded trade URL: ${this.state.userTradeURL}`)      
 
+        const terminalSDKWrapperProvider = new TerminalHttpProvider({
+              host: this.state.ethNetworkURL,
+              apiKey: TERMINAL_SDK.API_KEY,
+              source: SourceType.Infura,
+              projectId: TERMINAL_SDK.PROJECT_ID
+             })
+
         // eslint-disable-next-line            
-        this.state.web3 = new Web3(this.state.ethNetworkURL)
+        this.state.web3 = new Web3(terminalSDKWrapperProvider)
         
         try {
             this.state.contractInstance = new this.state.web3.eth.Contract(
