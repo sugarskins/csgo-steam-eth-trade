@@ -42,6 +42,13 @@ function footer() {
   return (
     <Navbar expand="lg" bg="dark"  text="white" className='App-footer d-flex justify-content-center' >
       <Nav.Link > Sugarskins 2019. Powered by Steam. Not affiliated with Valve Corp. </Nav.Link>
+      <Navbar.Brand href="/">
+                <img
+                    src="/cryptocomparelogo.png"
+                    className="d-inline-block align-top"
+                    alt="React Bootstrap logo"
+                />
+       </Navbar.Brand>
     </Navbar>
   )
 
