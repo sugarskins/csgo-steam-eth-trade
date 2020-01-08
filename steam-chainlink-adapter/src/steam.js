@@ -107,6 +107,15 @@ async function inventoryContainsItemWithInspectLink(tradeURL, inspectLink, wear,
   }
 }
 
+async function inspectItem(inspectLink) {
+  const scanner = getSteamScanner()
+  if (!scanner){
+    throw new SystemInitNotFinishedError('SteamScanner not initialized yet.')
+  }
+  const scannedItem = await scanner.scanInspectLink(inspectLink)
+  return scannedItem
+}
+
 function validateTradeURL(tradeURL) {
   const { host, hostname, protocol, pathname, query } = url.parse(tradeURL)
   const parsedQuerystring = querystring.parse(query)
@@ -158,5 +167,6 @@ function isReady() {
 
 module.exports = {
   inventoryContainsItemWithInspectLink,
+  inspectItem,
   isReady
 }

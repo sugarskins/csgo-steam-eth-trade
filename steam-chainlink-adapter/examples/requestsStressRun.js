@@ -33,7 +33,7 @@ async function makeRequest(i) {
 ;(async () => {
   try {
     const waves = 5
-    const waveSize = 3
+    const waveSize = 5
     for (let j = 0; j < waves * waveSize; j += waveSize) {
       console.log(`Wave ${j}`)
       var is = []

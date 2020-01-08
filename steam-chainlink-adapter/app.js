@@ -10,19 +10,34 @@ app.use(bodyParser.json())
 
 async function createRequest(input) {
   log.info(`Request received with data ${JSON.stringify(input)}`)
+  let dataPayload = null
   switch (input.data.method.toLowerCase()) {
     case 'tradeurlownerhasinspectlinktarget':
-      return await handleTradeLinkOwnerHasInspectLinkTarget(input)
+      dataPayload = await handleTradeLinkOwnerHasInspectLinkTarget(input)
+      break
+    case 'inspectitem':
+      dataPayload = await handleInspectItem(input)
+      break
     default:
       return {
-        data: {
+        response: {
           jobRunID: input.id,
           status: 'errored',
           error: 'Invalid method'
         },
-        status: 400
+        statusCode: 400
       }
   }
+
+  const response = {
+      response: {
+        jobRunID: input.id,
+        data: dataPayload,
+        error: null
+      },
+      status: 200
+  }
+  return response
 }
 
 async function handleTradeLinkOwnerHasInspectLinkTarget(input) {
@@ -30,16 +45,15 @@ async function handleTradeLinkOwnerHasInspectLinkTarget(input) {
   const { containsItem, steamID64 } = await steam.inventoryContainsItemWithInspectLink(data.tradeURL, data.inspectLink,
     data.wear, data.skinName, data.paintSeed)
   return {
-    data: {
-      jobRunID: input.id,
-      data: {
         containsItem: containsItem,
         steamID64
-      },
-      error: null
-    },
-    statusCode: 200
-  }
+      }
+}
+
+async function handleInspectItem(input) {
+  const data = input.data
+  const item =await steam.inspectItem(data.inspectLink)
+  return item
 }
 
 
@@ -48,7 +62,7 @@ app.post("/",  async (req, res) => {
     try {
       const result = await createRequest(req.body)
       log.info(`Returning response ${JSON.stringify(result)}`)
-      return res.json(result.data).status(result.statusCode)
+      return res.json(result.response).status(result.statusCode)
     } catch (e) {
       log.error(`Request failure: ${e.stack}`)
       return res.json({
