@@ -1,8 +1,8 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.7;
 pragma experimental ABIEncoderV2;
 
-import "chainlink/contracts/ChainlinkClient.sol";
-import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
+import "chainlink/v0.5/contracts/ChainlinkClient.sol";
+import "chainlink/v0.5/contracts/vendor/Ownable.sol";
 
 
 contract CSGOSteamTrade is ChainlinkClient, Ownable {
@@ -17,7 +17,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     string constant ERR_LISTING_NOT_FOUND = "Listing not found";
     
     struct PurchaseOffer {
-        address owner;
+        address payable owner;
         uint creationTimestamp;
         string buyerTradeURL;
         bool exists;
@@ -31,7 +31,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         uint paintSeed;
         string extraItemData;
         uint price;
-        address sellerAddress;
+        address payable sellerAddress;
         PurchaseOffer purchaseOffer;
         bool exists;
     }
@@ -78,9 +78,9 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         }
     }
     
-    function createListing(string _ownerInspectLink, string memory _wear,
+    function createListing(string memory _ownerInspectLink, string memory _wear,
         string memory _skinName, uint _paintSeed, string memory _extraItemData,
-        uint _price, address _sellerAddress)
+        uint _price, address payable _sellerAddress)
         public
         returns (uint listingId) {
         listingId = numListings++;
@@ -116,7 +116,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         listings[_listingId].exists = false;
     }
 
-    function createPurchaseOffer(uint _listingId, string _buyerTradeURL) public payable {
+    function createPurchaseOffer(uint _listingId, string memory _buyerTradeURL) public payable {
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
         require(listing.purchaseOffer.exists == false, "Listing already has a purchase offer");
@@ -152,7 +152,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         address _oracle,
         bytes32 _jobId,
         uint256 _payment,
-        string _buyerInspectLink)
+        string memory _buyerInspectLink)
         public
         onlyOwner
         returns (bytes32 requestId) {
@@ -162,7 +162,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         require(listing.purchaseOffer.exists == true, "The listing has not yet received an offer.");
         
         Chainlink.Request memory req = buildChainlinkRequest(_jobId,
-            this,
+            address(this),
             this.fulfillItemTransferConfirmation.selector);
             
         req.add("method", CHECK_INVENTORY_CONTAINS_ITEM_METHOD);
