@@ -82,6 +82,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         string memory _skinName, uint _paintSeed, string memory _extraItemData,
         uint _price, address payable _sellerAddress)
         public
+        onlyOwner
         returns (uint listingId) {
         listingId = numListings++;
         PurchaseOffer memory emptyOffer;
