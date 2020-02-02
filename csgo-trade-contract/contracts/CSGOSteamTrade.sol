@@ -6,8 +6,8 @@ import "chainlink/v0.5/contracts/vendor/Ownable.sol";
 
 
 contract CSGOSteamTrade is ChainlinkClient, Ownable {
-    uint private constant hour = 60 * 60;
-    uint public constant MINIMUM_PURCHASE_OFFER_AGE = hour * 6;
+
+    uint public constant MINIMUM_PURCHASE_OFFER_AGE = 6 hours;
     string public constant CHECK_INVENTORY_CONTAINS_ITEM_METHOD = "tradeurlownerhasinspectlinktarget";
 
     uint256 constant public OWNERSHIP_STATUS_FALSE = 0;
