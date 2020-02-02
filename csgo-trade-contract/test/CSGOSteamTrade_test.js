@@ -13,7 +13,8 @@ async function getTxCost(txResult) {
  }
 
  function getListingId(createListingTx) {
-  return parseInt(createListingTx.logs[0].args.listing.listingId)
+  const listingCreationEvent = expectEvent.inLogs(createListingTx.logs, 'ListingCreation')
+  return parseInt(listingCreationEvent.args.listing.listingId)
  }
 
 contract('CSGOSteamTrade', accounts => {
