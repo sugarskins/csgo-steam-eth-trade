@@ -5,7 +5,7 @@ const h = require('chainlink-test-helpers')
 const truffleAssert = require('truffle-assertions')
 const truffleTestUtils = require('./truffleTestUtils')
 const BigNumber = require('bignumber.js')
-
+const { BN, constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers')
 
 async function getTxCost(txResult) {
   const tx = await web3.eth.getTransaction(txResult.tx)
@@ -13,7 +13,8 @@ async function getTxCost(txResult) {
  }
 
  function getListingId(createListingTx) {
-  return parseInt(createListingTx.logs[0].args.listing.listingId)
+  const listingCreationEvent = expectEvent.inLogs(createListingTx.logs, 'ListingCreation')
+  return parseInt(listingCreationEvent.args.listing.listingId)
  }
 
 contract('CSGOSteamTrade', accounts => {
@@ -91,14 +92,18 @@ contract('CSGOSteamTrade', accounts => {
         const r = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
           listing1.sellerAddress, {from: seller })
-        const creationEventLog = r.logs[0].args.listing
-        assert.equal(r.receipt.status, true)
 
-        assert.equal(creationEventLog.ownerInspectLink, listing1.ownerInspectLink)
-        assert.equal(creationEventLog.wear, listing1.wear)
-        assert.equal(creationEventLog.skinName, listing1.skinName)
-        assert.equal(creationEventLog.price, listing1.price)
-        assert.equal(creationEventLog.sellerAddress, listing1.sellerAddress)
+        assert.equal(r.receipt.status, true)
+        const listingCreationEvent = expectEvent.inLogs(r.logs, 'ListingCreation')
+        const eventListing = listingCreationEvent.args.listing
+
+        assert.equal(eventListing.ownerInspectLink, listing1.ownerInspectLink)
+        assert.equal(eventListing.wear, listing1.wear)
+        assert.equal(eventListing.skinName, listing1.skinName)
+        assert.equal(eventListing.price, listing1.price)
+        assert.equal(eventListing.sellerAddress, listing1.sellerAddress)
+
+
       })
 
       it('creates a new listing which ca be fetched by id and properties match', async () => {
@@ -159,9 +164,10 @@ contract('CSGOSteamTrade', accounts => {
           from: buyer,
           value: listing1.price
         })
-        const creationEventLog = creationTx.logs[0].args
-        assert.equal(web3.utils.keccak256(buyerTradeURL), creationEventLog.buyerTradeURL)
-        assert.equal(buyer, creationEventLog.buyerAddress)
+        const creationEventLog = expectEvent.inLogs(creationTx.logs, 'PurchaseOfferMade')
+        const eventPurchaseOffer = creationEventLog.args
+        assert.equal(eventPurchaseOffer.buyerTradeURL, web3.utils.keccak256(buyerTradeURL))
+        assert.equal(eventPurchaseOffer.buyerAddress, buyer)
 
         const stored = await csGOContract.getListing.call(listingId)
         const updatedOffer = stored.purchaseOffer
