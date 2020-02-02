@@ -91,7 +91,7 @@ contract('CSGOSteamTrade', accounts => {
         
         const r = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerAddress, {from: seller })
+          {from: seller })
 
         assert.equal(r.receipt.status, true)
         const listingCreationEvent = expectEvent.inLogs(r.logs, 'ListingCreation')
@@ -101,7 +101,7 @@ contract('CSGOSteamTrade', accounts => {
         assert.equal(eventListing.wear, listing1.wear)
         assert.equal(eventListing.skinName, listing1.skinName)
         assert.equal(eventListing.price, listing1.price)
-        assert.equal(eventListing.sellerAddress, listing1.sellerAddress)
+        assert.equal(eventListing.sellerAddress, seller)
 
 
       })
@@ -109,7 +109,7 @@ contract('CSGOSteamTrade', accounts => {
       it('creates a new listing which ca be fetched by id and properties match', async () => {
         const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerAddress, { from: seller })
+          { from: seller })
 
         const createdListingId = getListingId(createListingTx)
         const stored = await csGOContract.getListing.call(createdListingId)
@@ -128,7 +128,7 @@ contract('CSGOSteamTrade', accounts => {
         for (const listing of listings) {
           const createListingTx = await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
             listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
-            listing.sellerAddress, { from: seller })
+            { from: seller })
             const createdListingId = getListingId(createListingTx)
             assert.equal(createdListingId, expectedListingId++)
         }
@@ -156,7 +156,7 @@ contract('CSGOSteamTrade', accounts => {
       beforeEach(async () => {
         const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerAddress, { from: seller })
+          { from: seller })
         listingId = getListingId(createListingTx)
       })
       it('creates a purchase offer for the listing and the contract balance increases with the price', async () => {
@@ -207,7 +207,7 @@ contract('CSGOSteamTrade', accounts => {
       it('can delete existing listing', async () => {
         const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerAddress, { from: seller })
+          { from: seller })
 
         const createdListingId = getListingId(createListingTx)
 
@@ -223,7 +223,7 @@ contract('CSGOSteamTrade', accounts => {
       it('a stranger cannot delete an existing listing he does not own', async () => {
         const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerAddress, { from: seller })
+          { from: seller })
 
         const createdListingId = getListingId(createListingTx)
 
@@ -240,7 +240,7 @@ contract('CSGOSteamTrade', accounts => {
       it('a seller cannot delete a listing twice', async () => {
         const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerAddress, { from: seller })
+           { from: seller })
 
         const createdListingId = getListingId(createListingTx)
         await csGOContract.deleteListing(createdListingId, { from: seller })
@@ -257,7 +257,7 @@ contract('CSGOSteamTrade', accounts => {
       const buyerTradeURL = 'https://steamcommunity.com/tradeoffer/new/?partner=902300366&token=HYgPwBhA'
       const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
         listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-        listing1.sellerAddress, { from: seller })
+        { from: seller })
         
       const createdListingId = getListingId(createListingTx)
 
@@ -283,7 +283,7 @@ contract('CSGOSteamTrade', accounts => {
       beforeEach(async () => {
         await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
           listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
-          listing.sellerAddress, { from: seller })
+          { from: seller })
       })
 
       it('deletes a purchase offer for the listing after minimum time passed and refunds the buyer', async () => {
@@ -370,7 +370,7 @@ contract('CSGOSteamTrade', accounts => {
         await linkToken.transfer(csGOContract.address, web3.utils.toWei('4', 'ether'))
         const createListingTx = await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
           listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
-          listing.sellerAddress, { from: seller })
+          { from: seller })
         listingId = getListingId(createListingTx)
         await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
             from: buyer,
@@ -467,7 +467,7 @@ contract('CSGOSteamTrade', accounts => {
         await linkToken.transfer(csGOContract.address, web3.utils.toWei('4', 'ether'))
         const createListingTx = await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
           listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
-          listing.sellerAddress, { from: seller })
+          { from: seller })
         const listingId = getListingId(createListingTx)
         await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
           from: buyer,

@@ -80,14 +80,14 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     
     function createListing(string memory _ownerInspectLink, string memory _wear,
         string memory _skinName, uint _paintSeed, string memory _extraItemData,
-        uint _price, address payable _sellerAddress)
+        uint _price)
         public
         onlyOwner
         returns (uint listingId) {
         listingId = numListings++;
         PurchaseOffer memory emptyOffer;
         Listing memory listing = Listing(listingId, _ownerInspectLink, _wear, _skinName, _paintSeed, _extraItemData,
-            _price, _sellerAddress, emptyOffer, true);
+            _price, msg.sender, emptyOffer, true);
         emit ListingCreation(listing);
         listings[listingId] = listing;
     }
