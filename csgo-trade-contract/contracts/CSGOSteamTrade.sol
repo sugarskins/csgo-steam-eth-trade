@@ -14,6 +14,8 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     uint256 constant public OWNERSHIP_STATUS_TRUE = 1;
     uint256 constant public OWNERSHIP_STATUS_INVENTORY_PRIVATE = 2;
 
+    mapping(address => uint256) public linkTokenFunds;
+
     string constant ERR_LISTING_NOT_FOUND = "Listing not found";
     
     struct PurchaseOffer {
@@ -57,6 +59,12 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
 
     event TradeFulfilmentFail (
         Listing listing
+    );
+
+    event LinkFundsReceived (
+        address sender,
+        uint amount,
+        bytes data
     );
 
     uint numListings = 0;
@@ -228,6 +236,28 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         public
         onlyOwner {
         cancelChainlinkRequest(_requestId, _payment, this.fulfillItemTransferConfirmation.selector, _expiration);
+    }
+
+    function onTokenTransfer(
+        address _sender,
+        uint256 _amount,
+        bytes memory _data
+    )
+        public {    
+        require(msg.sender == chainlinkTokenAddress(), "Can only receive from LINK");
+        emit LinkFundsReceived(_sender, _amount, _data);
+        linkTokenFunds[_sender] = linkTokenFunds[_sender].add(_amount);
+    }
+
+
+    function withdrawLink(uint256 _amount) external {
+        LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
+        require(link.transfer(msg.sender, _amount), "Transfer failed");
+        linkTokenFunds[msg.sender] -= linkTokenFunds[msg.sender].sub(_amount);
+    }
+
+    function balanceOfLink(address _account) public view returns (uint256) {
+        return linkTokenFunds[_account];
     }
 
     /**
