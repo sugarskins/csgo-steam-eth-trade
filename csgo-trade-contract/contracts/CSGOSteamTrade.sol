@@ -82,7 +82,6 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         string memory _skinName, uint _paintSeed, string memory _extraItemData,
         uint _price)
         public
-        onlyOwner
         returns (uint listingId) {
         listingId = numListings++;
         PurchaseOffer memory emptyOffer;
@@ -102,7 +101,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     
     function deleteListing(uint _listingId)
         public
-        onlyOwner {
+        onlySeller(_listingId) {
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
 
@@ -131,7 +130,9 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         listings[_listingId] = listing;
     }
 
-    function deletePurchaseOffer(uint _listingId) public {
+    function deletePurchaseOffer(uint _listingId)
+        public
+        onlyBuyer(_listingId) {
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
         require(listing.purchaseOffer.exists == true, "Purchase offer does not exist");
@@ -155,7 +156,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         uint256 _payment,
         string memory _buyerInspectLink)
         public
-        onlyOwner
+        onlySeller(_listingId)
         returns (bytes32 requestId) {
 
         Listing memory listing = listings[_listingId];
@@ -249,5 +250,15 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
             _i /= 10;
         }
         return string(bstr);
+    }
+
+    modifier onlySeller(uint _listingId) {
+        require(listings[_listingId].sellerAddress == msg.sender, "Only seller can do this");
+        _;
+    }
+
+    modifier onlyBuyer(uint _listingId) {
+        require(listings[_listingId].purchaseOffer.owner == msg.sender, "Only buyer can do this");
+        _;
     }
 }
