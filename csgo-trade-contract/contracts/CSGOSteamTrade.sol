@@ -166,7 +166,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         public
         onlySeller(_listingId)
         returns (bytes32 requestId) {
-
+        require(linkTokenFunds[msg.sender] >= _payment, "Not enough LINK funds");
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
         require(listing.purchaseOffer.exists == true, "The listing has not yet received an offer.");
@@ -188,6 +188,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
 
         requestId = sendChainlinkRequestTo(_oracle, req, _payment);
         requestIdToListingId[requestId] = _listingId;
+        linkTokenFunds[msg.sender] = linkTokenFunds[msg.sender].sub(_payment);
     }
 
     /**

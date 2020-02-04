@@ -401,6 +401,15 @@ contract('CSGOSteamTrade', accounts => {
     })
   })
 
+
+  async function addToLinkFunds(owner) {
+    const value = web3.utils.toWei('10')
+    await linkToken.transfer(owner, value)
+    await linkToken.transferAndCall(csGOContract.address, value, depositSelector, {
+      from: owner
+    })
+  }
+
   describe('#createItemTransferConfirmationRequest', () => {
     context('a contract with an existing listing with a matching valid purchase offer', () => {
       const buyerInspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198266545231A16941417193D7840463547991005224'
@@ -409,7 +418,7 @@ contract('CSGOSteamTrade', accounts => {
   
       beforeEach(async () => {
         const listing = listing1
-        await linkToken.transfer(csGOContract.address, web3.utils.toWei('4', 'ether'))
+        await addToLinkFunds(seller)
         const createListingTx = await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
           listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
           { from: seller })
@@ -506,7 +515,7 @@ contract('CSGOSteamTrade', accounts => {
         const listing = listing1
         const buyerInspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198266545231A16941417193D7840463547991005224'
         const buyerTradeURL = 'https://steamcommunity.com/tradeoffer/new/?partner=902300366&token=HYgPwBhA'
-        await linkToken.transfer(csGOContract.address, web3.utils.toWei('4', 'ether'))
+        await addToLinkFunds(seller)
         const createListingTx = await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
           listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
           { from: seller })
