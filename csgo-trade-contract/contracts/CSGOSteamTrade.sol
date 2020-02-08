@@ -253,8 +253,8 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
 
     function withdrawLink(uint256 _amount) external {
         LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
-        require(link.transfer(msg.sender, _amount), "Transfer failed");
         linkTokenFunds[msg.sender] -= linkTokenFunds[msg.sender].sub(_amount);
+        require(link.transfer(msg.sender, _amount), "Transfer failed");
     }
 
     function balanceOfLink(address _account) public view returns (uint256) {
