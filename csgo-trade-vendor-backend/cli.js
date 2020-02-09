@@ -130,8 +130,7 @@ const RPC_DESC = 'HTTP Rpc address to use to connect to the Ethereum network.'
           await listingManager.setup(false)
           await listingManager.deleteListings(argv.ids)
         } catch (e) {
-          console.error(`FATAL: ${e.stack}`)
-          process.exit(1)
+
         }
 
       })
@@ -146,9 +145,27 @@ const RPC_DESC = 'HTTP Rpc address to use to connect to the Ethereum network.'
           .option('credentials', {
             desc: CREDENTIALS_DESC
           })
+          .option('linkcontract', {
+            desc: 'Address of the LINK token contract.'
+          })
+          .option('amount', {
+            desc: 'LINK token wei amount to be deposited'
+          })
           .help().argv
 
-          
+        try {
+          const credentialsFile = fs.readFileSync(argv.credentials, 'utf8')
+          const credentials = JSON.parse(credentialsFile)
+
+          const listingManager = new ListingManager(argv.rpc, argv.contract, credentials)
+          await listingManager.setup(false)
+
+          await listingManager.depositLink(argv.amount, argv.linkcontract)
+        } catch (e) {
+          console.error(`FATAL: ${e.stack}`)
+          process.exit(1)
+
+        }
       })
       .help('help')
       .wrap(null)
