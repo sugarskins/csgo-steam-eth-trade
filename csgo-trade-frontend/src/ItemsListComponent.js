@@ -162,7 +162,8 @@ class ItemsListComponent extends Component {
             console.info(`Listings available: ${listingsCount}`)
 
             const listingIds = []
-            for (let i = 0; i < listingsCount; i++) {
+            const MAX_LATEST_LISTINGS_COUNT = 100
+            for (let i = listingsCount; i > Math.max(listingsCount -  MAX_LATEST_LISTINGS_COUNT, 0); i--) {
                 listingIds.push(i)
             }
     
@@ -179,7 +180,7 @@ class ItemsListComponent extends Component {
                 console.error(`Failed to load ETH/${DISPLAY_CURRENCY} pricing. ${e.stack}`)
             }
             const listings = await Promise.all(listingIds.map(id => this.state.contractInstance.methods.getListing(id).call()))
-            console.info(`Fetched ${this.state.listings.length} listings`)
+            console.info(`Fetched ${listings.length} listings`)
     
             let pastPurchases = []
     
