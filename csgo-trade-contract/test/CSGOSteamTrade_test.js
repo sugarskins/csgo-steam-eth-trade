@@ -208,7 +208,7 @@ contract('CSGOSteamTrade', accounts => {
         })
         const creationEventLog = expectEvent.inLogs(creationTx.logs, 'PurchaseOfferMade')
         const eventPurchaseOffer = creationEventLog.args
-        assert.equal(eventPurchaseOffer.buyerTradeURL, web3.utils.keccak256(buyerTradeURL))
+        assert.equal(eventPurchaseOffer.sellerAddress, seller)
         assert.equal(eventPurchaseOffer.buyerAddress, buyer)
 
         const stored = await csGOContract.getListing.call(listingId)
