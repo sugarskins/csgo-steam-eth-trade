@@ -112,6 +112,7 @@ class ItemsListComponent extends Component {
               projectId: TERMINAL_SDK.PROJECT_ID
              })
 
+        this.metamaskWeb3 = utils.getMetamask()
         // eslint-disable-next-line            
         this.state.web3 = new Web3(terminalSDKWrapperProvider)
         
@@ -184,7 +185,7 @@ class ItemsListComponent extends Component {
     
             let pastPurchases = []
     
-            if (utils.getMetamask() && utils.getMetamask().selectedAddress) {
+            if (this.metamaskWeb3 && this.metamaskWeb3.selectedAddress) {
                 const matchingBuyerAddress = utils.getMetamask().selectedAddress.toLowerCase()
                 // TODO: use filter option for getPastEvents. Figure out why it doesn't work in its current form
                 pastPurchases = await this.state.contractInstance.getPastEvents(
@@ -279,7 +280,7 @@ class ItemsListComponent extends Component {
             .map(listing => contractListingToDisplayItem(listing, this.ethToFiatPrice))
 
         const pendingPurchases = this.state.listings
-            .filter(listing => listing.exists && listing.purchaseOffer.exists && listing.purchaseOffer.buyerTradeURL === this.state.userTradeURL)
+            .filter(listing => listing.exists && listing.purchaseOffer.exists && listing.purchaseOffer.owner.toLowerCase() === this.metamaskWeb3.selectedAddress)
         const rowSize = 3
         const rowGroupedItems = utils.makeGroups(displayItems, rowSize)
         return (
