@@ -288,8 +288,10 @@ class ItemsListComponent extends Component {
             .filter(listing => listing.exists && !listing.purchaseOffer.exists)
             .map(listing => contractListingToDisplayItem(listing, this.ethToFiatPrice))
 
-        const pendingPurchases = this.state.listings
-            .filter(listing => listing.exists && listing.purchaseOffer.exists && listing.purchaseOffer.owner.toLowerCase() === this.metamaskWeb3.selectedAddress)
+        const finishedPurchasesIdSet = new Set(this.state.pastPurchases.map(p => p.returnValues.listing.listingId))
+        const pendingPurchases = this.state.purchaseOffersMade
+            .filter(p => !finishedPurchasesIdSet.has(p.returnValues.listing.listingId))
+            .map(p => p.returnValues.listing)
         const rowSize = 3
         const rowGroupedItems = utils.makeGroups(displayItems, rowSize)
         return (
