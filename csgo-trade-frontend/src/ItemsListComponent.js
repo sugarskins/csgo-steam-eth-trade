@@ -93,6 +93,7 @@ class ItemsListComponent extends Component {
             items: [],
             listings: [],
             pastPurchases: [],
+            purchaseOffersMade: [],
             csgoSteamTradeContractAddress: searchParams.get(CONTRACT_ADDRESS_QUERY_PARAM),
             userTradeURL: currentTradeURL,
             validTradeURL: validateTradeURL(currentTradeURL).valid,       
@@ -184,28 +185,36 @@ class ItemsListComponent extends Component {
             console.info(`Fetched ${listings.length} listings`)
     
             let pastPurchases = []
-    
+            let purchaseOffersMade = []
             if (this.metamaskWeb3 && this.metamaskWeb3.selectedAddress) {
                 const matchingBuyerAddress = utils.getMetamask().selectedAddress.toLowerCase()
-                // TODO: use filter option for getPastEvents. Figure out why it doesn't work in its current form
-                pastPurchases = await this.state.contractInstance.getPastEvents(
-                    'TradeDone', {
-                        filter: { buyerAddress: matchingBuyerAddress },
-                        fromBlock: 0,
-                        toBlock: 'latest' })
-
-                
                 console.info(`Selected buyer address is ${matchingBuyerAddress}`)
-                console.info(pastPurchases[0].returnValues)
-                // pastPurchases = pastPurchases.filter(p => p.returnValues.buyerAddress.toLowerCase() === matchingBuyerAddress)
-        
-                console.info(`Fetched ${pastPurchases.length} past purchases for user.`)
-                console.log(pastPurchases)
+                // TODO: use filter option for getPastEvents. Figure out why it doesn't work in its current form
+                const purchaseHistory = await Promise.all([
+                        this.state.contractInstance.getPastEvents(
+                            'TradeDone', {
+                                filter: { buyerAddress: matchingBuyerAddress },
+                                fromBlock: 0,
+                                toBlock: 'latest' }),
+                        this.state.contractInstance.getPastEvents(
+                            'PurchaseOfferMade', {
+                                filter: { buyerAddress: matchingBuyerAddress },
+                                fromBlock: 0,
+                                toBlock: 'latest' })
+                    ])
+
+                pastPurchases = purchaseHistory[0]
+                purchaseOffersMade = purchaseHistory[1]
+
+                console.info(`Fetched ${pastPurchases.length} past TradeDone purchases for user.`)
+                console.info(`Fetched ${purchaseOffersMade.length} past PurchaseOfferMade purchases for user.`)
+                
             }
 
             await this.setState({
                 listings,
                 pastPurchases,
+                purchaseOffersMade,
                 ethToFiatPrice,
                 initialLoadFinished: true
             })
