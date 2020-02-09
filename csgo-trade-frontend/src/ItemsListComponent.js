@@ -183,17 +183,19 @@ class ItemsListComponent extends Component {
     
             let pastPurchases = []
     
-            if (this.state.userTradeURL) {
+            if (utils.getMetamask() && utils.getMetamask().selectedAddress) {
+                const matchingBuyerAddress = utils.getMetamask().selectedAddress.toLowerCase()
                 // TODO: use filter option for getPastEvents. Figure out why it doesn't work in its current form
-                const matchingBuyerTradeURLHash = this.state.web3.utils.keccak256(this.state.userTradeURL)
                 pastPurchases = await this.state.contractInstance.getPastEvents(
                     'TradeDone', {
-                        // filter: { buyerTradeURL: matchingBuyerTradeURLHash },
+                        filter: { buyerAddress: matchingBuyerAddress },
                         fromBlock: 0,
                         toBlock: 'latest' })
 
-                pastPurchases = pastPurchases.filter(p => p.returnValues.buyerTradeURL === matchingBuyerTradeURLHash)
-        
+                
+                console.info(`Selected buyer address is ${matchingBuyerAddress}`)
+                console.info(pastPurchases[0].returnValues)
+                // pastPurchases = pastPurchases.filter(p => p.returnValues.buyerAddress.toLowerCase() === matchingBuyerAddress)
         
                 console.info(`Fetched ${pastPurchases.length} past purchases for user.`)
                 console.log(pastPurchases)

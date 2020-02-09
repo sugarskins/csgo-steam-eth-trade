@@ -5,19 +5,10 @@ import Modal from 'react-bootstrap/Modal'
 import Card from  'react-bootstrap/Card'
 import Alert from  'react-bootstrap/Alert'
 import Web3 from 'web3'
+import { getMetamask } from './utils'
 
 import CSGOSteamTradeContract from './CSGOSteamTrade'
 
-function getMetamask() {
-    if (typeof window.ethereum !== 'undefined') {
-        console.log('Metamask web3 is enabled')       
-        // eslint-disable-next-line     
-        return window.ethereum
-      } else {
-        console.info('web3 is not found')
-        return false
-      }
-}
 
 const PURCHASE_STATUSES = {
     REQUEST_PENDING: {
