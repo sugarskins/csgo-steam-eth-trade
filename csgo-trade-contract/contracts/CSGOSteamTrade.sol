@@ -113,7 +113,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         onlySeller(_listingId) {
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
-
+        listings[_listingId].exists = false;
         if (listing.purchaseOffer.exists) {
             // return funds
             listing.purchaseOffer.owner.transfer(listing.price);
@@ -121,8 +121,6 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         } else {
             emit TradeDone(listing.sellerAddress, address(0), listing, TradeOutcome.DELETED_LISTING);
         }
-        
-        listings[_listingId].exists = false;
     }
 
     function createPurchaseOffer(uint _listingId, string memory _buyerTradeURL) public payable {
@@ -151,11 +149,9 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         uint secondsSinceOfferCreation = block.timestamp - listing.purchaseOffer.creationTimestamp;
         require(secondsSinceOfferCreation > MINIMUM_PURCHASE_OFFER_AGE, "The minimum block age requirement not met for deletion");
 
+        listings[_listingId].purchaseOffer.exists = false;
         // send the funds back to the owner of the purchase offer.
         listing.purchaseOffer.owner.transfer(listing.price);
-
-        listing.purchaseOffer.exists = false;
-        listings[_listingId] = listing;
     }
 
     function createItemTransferConfirmationRequest(
@@ -209,13 +205,13 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         require(listing.purchaseOffer.exists == true, "Listing has no purchase offer");
 
         if (_ownershipStatus == OWNERSHIP_STATUS_TRUE) {
+            listings[listingId].exists = false;
             listing.sellerAddress.transfer(listing.price);
             emit TradeDone(listing.sellerAddress, listing.purchaseOffer.owner, listing, TradeOutcome.SUCCESSFULLY_CONFIRMED);
-            listings[listingId].exists = false;
         } else if (_ownershipStatus == OWNERSHIP_STATUS_INVENTORY_PRIVATE) {
             listing.sellerAddress.transfer(listing.price);
-            emit TradeDone(listing.sellerAddress, listing.purchaseOffer.owner, listing, TradeOutcome.UNABLE_TO_CONFIRM_PRIVATE_PROFILE);
             listings[listingId].exists = false;
+            emit TradeDone(listing.sellerAddress, listing.purchaseOffer.owner, listing, TradeOutcome.UNABLE_TO_CONFIRM_PRIVATE_PROFILE);
         } else if (_ownershipStatus == OWNERSHIP_STATUS_FALSE) {
             emit TradeFulfilmentFail(listing);
         } else {
