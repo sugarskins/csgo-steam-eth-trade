@@ -93,6 +93,7 @@ class ItemsListComponent extends Component {
             items: [],
             listings: [],
             pastPurchases: [],
+            purchaseOffersMade: [],
             csgoSteamTradeContractAddress: searchParams.get(CONTRACT_ADDRESS_QUERY_PARAM),
             userTradeURL: currentTradeURL,
             validTradeURL: validateTradeURL(currentTradeURL).valid,       
@@ -112,6 +113,7 @@ class ItemsListComponent extends Component {
               projectId: TERMINAL_SDK.PROJECT_ID
              })
 
+        this.metamaskWeb3 = utils.getMetamask()
         // eslint-disable-next-line            
         this.state.web3 = new Web3(terminalSDKWrapperProvider)
         
@@ -162,7 +164,8 @@ class ItemsListComponent extends Component {
             console.info(`Listings available: ${listingsCount}`)
 
             const listingIds = []
-            for (let i = 0; i < listingsCount; i++) {
+            const MAX_LATEST_LISTINGS_COUNT = 100
+            for (let i = listingsCount; i > Math.max(listingsCount -  MAX_LATEST_LISTINGS_COUNT, 0); i--) {
                 listingIds.push(i)
             }
     
@@ -179,29 +182,39 @@ class ItemsListComponent extends Component {
                 console.error(`Failed to load ETH/${DISPLAY_CURRENCY} pricing. ${e.stack}`)
             }
             const listings = await Promise.all(listingIds.map(id => this.state.contractInstance.methods.getListing(id).call()))
-            console.info(`Fetched ${this.state.listings.length} listings`)
+            console.info(`Fetched ${listings.length} listings`)
     
             let pastPurchases = []
-    
-            if (this.state.userTradeURL) {
+            let purchaseOffersMade = []
+            if (this.metamaskWeb3 && this.metamaskWeb3.selectedAddress) {
+                const matchingBuyerAddress = utils.getMetamask().selectedAddress.toLowerCase()
+                console.info(`Selected buyer address is ${matchingBuyerAddress}`)
                 // TODO: use filter option for getPastEvents. Figure out why it doesn't work in its current form
-                const matchingBuyerTradeURLHash = this.state.web3.utils.keccak256(this.state.userTradeURL)
-                pastPurchases = await this.state.contractInstance.getPastEvents(
-                    'TradeDone', {
-                        // filter: { buyerTradeURL: matchingBuyerTradeURLHash },
-                        fromBlock: 0,
-                        toBlock: 'latest' })
+                const purchaseHistory = await Promise.all([
+                        this.state.contractInstance.getPastEvents(
+                            'TradeDone', {
+                                filter: { buyerAddress: matchingBuyerAddress },
+                                fromBlock: 0,
+                                toBlock: 'latest' }),
+                        this.state.contractInstance.getPastEvents(
+                            'PurchaseOfferMade', {
+                                filter: { buyerAddress: matchingBuyerAddress },
+                                fromBlock: 0,
+                                toBlock: 'latest' })
+                    ])
 
-                pastPurchases = pastPurchases.filter(p => p.returnValues.buyerTradeURL === matchingBuyerTradeURLHash)
-        
-        
-                console.info(`Fetched ${pastPurchases.length} past purchases for user.`)
-                console.log(pastPurchases)
+                pastPurchases = purchaseHistory[0]
+                purchaseOffersMade = purchaseHistory[1]
+
+                console.info(`Fetched ${pastPurchases.length} past TradeDone purchases for user.`)
+                console.info(`Fetched ${purchaseOffersMade.length} past PurchaseOfferMade purchases for user.`)
+                
             }
 
             await this.setState({
                 listings,
                 pastPurchases,
+                purchaseOffersMade,
                 ethToFiatPrice,
                 initialLoadFinished: true
             })
@@ -275,8 +288,10 @@ class ItemsListComponent extends Component {
             .filter(listing => listing.exists && !listing.purchaseOffer.exists)
             .map(listing => contractListingToDisplayItem(listing, this.ethToFiatPrice))
 
-        const pendingPurchases = this.state.listings
-            .filter(listing => listing.exists && listing.purchaseOffer.exists && listing.purchaseOffer.buyerTradeURL === this.state.userTradeURL)
+        const finishedPurchasesIdSet = new Set(this.state.pastPurchases.map(p => p.returnValues.listing.listingId))
+        const pendingPurchases = this.state.purchaseOffersMade
+            .filter(p => !finishedPurchasesIdSet.has(p.returnValues.listing.listingId))
+            .map(p => p.returnValues.listing)
         const rowSize = 3
         const rowGroupedItems = utils.makeGroups(displayItems, rowSize)
         return (

@@ -38,6 +38,9 @@ contract('CSGOSteamTrade', accounts => {
     // Represents 1 LINK for testnet requests
     const payment = web3.utils.toWei('1')
 
+  const depositEncoding = web3.utils.keccak256('depositLinkFunds(address,uint256)')
+  const depositSelector = depositEncoding.slice(0,4)
+
 
   let csGOContract = null
   let linkToken = null
@@ -85,13 +88,52 @@ contract('CSGOSteamTrade', accounts => {
     const minimumAgeForDeletionObject = await csGOContract.MINIMUM_PURCHASE_OFFER_AGE.call()
     minimumAgeForPurchaseDeletion = parseInt(minimumAgeForDeletionObject.toString())
   })
+
+  describe('link deposits functions', () => {
+    context('seller has a link deposit done', () => {
+
+      const initialDepositValue =  web3.utils.toWei('1', 'ether')
+      beforeEach(async () => {
+        await linkToken.transfer(seller, web3.utils.toWei('4', 'ether'))
+        await linkToken.transferAndCall(csGOContract.address, initialDepositValue, depositSelector, {
+          from: seller
+        })
+      })
+      it('fetches LINK balance of seller correctly', async () => {
+        const balance = await csGOContract.balanceOfLink.call(seller)
+        assert.equal(balance, initialDepositValue)
+      })
+
+      it('fails to withdraw more LINK than what is available', async () => {
+
+        const tooHighWithdrawal = (new BigNumber(initialDepositValue)).plus(1)
+        await truffleAssert.reverts(
+            csGOContract.withdrawLink(tooHighWithdrawal, {
+              from: seller
+            })
+        )
+      })
+
+      it('succesfully withdraws half the deposited sum', async () => {
+        const halfTheDeposit = (new BigNumber(initialDepositValue)).dividedBy(2)
+        const balanceBefore = await linkToken.balanceOf(seller)
+        await csGOContract.withdrawLink(halfTheDeposit, {
+          from: seller
+        })
+        const balanceAfter = await linkToken.balanceOf(seller)
+
+        assert.equal((new BigNumber(balanceAfter).minus(new BigNumber(balanceBefore)).toFixed()), halfTheDeposit.toFixed())
+      })
+    })
+  }) 
+
   describe('#createListing', () => {
     context('on a contract with no previous history', () => {
       it('can create a new listing and emits creation event', async () => {
         
         const r = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerAddress, {from: seller })
+          {from: seller })
 
         assert.equal(r.receipt.status, true)
         const listingCreationEvent = expectEvent.inLogs(r.logs, 'ListingCreation')
@@ -101,7 +143,7 @@ contract('CSGOSteamTrade', accounts => {
         assert.equal(eventListing.wear, listing1.wear)
         assert.equal(eventListing.skinName, listing1.skinName)
         assert.equal(eventListing.price, listing1.price)
-        assert.equal(eventListing.sellerAddress, listing1.sellerAddress)
+        assert.equal(eventListing.sellerAddress, seller)
 
 
       })
@@ -109,7 +151,7 @@ contract('CSGOSteamTrade', accounts => {
       it('creates a new listing which ca be fetched by id and properties match', async () => {
         const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerAddress, { from: seller })
+          { from: seller })
 
         const createdListingId = getListingId(createListingTx)
         const stored = await csGOContract.getListing.call(createdListingId)
@@ -128,7 +170,7 @@ contract('CSGOSteamTrade', accounts => {
         for (const listing of listings) {
           const createListingTx = await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
             listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
-            listing.sellerAddress, { from: seller })
+            { from: seller })
             const createdListingId = getListingId(createListingTx)
             assert.equal(createdListingId, expectedListingId++)
         }
@@ -156,7 +198,7 @@ contract('CSGOSteamTrade', accounts => {
       beforeEach(async () => {
         const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerAddress, { from: seller })
+          { from: seller })
         listingId = getListingId(createListingTx)
       })
       it('creates a purchase offer for the listing and the contract balance increases with the price', async () => {
@@ -166,7 +208,7 @@ contract('CSGOSteamTrade', accounts => {
         })
         const creationEventLog = expectEvent.inLogs(creationTx.logs, 'PurchaseOfferMade')
         const eventPurchaseOffer = creationEventLog.args
-        assert.equal(eventPurchaseOffer.buyerTradeURL, web3.utils.keccak256(buyerTradeURL))
+        assert.equal(eventPurchaseOffer.sellerAddress, seller)
         assert.equal(eventPurchaseOffer.buyerAddress, buyer)
 
         const stored = await csGOContract.getListing.call(listingId)
@@ -207,7 +249,7 @@ contract('CSGOSteamTrade', accounts => {
       it('can delete existing listing', async () => {
         const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerAddress, { from: seller })
+          { from: seller })
 
         const createdListingId = getListingId(createListingTx)
 
@@ -223,7 +265,7 @@ contract('CSGOSteamTrade', accounts => {
       it('a stranger cannot delete an existing listing he does not own', async () => {
         const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerAddress, { from: seller })
+          { from: seller })
 
         const createdListingId = getListingId(createListingTx)
 
@@ -240,7 +282,7 @@ contract('CSGOSteamTrade', accounts => {
       it('a seller cannot delete a listing twice', async () => {
         const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-          listing1.sellerAddress, { from: seller })
+           { from: seller })
 
         const createdListingId = getListingId(createListingTx)
         await csGOContract.deleteListing(createdListingId, { from: seller })
@@ -257,7 +299,7 @@ contract('CSGOSteamTrade', accounts => {
       const buyerTradeURL = 'https://steamcommunity.com/tradeoffer/new/?partner=902300366&token=HYgPwBhA'
       const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
         listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
-        listing1.sellerAddress, { from: seller })
+        { from: seller })
         
       const createdListingId = getListingId(createListingTx)
 
@@ -283,7 +325,7 @@ contract('CSGOSteamTrade', accounts => {
       beforeEach(async () => {
         await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
           listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
-          listing.sellerAddress, { from: seller })
+          { from: seller })
       })
 
       it('deletes a purchase offer for the listing after minimum time passed and refunds the buyer', async () => {
@@ -359,6 +401,15 @@ contract('CSGOSteamTrade', accounts => {
     })
   })
 
+
+  async function addToLinkFunds(owner) {
+    const value = web3.utils.toWei('10')
+    await linkToken.transfer(owner, value)
+    await linkToken.transferAndCall(csGOContract.address, value, depositSelector, {
+      from: owner
+    })
+  }
+
   describe('#createItemTransferConfirmationRequest', () => {
     context('a contract with an existing listing with a matching valid purchase offer', () => {
       const buyerInspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198266545231A16941417193D7840463547991005224'
@@ -367,10 +418,10 @@ contract('CSGOSteamTrade', accounts => {
   
       beforeEach(async () => {
         const listing = listing1
-        await linkToken.transfer(csGOContract.address, web3.utils.toWei('4', 'ether'))
+        await addToLinkFunds(seller)
         const createListingTx = await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
           listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
-          listing.sellerAddress, { from: seller })
+          { from: seller })
         listingId = getListingId(createListingTx)
         await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
             from: buyer,
@@ -464,10 +515,10 @@ contract('CSGOSteamTrade', accounts => {
         const listing = listing1
         const buyerInspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198266545231A16941417193D7840463547991005224'
         const buyerTradeURL = 'https://steamcommunity.com/tradeoffer/new/?partner=902300366&token=HYgPwBhA'
-        await linkToken.transfer(csGOContract.address, web3.utils.toWei('4', 'ether'))
+        await addToLinkFunds(seller)
         const createListingTx = await csGOContract.createListing(listing.ownerInspectLink, listing.wear,
           listing.skinName, listing.paintSeed, listing.extraItemData, listing.price,
-          listing.sellerAddress, { from: seller })
+          { from: seller })
         const listingId = getListingId(createListingTx)
         await csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
           from: buyer,

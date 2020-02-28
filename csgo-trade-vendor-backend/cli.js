@@ -104,30 +104,6 @@ const RPC_DESC = 'HTTP Rpc address to use to connect to the Ethereum network.'
             process.exit(1)
           }
       })
-      .command('deploy', 'deploy trade contract', async () => {
-        const argv = yargs
-          .option('rpc', {
-            desc: RPC_DESC
-          })
-          .option('credentials', {
-            desc: CREDENTIALS_DESC
-          })
-          .option('link', {
-            desc: `contract address for the LINK token. (if not specified and it's a known network it will be picked automatically`
-          })
-          .help().argv
-
-        try {
-          const credentialsFile = fs.readFileSync(argv.credentials, 'utf8')
-          const credentials = JSON.parse(credentialsFile)
-
-          await ListingManager.deployContract(argv.rpc, credentials, argv.link)
-        } catch (e) {
-          console.error(`Failed: ${e.stack}`)
-          process.exit(1)
-        }
-
-      })
       .command('delete', 'delete listing', async (yargs) => {
         const argv = yargs
           .option('contract', {
@@ -154,10 +130,42 @@ const RPC_DESC = 'HTTP Rpc address to use to connect to the Ethereum network.'
           await listingManager.setup(false)
           await listingManager.deleteListings(argv.ids)
         } catch (e) {
-          console.error(`FATAL: ${e.stack}`)
-          process.exit(1)
+
         }
 
+      })
+      .command('depositlink', 'deposit LINK token funds to the contract to be able to confirm delivery', async (yargs) => {
+        const argv = yargs
+          .option('contract', {
+            desc: CONTRACT_DESC
+          })
+          .option('rpc', {
+            desc: RPC_DESC
+          })
+          .option('credentials', {
+            desc: CREDENTIALS_DESC
+          })
+          .option('linkcontract', {
+            desc: 'Address of the LINK token contract.'
+          })
+          .option('amount', {
+            desc: 'LINK token wei amount to be deposited'
+          })
+          .help().argv
+
+        try {
+          const credentialsFile = fs.readFileSync(argv.credentials, 'utf8')
+          const credentials = JSON.parse(credentialsFile)
+
+          const listingManager = new ListingManager(argv.rpc, argv.contract, credentials)
+          await listingManager.setup(false)
+
+          await listingManager.depositLink(argv.amount, argv.linkcontract)
+        } catch (e) {
+          console.error(`FATAL: ${e.stack}`)
+          process.exit(1)
+
+        }
       })
       .help('help')
       .wrap(null)

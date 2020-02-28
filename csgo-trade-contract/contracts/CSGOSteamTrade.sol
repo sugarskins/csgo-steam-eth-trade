@@ -6,13 +6,15 @@ import "chainlink/v0.5/contracts/vendor/Ownable.sol";
 
 
 contract CSGOSteamTrade is ChainlinkClient, Ownable {
-    uint private constant hour = 60 * 60;
-    uint public constant MINIMUM_PURCHASE_OFFER_AGE = hour * 6;
+
+    uint public constant MINIMUM_PURCHASE_OFFER_AGE = 6 hours;
     string public constant CHECK_INVENTORY_CONTAINS_ITEM_METHOD = "tradeurlownerhasinspectlinktarget";
 
     uint256 constant public OWNERSHIP_STATUS_FALSE = 0;
     uint256 constant public OWNERSHIP_STATUS_TRUE = 1;
     uint256 constant public OWNERSHIP_STATUS_INVENTORY_PRIVATE = 2;
+
+    mapping(address => uint256) public linkTokenFunds;
 
     string constant ERR_LISTING_NOT_FOUND = "Listing not found";
     
@@ -37,11 +39,12 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     }
 
     event ListingCreation(
+        address indexed owner,
         Listing listing
     );
 
     event PurchaseOfferMade(
-        string indexed buyerTradeURL,
+        address indexed sellerAddress,
         address indexed buyerAddress,
         Listing listing
     );
@@ -49,7 +52,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     enum TradeOutcome { SUCCESSFULLY_CONFIRMED, UNABLE_TO_CONFIRM_PRIVATE_PROFILE, DELETED_LISTING }
 
     event TradeDone (
-        string indexed buyerTradeURL,
+        address indexed sellerAddress,
         address indexed buyerAddress,
         Listing listing,
         TradeOutcome tradeOutcome
@@ -57,6 +60,12 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
 
     event TradeFulfilmentFail (
         Listing listing
+    );
+
+    event LinkFundsReceived (
+        address sender,
+        uint amount,
+        bytes data
     );
 
     uint numListings = 0;
@@ -80,15 +89,14 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     
     function createListing(string memory _ownerInspectLink, string memory _wear,
         string memory _skinName, uint _paintSeed, string memory _extraItemData,
-        uint _price, address payable _sellerAddress)
+        uint _price)
         public
-        onlyOwner
         returns (uint listingId) {
         listingId = numListings++;
         PurchaseOffer memory emptyOffer;
         Listing memory listing = Listing(listingId, _ownerInspectLink, _wear, _skinName, _paintSeed, _extraItemData,
-            _price, _sellerAddress, emptyOffer, true);
-        emit ListingCreation(listing);
+            _price, msg.sender, emptyOffer, true);
+        emit ListingCreation(msg.sender, listing);
         listings[listingId] = listing;
     }
     
@@ -102,19 +110,17 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     
     function deleteListing(uint _listingId)
         public
-        onlyOwner {
+        onlySeller(_listingId) {
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
-
+        listings[_listingId].exists = false;
         if (listing.purchaseOffer.exists) {
             // return funds
             listing.purchaseOffer.owner.transfer(listing.price);
-            emit TradeDone(listing.purchaseOffer.buyerTradeURL, listing.purchaseOffer.owner, listing, TradeOutcome.DELETED_LISTING);
+            emit TradeDone(listing.sellerAddress, listing.purchaseOffer.owner, listing, TradeOutcome.DELETED_LISTING);
         } else {
-            emit TradeDone("", address(0), listing, TradeOutcome.DELETED_LISTING);
+            emit TradeDone(listing.sellerAddress, address(0), listing, TradeOutcome.DELETED_LISTING);
         }
-        
-        listings[_listingId].exists = false;
     }
 
     function createPurchaseOffer(uint _listingId, string memory _buyerTradeURL) public payable {
@@ -127,11 +133,13 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         PurchaseOffer memory purchaseOffer = PurchaseOffer(msg.sender, currentTimestamp, _buyerTradeURL, true);
         listing.purchaseOffer = purchaseOffer;
 
-        emit PurchaseOfferMade(_buyerTradeURL, msg.sender, listing);
+        emit PurchaseOfferMade(listing.sellerAddress, msg.sender, listing);
         listings[_listingId] = listing;
     }
 
-    function deletePurchaseOffer(uint _listingId) public {
+    function deletePurchaseOffer(uint _listingId)
+        public
+        onlyBuyer(_listingId) {
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
         require(listing.purchaseOffer.exists == true, "Purchase offer does not exist");
@@ -141,11 +149,9 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         uint secondsSinceOfferCreation = block.timestamp - listing.purchaseOffer.creationTimestamp;
         require(secondsSinceOfferCreation > MINIMUM_PURCHASE_OFFER_AGE, "The minimum block age requirement not met for deletion");
 
+        listings[_listingId].purchaseOffer.exists = false;
         // send the funds back to the owner of the purchase offer.
         listing.purchaseOffer.owner.transfer(listing.price);
-
-        listing.purchaseOffer.exists = false;
-        listings[_listingId] = listing;
     }
 
     function createItemTransferConfirmationRequest(
@@ -155,9 +161,9 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         uint256 _payment,
         string memory _buyerInspectLink)
         public
-        onlyOwner
+        onlySeller(_listingId)
         returns (bytes32 requestId) {
-
+        require(linkTokenFunds[msg.sender] >= _payment, "Not enough LINK funds");
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
         require(listing.purchaseOffer.exists == true, "The listing has not yet received an offer.");
@@ -179,6 +185,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
 
         requestId = sendChainlinkRequestTo(_oracle, req, _payment);
         requestIdToListingId[requestId] = _listingId;
+        linkTokenFunds[msg.sender] = linkTokenFunds[msg.sender].sub(_payment);
     }
 
     /**
@@ -198,13 +205,13 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         require(listing.purchaseOffer.exists == true, "Listing has no purchase offer");
 
         if (_ownershipStatus == OWNERSHIP_STATUS_TRUE) {
-            listing.sellerAddress.transfer(listing.price);
-            emit TradeDone(listing.purchaseOffer.buyerTradeURL, listing.purchaseOffer.owner, listing, TradeOutcome.SUCCESSFULLY_CONFIRMED);
             listings[listingId].exists = false;
+            listing.sellerAddress.transfer(listing.price);
+            emit TradeDone(listing.sellerAddress, listing.purchaseOffer.owner, listing, TradeOutcome.SUCCESSFULLY_CONFIRMED);
         } else if (_ownershipStatus == OWNERSHIP_STATUS_INVENTORY_PRIVATE) {
             listing.sellerAddress.transfer(listing.price);
-            emit TradeDone(listing.purchaseOffer.buyerTradeURL, listing.purchaseOffer.owner, listing, TradeOutcome.UNABLE_TO_CONFIRM_PRIVATE_PROFILE);
             listings[listingId].exists = false;
+            emit TradeDone(listing.sellerAddress, listing.purchaseOffer.owner, listing, TradeOutcome.UNABLE_TO_CONFIRM_PRIVATE_PROFILE);
         } else if (_ownershipStatus == OWNERSHIP_STATUS_FALSE) {
             emit TradeFulfilmentFail(listing);
         } else {
@@ -229,6 +236,28 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         cancelChainlinkRequest(_requestId, _payment, this.fulfillItemTransferConfirmation.selector, _expiration);
     }
 
+    function onTokenTransfer(
+        address _sender,
+        uint256 _amount,
+        bytes memory _data
+    )
+        public {    
+        require(msg.sender == chainlinkTokenAddress(), "Can only receive from LINK");
+        emit LinkFundsReceived(_sender, _amount, _data);
+        linkTokenFunds[_sender] = linkTokenFunds[_sender].add(_amount);
+    }
+
+
+    function withdrawLink(uint256 _amount) external {
+        LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
+        linkTokenFunds[msg.sender] -= linkTokenFunds[msg.sender].sub(_amount);
+        require(link.transfer(msg.sender, _amount), "Transfer failed");
+    }
+
+    function balanceOfLink(address _account) public view returns (uint256) {
+        return linkTokenFunds[_account];
+    }
+
     /**
      * @notice Converts a uint to a string. Extracted from https://github.com/provable-things/ethereum-api/blob/master/oraclizeAPI_0.5.sol
      */
@@ -249,5 +278,15 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
             _i /= 10;
         }
         return string(bstr);
+    }
+
+    modifier onlySeller(uint _listingId) {
+        require(listings[_listingId].sellerAddress == msg.sender, "Only seller can do this");
+        _;
+    }
+
+    modifier onlyBuyer(uint _listingId) {
+        require(listings[_listingId].purchaseOffer.owner == msg.sender, "Only buyer can do this");
+        _;
     }
 }

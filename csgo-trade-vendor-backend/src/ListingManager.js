@@ -4,6 +4,7 @@ const { getSteamUserClients } = require('./steam')
 const Scanner = require('./scanner')
 const log = require('./log')
 const csgoTradeContract = require('./contracts/CSGOSteamTrade')
+const linkTokenContract = require('./contracts/LINKToken')
 const utils = require('./utils')
 
 
@@ -111,7 +112,7 @@ class ListingManager {
       const skinName = inventoryItem.market_hash_name
       try {
         const r = await this.contract.createListing(inspectLink, wear,
-          skinName, paintSeed, extraItemData, price, sellerEthereumAdress, {
+          skinName, paintSeed, extraItemData, price, {
             gasLimit: to0xHexString('6721975'),
             gasPrice: to0xHexString('20000000000'),
           })
@@ -222,6 +223,16 @@ class ListingManager {
 
     await listingManager.setup(false)
     return listingManager
+  }
+
+  async depositLink(amount, linkTokenContractAddress) {
+    const linkContract = new ethers.Contract(linkTokenContractAddress, linkTokenContract, this.wallet)
+
+    const depositEncoding = (new Web3()).utils.keccak256('depositLinkFunds(address,uint256)')
+    const depositSelector = depositEncoding.slice(0,4)
+
+    log.info(`Depositing ${amount} to trade contract ${this.contractAddress}`)
+    await linkContract.transferAndCall(this.contractAddress, amount, depositSelector)
   }
 }
 
