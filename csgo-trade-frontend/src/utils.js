@@ -67,10 +67,23 @@ function makeGroups(array, groupSize) {
     return groups
 }
 
+export function getMetamask() {
+    if (typeof window.ethereum !== 'undefined') {
+        console.log('Metamask web3 is enabled')       
+        // eslint-disable-next-line     
+        return window.ethereum
+      } else {
+        console.info('web3 is not found')
+        return false
+      }
+}
+
+
 export default {
     inspectLinkToSMAD,
     getInventoryURL,
     TradeOutcome,
     getTimeDifference,
-    makeGroups
+    makeGroups,
+    getMetamask
 }
