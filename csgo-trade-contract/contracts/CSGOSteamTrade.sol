@@ -87,10 +87,10 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         }
     }
     
-    function createListing(string memory _ownerInspectLink, string memory _wear,
-        string memory _skinName, uint _paintSeed, string memory _extraItemData,
+    function createListing(string calldata _ownerInspectLink, string calldata _wear,
+        string calldata _skinName, uint _paintSeed, string calldata _extraItemData,
         uint _price)
-        public
+        external
         returns (uint listingId) {
         listingId = numListings++;
         PurchaseOffer memory emptyOffer;
@@ -100,16 +100,16 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         listings[listingId] = listing;
     }
     
-    function getListing(uint _listingId) public view returns (Listing memory listing) {
+    function getListing(uint _listingId) external view returns (Listing memory listing) {
         listing = listings[_listingId];
     }
 
-    function getListingsCount() public view returns (uint) {
+    function getListingsCount() external view returns (uint) {
         return numListings;
     }
     
     function deleteListing(uint _listingId)
-        public
+        external
         onlySeller(_listingId) {
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
@@ -123,7 +123,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         }
     }
 
-    function createPurchaseOffer(uint _listingId, string memory _buyerTradeURL) public payable {
+    function createPurchaseOffer(uint _listingId, string calldata _buyerTradeURL) external payable {
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
         require(listing.purchaseOffer.exists == false, "Listing already has a purchase offer");
@@ -138,7 +138,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
     }
 
     function deletePurchaseOffer(uint _listingId)
-        public
+        external
         onlyBuyer(_listingId) {
         Listing memory listing = listings[_listingId];
         require(listing.exists == true, ERR_LISTING_NOT_FOUND);
@@ -159,8 +159,8 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
         address _oracle,
         bytes32 _jobId,
         uint256 _payment,
-        string memory _buyerInspectLink)
-        public
+        string calldata _buyerInspectLink)
+        external
         onlySeller(_listingId)
         returns (bytes32 requestId) {
         require(linkTokenFunds[msg.sender] >= _payment, "Not enough LINK funds");
@@ -196,7 +196,7 @@ contract CSGOSteamTrade is ChainlinkClient, Ownable {
    * @param _ownershipStatus The answer provided by the oracle
    */
     function fulfillItemTransferConfirmation(bytes32 _requestId, uint256 _ownershipStatus)
-        public
+        external
         recordChainlinkFulfillment(_requestId) {
 
         uint listingId = requestIdToListingId[_requestId];
