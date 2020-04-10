@@ -5,6 +5,7 @@ const h = require('chainlink-test-helpers')
 const truffleAssert = require('truffle-assertions')
 const truffleTestUtils = require('./truffleTestUtils')
 const BigNumber = require('bignumber.js')
+const linkTokenContract = require('./helpers/linkToken.js')
 const { BN, constants, expectEvent, expectRevert } = require('@openzeppelin/test-helpers')
 
 async function getTxCost(txResult) {
@@ -18,7 +19,7 @@ async function getTxCost(txResult) {
  }
 
 contract('CSGOSteamTrade', accounts => {
-  const LinkToken = artifacts.require('LinkToken.sol')
+  // const LinkToken = artifacts.require('LinkToken.sol')
   const Oracle = artifacts.require('Oracle.sol')
   const CSGOSteamTrade  = artifacts.require('CSGOSteamTrade.sol')
 
@@ -78,7 +79,7 @@ contract('CSGOSteamTrade', accounts => {
   }
 
   beforeEach(async () => {
-    linkToken = await LinkToken.new()
+    linkToken =  await linkTokenContract.linkContract(defaultAccount)
     oracleContract = await Oracle.new(linkToken.address, { from: defaultAccount })
     csGOContract = await CSGOSteamTrade.new(linkToken.address, { from: seller })
     await oracleContract.setFulfillmentPermission(oracleNode, true, {
@@ -125,12 +126,12 @@ contract('CSGOSteamTrade', accounts => {
         assert.equal((new BigNumber(balanceAfter).minus(new BigNumber(balanceBefore)).toFixed()), halfTheDeposit.toFixed())
       })
     })
-  }) 
+  })
 
   describe('#createListing', () => {
     context('on a contract with no previous history', () => {
       it('can create a new listing and emits creation event', async () => {
-        
+
         const r = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
           listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
           {from: seller })
@@ -192,7 +193,7 @@ contract('CSGOSteamTrade', accounts => {
   describe('#createPurchaseOffer', () => {
     context('on a contract with an existing listing', () => {
       const buyerTradeURL = 'https://steamcommunity.com/tradeoffer/new/?partner=902300366&token=HYgPwBhA'
-      
+
       let listingId = null
       const listing = listing1
       beforeEach(async () => {
@@ -219,7 +220,7 @@ contract('CSGOSteamTrade', accounts => {
         assert.equal(stored.price, listing1.price)
         assert.equal(stored.sellerAddress, listing1.sellerAddress)
         assert.equal(stored.exists, true)
-        
+
         assert.equal(updatedOffer.owner, buyer)
         assert.equal(updatedOffer.buyerTradeURL, buyerTradeURL)
         assert.equal(updatedOffer.exists, true)
@@ -233,7 +234,7 @@ contract('CSGOSteamTrade', accounts => {
           from: buyer,
           value: listing.price
         })
-        
+
         await truffleAssert.reverts(
           csGOContract.createPurchaseOffer(listingId, buyerTradeURL, {
             from: buyer,
@@ -300,14 +301,14 @@ contract('CSGOSteamTrade', accounts => {
       const createListingTx = await csGOContract.createListing(listing1.ownerInspectLink, listing1.wear,
         listing1.skinName, listing1.paintSeed, listing1.extraItemData, listing1.price,
         { from: seller })
-        
+
       const createdListingId = getListingId(createListingTx)
 
       await csGOContract.createPurchaseOffer(createdListingId, buyerTradeURL, {
         from: buyer,
         value: listing1.price
       })
-      
+
       const balanceBefore = BigNumber(await web3.eth.getBalance(buyer))
       await csGOContract.deleteListing(createdListingId, { from: seller })
       const balanceAfter = BigNumber(await web3.eth.getBalance(buyer))
@@ -318,7 +319,7 @@ contract('CSGOSteamTrade', accounts => {
 
 
   describe('#deletePurchaseOffer', () => {
-    
+
     context('on a contract with an existing listing', () => {
       const buyerTradeURL = 'https://steamcommunity.com/tradeoffer/new/?partner=902300366&token=HYgPwBhA'
       const listing = listing1
@@ -376,7 +377,7 @@ contract('CSGOSteamTrade', accounts => {
         })
 
         await truffleTestUtils.advanceTimeAndBlock(minimumAgeForPurchaseDeletion + 5)
-        
+
         await truffleAssert.reverts(
           csGOContract.deletePurchaseOffer(listingId, {
             from: stranger
@@ -415,7 +416,7 @@ contract('CSGOSteamTrade', accounts => {
       const buyerInspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198266545231A16941417193D7840463547991005224'
       const buyerTradeURL = 'https://steamcommunity.com/tradeoffer/new/?partner=902300366&token=HYgPwBhA'
       let listingId = 0
-  
+
       beforeEach(async () => {
         const listing = listing1
         await addToLinkFunds(seller)
@@ -457,7 +458,7 @@ contract('CSGOSteamTrade', accounts => {
 
         const listing = await csGOContract.getListing(listingId)
         assert.equal(false, listing.exists)
-        
+
         assert.equal(balanceBefore.plus(listing.price).toFixed(), balanceAfter.toFixed())
       })
 
@@ -510,7 +511,7 @@ contract('CSGOSteamTrade', accounts => {
 
     describe('#cancelRequest', () => {
       let request
-    
+
       beforeEach(async () => {
         const listing = listing1
         const buyerInspectLink = 'steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20S76561198266545231A16941417193D7840463547991005224'
@@ -536,7 +537,7 @@ contract('CSGOSteamTrade', accounts => {
         )
         request = h.decodeRunRequest(tx.receipt.rawLogs[3])
       })
-  
+
       context('before the expiration time', () => {
         it('cannot cancel a request', async () => {
           await h.assertActionThrows(async () => {
@@ -549,12 +550,12 @@ contract('CSGOSteamTrade', accounts => {
           })
         })
       })
-  
+
       context('after the expiration time', () => {
         beforeEach(async () => {
           await h.increaseTime5Minutes()
         })
-  
+
         context('when called by a non-owner', () => {
           it('cannot cancel a request', async () => {
             await h.assertActionThrows(async () => {
@@ -567,7 +568,7 @@ contract('CSGOSteamTrade', accounts => {
             })
           })
         })
-  
+
         context('when called by an owner', () => {
           it('can cancel a request', async () => {
             await csGOContract.cancelRequest(
