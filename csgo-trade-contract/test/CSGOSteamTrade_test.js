@@ -101,7 +101,8 @@ contract('CSGOSteamTrade', accounts => {
         })
       })
       it('fetches LINK balance of seller correctly', async () => {
-        const balance = await csGOContract.balanceOfLink.call(seller)
+
+        const balance = await csGOContract.linkTokenFunds.call(seller)
         assert.equal(balance, initialDepositValue)
       })
 

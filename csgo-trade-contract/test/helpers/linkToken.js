@@ -6,8 +6,15 @@ exports.linkContract = async account => {
   if (!account) {
     throw Error('No account supplied as a parameter')
   }
+
+  const web3Contract = new web3.eth.Contract(LinkToken_json.abi)
+  web3Contract.options.data = LinkToken_json.bytecode
+
+
   const receipt = await web3.eth.sendTransaction({
-    data: LinkToken_json.bytecode,
+    data: web3Contract.deploy({
+      arguments: []
+    }).encodeABI(),
     from: account,
     gas: 2000000,
   })
