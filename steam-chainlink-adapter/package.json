@@ -15,7 +15,7 @@
     "coroutine-utils": "0.0.1",
     "express": "^4.17.1",
     "globaloffensive": "^2.0.2",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "steam-totp": "^2.1.1",
     "steam-user": "^4.12.4",
     "steamcommunity": "^3.41.1",
