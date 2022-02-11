@@ -17,7 +17,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@openzeppelin/contracts": "^2.4.0",
+    "@openzeppelin/contracts": "^4.4.2",
     "bignumber.js": "^9.0.0",
     "chainlink": "0.7.6",
     "chainlink-test-helpers": "0.6.0-6",
