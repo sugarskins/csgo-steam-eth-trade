@@ -13,7 +13,7 @@
     "body-parser": "^1.19.0",
     "cls-hooked": "^4.2.2",
     "coroutine-utils": "0.0.1",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "globaloffensive": "^2.0.2",
     "node-fetch": "^2.6.0",
     "steam-totp": "^2.1.1",
